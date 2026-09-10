@@ -6,7 +6,23 @@ const worker = {
       url.protocol = "https:";
       return Response.redirect(url.toString(), 301);
     }
-    return env.ASSETS.fetch(request);
+
+    const response = await env.ASSETS.fetch(request);
+    if (
+      url.pathname ===
+        "/.well-known/apple-developer-merchantid-domain-association" &&
+      response.ok
+    ) {
+      const headers = new Headers(response.headers);
+      headers.set("Content-Type", "application/octet-stream");
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers,
+      });
+    }
+
+    return response;
   },
 };
 
