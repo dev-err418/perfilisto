@@ -2,7 +2,7 @@ import { existsSync, renameSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 const apiDir = "src/app/api";
-const hiddenDir = "src/app/.api-export-skip";
+const hiddenDir = ".api-export-skip";
 
 if (existsSync(apiDir)) {
   renameSync(apiDir, hiddenDir);
