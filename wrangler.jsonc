@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "perfilisto",
+  "main": "worker/index.js",
+  "account_id": "c613fe924beeb251118eef275c551b83",
+  "compatibility_date": "2026-09-10",
+  "workers_dev": false,
+  "preview_urls": false,
+  "assets": {
+    "directory": "./out",
+    "binding": "ASSETS",
+    "run_worker_first": true,
+    "not_found_handling": "404-page"
+  },
+  "routes": [
+    { "pattern": "perfilisto.com", "custom_domain": true },
+    { "pattern": "www.perfilisto.com", "custom_domain": true }
+  ]
+}
