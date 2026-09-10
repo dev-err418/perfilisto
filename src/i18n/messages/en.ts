@@ -18,12 +18,16 @@ export const en = {
   },
   hero: {
     badge: "#1 🇪🇸 Spanish AI headshot",
-    titleLine1: "Studio-quality headshots.",
+    titleTint: "Studio-quality",
+    titleLine1: "headshots.",
     titleLine2: "From your selfies.",
     description:
       "Get professional photos for your LinkedIn, CV, and website without booking a photographer. Upload your selfies and let Perfilisto do the rest.",
     cta: "Create my headshots",
-    supportingText: "Your photos stay private.",
+    supportingText: "Your photos stay private",
+    rating: "4.8/5",
+    ratingLabel: "Rated 4.8 out of 5",
+    trustText: "Trusted by +1453 professionals",
   },
 } as const;
 
