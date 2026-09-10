@@ -21,7 +21,7 @@ export const Hero = ({ messages }: { messages: Messages }) => (
         {messages.hero.titleLine2}
       </h1>
 
-      <p className="mx-auto mt-6 w-full max-w-xl text-base text-pretty text-muted-foreground sm:text-lg xl:text-[20px] xl:leading-[26px] xl:font-[400]">
+      <p className="mx-auto mt-6 w-full max-w-xl text-base font-medium text-pretty text-muted-foreground sm:text-lg xl:text-[20px] xl:leading-[26px]">
         {messages.hero.description}
       </p>
       <AppSignupCta
