@@ -8,24 +8,32 @@ import type { GenderOption } from "./gender-step";
 
 const messages = getMessages();
 
-export type HairTypeOption =
-  (typeof messages.onboarding.hairType.options)[number]["id"];
+export type AttireOption =
+  (typeof messages.onboarding.attire.options)[number]["id"];
 
-const photoFor = (gender: GenderOption | null, id: HairTypeOption) => {
+const photoFor = (gender: GenderOption | null, id: AttireOption) => {
   const set = gender === "woman" ? "woman" : "man";
-  return `/onboarding/hair-type/${set}-${id}.jpg`;
+  return `/onboarding/attire/${set}-${id}.jpg`;
 };
 
-export const HairTypeStep = ({
+export const AttireStep = ({
   gender,
   value,
   onChange,
 }: {
   gender: GenderOption | null;
-  value: HairTypeOption | null;
-  onChange: (value: HairTypeOption) => void;
+  value: AttireOption[];
+  onChange: (value: AttireOption[]) => void;
 }) => {
-  const copy = messages.onboarding.hairType;
+  const copy = messages.onboarding.attire;
+
+  const toggle = (id: AttireOption) => {
+    if (value.includes(id)) {
+      onChange(value.filter((item) => item !== id));
+      return;
+    }
+    onChange([...value, id]);
+  };
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center pt-6 sm:pt-10">
@@ -36,15 +44,15 @@ export const HairTypeStep = ({
         {copy.subtitle}
       </p>
 
-      <div className="mt-10 grid w-full grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-10 grid w-full gap-4 sm:grid-cols-3">
         {copy.options.map((option) => {
-          const selected = value === option.id;
+          const selected = value.includes(option.id);
 
           return (
             <button
               key={option.id}
               type="button"
-              onClick={() => onChange(option.id)}
+              onClick={() => toggle(option.id)}
               aria-pressed={selected}
               className={cn(
                 "flex flex-col overflow-hidden rounded-2xl border bg-white text-left",
@@ -63,22 +71,22 @@ export const HairTypeStep = ({
                 />
                 <span
                   className={cn(
-                    "absolute top-2.5 right-2.5 grid size-6 place-items-center rounded-full border bg-white/90",
+                    "absolute top-2.5 right-2.5 grid size-6 place-items-center rounded-full",
                     selected
-                      ? "border-transparent bg-[var(--primary)] text-white"
-                      : "border-black/15 bg-white/90 text-transparent",
+                      ? "bg-[var(--primary)] text-white"
+                      : "border border-black/15 bg-white/90 text-transparent",
                   )}
                 >
                   <IconCheck className="size-3.5" stroke={2.6} />
                 </span>
               </span>
-              <span
-                className={cn(
-                  "px-3 py-3 text-[15px] font-semibold",
-                  selected ? "bg-[var(--primary)] text-white" : "text-[#141414]",
-                )}
-              >
-                {option.label}
+              <span className="px-4 py-4">
+                <span className="block text-[15px] font-semibold text-[#141414]">
+                  {option.label}
+                </span>
+                <span className="mt-1 block text-sm leading-5 text-muted-foreground">
+                  {option.description}
+                </span>
               </span>
             </button>
           );

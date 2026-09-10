@@ -49,7 +49,7 @@ export const HairLengthStep = ({
               className={cn(
                 "flex flex-col overflow-hidden rounded-2xl border bg-white text-left",
                 selected
-                  ? "border-[#141414]"
+                  ? "border-[var(--primary)]"
                   : "border-black/10 hover:border-black/25",
               )}
             >
@@ -65,14 +65,19 @@ export const HairLengthStep = ({
                   className={cn(
                     "absolute top-2.5 right-2.5 grid size-6 place-items-center rounded-full border bg-white/90",
                     selected
-                      ? "border-[var(--primary)] text-[var(--primary)]"
-                      : "border-black/15 text-transparent",
+                      ? "border-transparent bg-[var(--primary)] text-white"
+                      : "border-black/15 bg-white/90 text-transparent",
                   )}
                 >
                   <IconCheck className="size-3.5" stroke={2.6} />
                 </span>
               </span>
-              <span className="px-3 py-3 text-[15px] font-semibold text-[#141414]">
+              <span
+                className={cn(
+                  "px-3 py-3 text-[15px] font-semibold",
+                  selected ? "bg-[var(--primary)] text-white" : "text-[#141414]",
+                )}
+              >
                 {option.label}
               </span>
             </button>

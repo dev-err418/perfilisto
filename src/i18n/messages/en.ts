@@ -324,6 +324,18 @@ export const en = {
       close: "Close",
       subtitle: "Help us generate photos that match your preferences.",
     },
+    leave: {
+      stat: "4.8/5",
+      statLabel: "from +1,453 professionals using Perfilisto",
+      title: "Are you sure you want to leave?",
+      bodyBefore: "As a special promotional offer, we want to give you",
+      offer: "10% off",
+      bodyAfter: "your photos. Use the coupon code",
+      code: "NEW10",
+      bodyEnd: "at checkout.",
+      dashboard: "Go to homepage",
+      claim: "Claim my discount",
+    },
     gender: {
       title: "What's your gender?",
       man: "Man",
@@ -379,6 +391,143 @@ export const en = {
         { id: "wavy", label: "Wavy" },
         { id: "curly", label: "Curly" },
         { id: "dreadlocks", label: "Dreadlocks" },
+      ],
+    },
+    bodyType: {
+      title: "What's your body type?",
+      subtitle:
+        "If you're between body type options, choose the closest match.",
+      options: [
+        { id: "slim", label: "Slim" },
+        { id: "regular", label: "Regular" },
+        { id: "athletic", label: "Athletic" },
+        { id: "medium-large", label: "Medium large" },
+        { id: "large", label: "Large" },
+        { id: "plus-size", label: "Plus Size" },
+      ],
+    },
+    attire: {
+      title: "Select your attire",
+      subtitle:
+        "You'll get an equal mix of results featuring the 3 most popular attires.",
+      options: [
+        {
+          id: "professional",
+          label: "Business Professional",
+          description: "Formal dress shirts and suits with matching ties",
+        },
+        {
+          id: "business-casual",
+          label: "Business Casual",
+          description: "Blazers and jackets, long-sleeve shirts",
+        },
+        {
+          id: "smart-casual",
+          label: "Smart Casual",
+          description:
+            "Comfortable sweaters, button-down shirts of varying sleeve lengths",
+        },
+      ],
+    },
+    backgrounds: {
+      title: "Select your backgrounds",
+      subtitle:
+        "You'll get an equal mix of results featuring the 4 most popular backgrounds.",
+      options: [
+        {
+          id: "city",
+          label: "City",
+          description: "Vibrant urban city streets",
+        },
+        {
+          id: "nature",
+          label: "Nature",
+          description: "Outdoor parks or tree-lined streets",
+        },
+        {
+          id: "office",
+          label: "Office",
+          description: "Bright, minimalistic corporate office",
+        },
+        {
+          id: "studio",
+          label: "Studio",
+          description: "Professional photoshoot studio",
+        },
+      ],
+    },
+    upload: {
+      title: "Upload Photos",
+      tips: [
+        "Upload 6–10 photos",
+        "Mix of selfies and mid-range shots",
+        "Ensure photos are in good lighting",
+        "Your photos stay private",
+      ],
+      computerTitle: "Upload from your computer",
+      uploadFiles: "Upload files",
+      dropHint: "or drag and drop your photos",
+      formats: "PNG, JPG, HEIC, WEBP up to 120MB",
+      mobileTitle: "Or upload from your mobile",
+      qrTitle: "Scan the QR code",
+      howToPhone: "How do I upload from my phone?",
+      qrModalTitle: "Scan the QR code",
+      qrModalBody:
+        "Use your phone's camera to scan this QR code and upload photos directly from your mobile device",
+      qrSteps: [
+        "Open your phone's camera app",
+        "Point it at the QR code above",
+        "Select photos from your gallery or take new ones",
+        "Photos will sync back to your desktop session",
+      ],
+      mobileUrlLabel: "Mobile Upload URL:",
+      copy: "Copy",
+      copied: "Copied",
+      closeModal: "Close",
+      count: "Uploaded {count} of {max}",
+      minimum: "Minimum of {min} photos",
+      hoverHint: "Hover over an example to preview more",
+      requirementsTitle: "Photo requirements",
+      restrictionsTitle: "Photo restrictions",
+      requirementGroups: [
+        {
+          caption: "Front-facing, eye-level",
+          photos: [
+            { src: "/onboarding/hair-length/woman-short.jpg", label: "Front-facing" },
+            { src: "/onboarding/body-type/man-regular.jpg", label: "Eye-level" },
+          ],
+        },
+        {
+          caption: "Mix of close-up + mid-range",
+          photos: [
+            { src: "/onboarding/attire/woman-professional.jpg", label: "Selfie" },
+            { src: "/onboarding/body-type/woman-regular.jpg", label: "Waist up" },
+          ],
+        },
+        {
+          caption: "Several outfits, backgrounds",
+          photos: [
+            { src: "/onboarding/backgrounds/man-city.jpg", label: "City, sweater" },
+            { src: "/onboarding/attire/man-smart-casual.jpg", label: "Home, polo" },
+          ],
+        },
+        {
+          caption: "Recent, with consistent hair",
+          photos: [
+            { src: "/onboarding/attire/woman-professional.jpg", label: "Recent" },
+            { src: "/onboarding/hair-length/woman-medium.jpg", label: "Neat hair" },
+          ],
+        },
+      ],
+      restrictionPhotos: [
+        { src: "/onboarding/upload/side-profile.jpg", label: "Side profile" },
+        { src: "/onboarding/upload/from-below.jpg", label: "From below" },
+        { src: "/onboarding/upload/low-lighting.jpg", label: "Low lighting" },
+        { src: "/onboarding/upload/ai-generated.jpg", label: "AI generated" },
+        { src: "/onboarding/upload/too-close.jpg", label: "Too close" },
+        { src: "/onboarding/upload/too-far.jpg", label: "Too far" },
+        { src: "/onboarding/upload/swimwear.jpg", label: "Swimwear" },
+        { src: "/onboarding/upload/hat-glasses.jpg", label: "Hat, glasses" },
       ],
     },
   },

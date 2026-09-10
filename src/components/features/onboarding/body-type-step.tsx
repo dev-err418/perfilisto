@@ -8,27 +8,27 @@ import type { GenderOption } from "./gender-step";
 
 const messages = getMessages();
 
-export type HairTypeOption =
-  (typeof messages.onboarding.hairType.options)[number]["id"];
+export type BodyTypeOption =
+  (typeof messages.onboarding.bodyType.options)[number]["id"];
 
-const photoFor = (gender: GenderOption | null, id: HairTypeOption) => {
+const photoFor = (gender: GenderOption | null, id: BodyTypeOption) => {
   const set = gender === "woman" ? "woman" : "man";
-  return `/onboarding/hair-type/${set}-${id}.jpg`;
+  return `/onboarding/body-type/${set}-${id}.jpg`;
 };
 
-export const HairTypeStep = ({
+export const BodyTypeStep = ({
   gender,
   value,
   onChange,
 }: {
   gender: GenderOption | null;
-  value: HairTypeOption | null;
-  onChange: (value: HairTypeOption) => void;
+  value: BodyTypeOption | null;
+  onChange: (value: BodyTypeOption) => void;
 }) => {
-  const copy = messages.onboarding.hairType;
+  const copy = messages.onboarding.bodyType;
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center pt-6 sm:pt-10">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center pt-6 sm:pt-10">
       <h1 className="text-center text-[2rem] leading-tight font-semibold tracking-tight text-[#141414] sm:text-4xl">
         {copy.title}
       </h1>
@@ -36,7 +36,7 @@ export const HairTypeStep = ({
         {copy.subtitle}
       </p>
 
-      <div className="mt-10 grid w-full grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-10 grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
         {copy.options.map((option) => {
           const selected = value === option.id;
 

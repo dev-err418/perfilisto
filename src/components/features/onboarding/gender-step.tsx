@@ -47,14 +47,14 @@ export const GenderStep = ({
               onClick={() => onChange(option.id)}
               aria-pressed={selected}
               className={cn(
-                "flex h-14 items-center gap-3 rounded-2xl border bg-white px-4 text-left text-[15px] font-medium text-[#141414] transition-colors",
+                "flex h-14 items-center gap-3 rounded-2xl border px-4 text-left text-[15px] font-medium transition-colors",
                 selected
-                  ? "border-[#141414]"
-                  : "border-black/15 hover:border-black/30",
+                  ? "border-transparent bg-[var(--primary)] text-white"
+                  : "border-black/15 bg-white text-[#141414] hover:border-black/30",
               )}
             >
               {Icon ? (
-                <Icon className="size-5 shrink-0 text-[#141414]" stroke={1.8} />
+                <Icon className="size-5 shrink-0" stroke={1.8} />
               ) : (
                 <span className="size-5 shrink-0" />
               )}
@@ -62,13 +62,11 @@ export const GenderStep = ({
               <span
                 className={cn(
                   "grid size-4 shrink-0 place-items-center rounded-full border",
-                  selected
-                    ? "border-[var(--primary)]"
-                    : "border-black/25",
+                  selected ? "border-white" : "border-black/25",
                 )}
               >
                 {selected ? (
-                  <span className="size-2 rounded-full bg-[var(--primary)]" />
+                  <span className="size-2 rounded-full bg-white" />
                 ) : null}
               </span>
             </button>

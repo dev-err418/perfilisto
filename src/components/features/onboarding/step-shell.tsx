@@ -16,6 +16,9 @@ export const OnboardingStepShell = ({
   onBack,
   continueDisabled,
   continueLabel,
+  hideBack,
+  hideContinue,
+  onClose,
   onContinue,
   children,
 }: {
@@ -23,6 +26,9 @@ export const OnboardingStepShell = ({
   onBack?: () => void;
   continueDisabled?: boolean;
   continueLabel?: string;
+  hideBack?: boolean;
+  hideContinue?: boolean;
+  onClose?: () => void;
   onContinue?: () => void;
   children: ReactNode;
 }) => {
@@ -51,17 +57,18 @@ export const OnboardingStepShell = ({
             style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
           />
         </div>
-        <Link
-          href="/"
+        <button
+          type="button"
+          onClick={onClose}
           aria-label={copy.close}
           className="ml-auto grid size-10 place-items-center rounded-full text-[#141414] hover:bg-black/[0.04]"
         >
           <IconX className="size-5" stroke={1.8} />
-        </Link>
+        </button>
       </header>
 
       <div className="relative flex min-h-0 flex-1 flex-col">
-        {onBack ? (
+        {onBack && !hideBack ? (
           <button
             type="button"
             onClick={onBack}
@@ -72,7 +79,12 @@ export const OnboardingStepShell = ({
           </button>
         ) : null}
 
-        <div className="flex flex-1 flex-col px-5 pt-16 pb-8 sm:px-8">
+        <div
+          className={cn(
+            "flex min-h-0 flex-1 flex-col pb-8",
+            hideBack ? "px-5 pt-4 sm:px-8" : "px-5 pt-16 sm:px-8",
+          )}
+        >
           {children}
         </div>
 
@@ -82,19 +94,21 @@ export const OnboardingStepShell = ({
         />
       </div>
 
-      <div className="relative z-10 flex shrink-0 justify-center border-t border-black/[0.04] bg-white px-5 py-4 sm:py-5">
-        <button
-          type="button"
-          disabled={continueDisabled}
-          onClick={onContinue}
-          className={cn(
-            PRIMARY_TINT_BUTTON_CLASS,
-            "inline-flex h-12 w-full max-w-sm items-center justify-center rounded-xl px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
-          )}
-        >
-          {continueLabel ?? copy.continue}
-        </button>
-      </div>
+      {hideContinue ? null : (
+        <div className="relative z-10 flex shrink-0 justify-center border-t border-black/[0.04] bg-white px-5 py-4 sm:py-5">
+          <button
+            type="button"
+            disabled={continueDisabled}
+            onClick={onContinue}
+            className={cn(
+              PRIMARY_TINT_BUTTON_CLASS,
+              "inline-flex h-12 w-full max-w-sm items-center justify-center rounded-xl px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
+            )}
+          >
+            {continueLabel ?? copy.continue}
+          </button>
+        </div>
+      )}
     </div>
   );
 };
