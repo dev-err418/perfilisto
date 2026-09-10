@@ -67,7 +67,7 @@ export const HeadshotTransitionStrip = ({
   return (
     <div
       className={cn(
-        "headshot-transition-showcase relative mt-auto h-[clamp(220px,32vh,360px)] w-full min-w-full shrink-0 self-stretch overflow-visible",
+        "headshot-transition-showcase relative mt-10 h-[clamp(220px,32vh,360px)] w-full min-w-full shrink-0 self-stretch overflow-visible sm:mt-12",
         hoveredIndex !== null && "is-paused",
       )}
       aria-label={`${beforeLabel} to ${afterLabel}`}

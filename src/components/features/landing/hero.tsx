@@ -5,8 +5,7 @@ import { HeadshotTransitionStrip } from "./headshot-transition-strip";
 
 export const Hero = ({ messages }: { messages: Messages }) => (
   <section
-    className="relative z-20 mt-1 flex min-h-0 w-full flex-1 flex-col items-center justify-start pt-[clamp(2px,1vh,12px)] text-center sm:mt-2"
-    style={{ minHeight: "max(480px, calc(100svh - 118px))" }}
+    className="relative z-20 mt-1 flex w-full flex-col items-center justify-start pt-[clamp(2px,1vh,12px)] text-center sm:mt-2"
   >
     <div className="relative z-10 flex w-full min-w-0 max-w-4xl flex-col items-center px-6">
       <p className="hero-badge mx-auto mb-3 w-fit rounded-full px-4 py-1.5 text-xs font-semibold tracking-[0.1px] sm:text-sm">
