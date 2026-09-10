@@ -5,6 +5,11 @@ import { getMessages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import type { GenderOption } from "./gender-step";
+import {
+  imageChoiceCardClass,
+  imageChoiceGridClass,
+  imageChoicePhotoClass,
+} from "./image-choice";
 
 const messages = getMessages();
 
@@ -28,7 +33,7 @@ export const BodyTypeStep = ({
   const copy = messages.onboarding.bodyType;
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col items-center pt-6 sm:pt-10">
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center pt-6 sm:pt-10">
       <h1 className="text-center text-[2rem] leading-tight font-semibold tracking-tight text-[#141414] sm:text-4xl">
         {copy.title}
       </h1>
@@ -36,7 +41,7 @@ export const BodyTypeStep = ({
         {copy.subtitle}
       </p>
 
-      <div className="mt-10 grid w-full grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className={imageChoiceGridClass}>
         {copy.options.map((option) => {
           const selected = value === option.id;
 
@@ -47,13 +52,13 @@ export const BodyTypeStep = ({
               onClick={() => onChange(option.id)}
               aria-pressed={selected}
               className={cn(
-                "flex flex-col overflow-hidden rounded-2xl border bg-white text-left",
+                imageChoiceCardClass,
                 selected
                   ? "border-[var(--primary)]"
                   : "border-black/10 hover:border-black/25",
               )}
             >
-              <span className="relative aspect-[3/4] w-full overflow-hidden bg-[#ececec]">
+              <span className={imageChoicePhotoClass}>
                 <Image
                   src={photoFor(gender, option.id)}
                   alt=""

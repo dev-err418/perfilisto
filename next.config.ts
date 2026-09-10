@@ -2,7 +2,7 @@ import path from "path";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  output: "export",
+  ...(process.env.NEXT_OUTPUT === "export" ? { output: "export" as const } : {}),
   poweredByHeader: false,
   turbopack: {
     root: path.join(__dirname),

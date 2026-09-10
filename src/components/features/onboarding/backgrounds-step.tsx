@@ -5,6 +5,11 @@ import { getMessages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import type { GenderOption } from "./gender-step";
+import {
+  imageChoiceCardClass,
+  imageChoiceGridClass,
+  imageChoicePhotoClass,
+} from "./image-choice";
 
 const messages = getMessages();
 
@@ -44,7 +49,7 @@ export const BackgroundsStep = ({
         {copy.subtitle}
       </p>
 
-      <div className="mt-10 grid w-full grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className={imageChoiceGridClass}>
         {copy.options.map((option) => {
           const selected = value.includes(option.id);
 
@@ -55,13 +60,13 @@ export const BackgroundsStep = ({
               onClick={() => toggle(option.id)}
               aria-pressed={selected}
               className={cn(
-                "flex flex-col overflow-hidden rounded-2xl border bg-white text-left",
+                imageChoiceCardClass,
                 selected
                   ? "border-[var(--primary)]"
                   : "border-black/10 hover:border-black/25",
               )}
             >
-              <span className="relative aspect-[3/4] w-full overflow-hidden bg-[#ececec]">
+              <span className={imageChoicePhotoClass}>
                 <Image
                   src={photoFor(gender, option.id)}
                   alt=""
@@ -80,7 +85,7 @@ export const BackgroundsStep = ({
                   <IconCheck className="size-3.5" stroke={2.6} />
                 </span>
               </span>
-              <span className="px-4 py-4">
+              <span className="px-3 py-3">
                 <span className="block text-[15px] font-semibold text-[#141414]">
                   {option.label}
                 </span>

@@ -87,11 +87,6 @@ export const OnboardingStepShell = ({
         >
           {children}
         </div>
-
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#f97316]/20 to-transparent"
-        />
       </div>
 
       {hideContinue ? null : (

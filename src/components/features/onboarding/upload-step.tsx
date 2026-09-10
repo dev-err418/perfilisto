@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, type DragEvent } from "react";
+import { useEffect, useRef, useState, type DragEvent } from "react";
+import QRCode from "qrcode";
 import Image from "next/image";
 import {
   IconCamera,
@@ -16,6 +17,10 @@ import {
 } from "@tabler/icons-react";
 
 import { getMessages } from "@/i18n";
+import {
+  createRemoteSession,
+  getRemoteSessionPhotos,
+} from "@/lib/upload-session-client";
 import { cn } from "@/lib/utils";
 
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
@@ -104,11 +109,58 @@ export const UploadStep = ({
   const [restrictionsOpen, setRestrictionsOpen] = useState(true);
   const [qrOpen, setQrOpen] = useState(false);
   const [copied, setCopied] = useState(false);
-  const sessionId = useId().replace(/:/g, "").slice(0, 8);
-  const mobileUrl = useMemo(
-    () => `https://perfilisto.com/upload-session/${sessionId || "preview"}`,
-    [sessionId],
-  );
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [mobileUrl, setMobileUrl] = useState("");
+  const [qrSvg, setQrSvg] = useState("");
+  const photosRef = useRef(photos);
+  const importedIds = useRef(new Set<string>());
+  photosRef.current = photos;
+
+  useEffect(() => {
+    let cancelled = false;
+    void createRemoteSession()
+      .then((id) => {
+        if (!cancelled) setSessionId(id);
+      })
+      .catch(() => {
+        if (!cancelled) setSessionId(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    const url = `${window.location.origin}/upload-session?s=${sessionId}`;
+    setMobileUrl(url);
+    void QRCode.toString(url, {
+      type: "svg",
+      margin: 1,
+      color: { dark: "#141414", light: "#00000000" },
+    }).then(setQrSvg);
+  }, [sessionId]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    const timer = window.setInterval(() => {
+      void getRemoteSessionPhotos(sessionId).then((remote) => {
+        if (!remote?.length) return;
+        const fresh = remote.filter((photo) => !importedIds.current.has(photo.id));
+        if (!fresh.length) return;
+        for (const photo of fresh) importedIds.current.add(photo.id);
+        onChange([
+          ...photosRef.current,
+          ...fresh.map((photo) => ({
+            id: photo.id,
+            name: photo.name,
+            url: photo.dataUrl,
+          })),
+        ]);
+      });
+    }, 1500);
+    return () => window.clearInterval(timer);
+  }, [onChange, sessionId]);
 
   useEffect(() => {
     if (!qrOpen) return;
@@ -230,7 +282,14 @@ export const UploadStep = ({
           className="mt-3 flex w-full flex-col items-center rounded-2xl border border-dashed border-black/15 px-4 py-5 text-center"
         >
           <p className="text-sm font-semibold text-[#141414]">{copy.qrTitle}</p>
-          <QrMark className="mt-3 size-24 text-[#141414]" />
+          {qrSvg ? (
+            <span
+              className="mt-3 block size-24 text-[#141414] [&_svg]:size-full"
+              dangerouslySetInnerHTML={{ __html: qrSvg }}
+            />
+          ) : (
+            <QrMark className="mt-3 size-24 text-[#141414]" />
+          )}
           <span className="mt-3 text-xs font-medium text-muted-foreground underline underline-offset-2">
             {copy.howToPhone}
           </span>
@@ -389,7 +448,14 @@ export const UploadStep = ({
               {copy.qrModalBody}
             </p>
             <div className="mt-6 flex flex-col gap-6 sm:flex-row sm:items-start">
-              <QrMark className="size-32 shrink-0 text-[#141414] sm:size-36" />
+              {qrSvg ? (
+                <span
+                  className="block size-32 shrink-0 text-[#141414] sm:size-36 [&_svg]:size-full"
+                  dangerouslySetInnerHTML={{ __html: qrSvg }}
+                />
+              ) : (
+                <QrMark className="size-32 shrink-0 text-[#141414] sm:size-36" />
+              )}
               <ol className="space-y-2 text-[15px] leading-6 text-[#141414]">
                 {copy.qrSteps.map((step, index) => (
                   <li key={step}>

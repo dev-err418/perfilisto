@@ -5,6 +5,11 @@ import { getMessages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import type { GenderOption } from "./gender-step";
+import {
+  imageChoiceCardClass,
+  imageChoiceGridClass,
+  imageChoicePhotoClass,
+} from "./image-choice";
 
 const messages = getMessages();
 
@@ -36,7 +41,7 @@ export const HairTypeStep = ({
         {copy.subtitle}
       </p>
 
-      <div className="mt-10 grid w-full grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className={imageChoiceGridClass}>
         {copy.options.map((option) => {
           const selected = value === option.id;
 
@@ -47,13 +52,13 @@ export const HairTypeStep = ({
               onClick={() => onChange(option.id)}
               aria-pressed={selected}
               className={cn(
-                "flex flex-col overflow-hidden rounded-2xl border bg-white text-left",
+                imageChoiceCardClass,
                 selected
                   ? "border-[var(--primary)]"
                   : "border-black/10 hover:border-black/25",
               )}
             >
-              <span className="relative aspect-[3/4] w-full overflow-hidden bg-[#ececec]">
+              <span className={imageChoicePhotoClass}>
                 <Image
                   src={photoFor(gender, option.id)}
                   alt=""

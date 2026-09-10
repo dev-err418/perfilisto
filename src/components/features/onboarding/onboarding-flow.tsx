@@ -115,7 +115,7 @@ export const OnboardingFlow = () => {
     return (value: T) => {
       setter(value);
       window.clearTimeout(advanceTimer.current);
-      advanceTimer.current = window.setTimeout(() => goNext(from), 280);
+      advanceTimer.current = window.setTimeout(() => goNext(from), 850);
     };
   };
 
