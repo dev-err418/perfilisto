@@ -1,5 +1,6 @@
 import { IconCheck, IconX } from "@tabler/icons-react";
 
+import { LogoMark } from "@/components/features/landing/logo-mark";
 import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
@@ -60,7 +61,10 @@ export const Compare = ({ messages }: { messages: Messages }) => {
               <tr className="border-b border-white/10">
                 <th className="w-[28%] px-5 py-5 sm:px-8" />
                 <th className="px-4 py-5 text-base font-semibold text-white sm:px-6 sm:text-lg">
-                  {copy.perfilisto}
+                  <span className="inline-flex items-center gap-2.5">
+                    <LogoMark className="size-6 shrink-0 sm:size-7" />
+                    {copy.perfilisto}
+                  </span>
                 </th>
                 <th className="px-4 py-5 text-base font-semibold text-white sm:px-6 sm:text-lg">
                   {copy.photographer}
