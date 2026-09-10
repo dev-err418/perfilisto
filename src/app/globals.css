@@ -27,6 +27,15 @@ html {
   --primary-tint-color: var(--secondary);
 }
 
+.primary-tint-surface {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--primary-tint-color) 88%, white),
+    var(--primary-tint-color),
+    color-mix(in srgb, var(--primary-tint-color) 88%, black)
+  );
+}
+
 .primary-tint-button {
   position: relative;
   overflow: hidden;
