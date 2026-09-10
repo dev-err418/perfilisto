@@ -13,7 +13,7 @@ export const AppSignupCta = ({
   supportingText?: string;
 }) => (
   <>
-    <div className="mx-auto mt-8 w-full max-w-[310px]">
+    <div className="mx-auto mt-6 w-full max-w-[310px]">
       {href ? <Link href={href} className={`${PRIMARY_CTA_BUTTON_CLASS} w-full min-w-0`}>
         {label}
         <IconArrowRight aria-hidden="true" className="size-6" stroke={2.2} />
