@@ -73,7 +73,10 @@ export const FaqSection = ({ messages }: { messages: Messages }) => {
         >
           {copy.title}
         </h2>
-        <div className="mt-12">
+        <p className="mx-auto mt-3 max-w-2xl text-center text-base font-medium text-pretty text-muted-foreground sm:text-lg">
+          {copy.subtitle}
+        </p>
+        <div className="mt-10 sm:mt-12">
           {copy.items.map((item, index) => (
             <FaqItem
               key={item.question}

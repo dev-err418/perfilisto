@@ -1,0 +1,100 @@
+import type { ReactNode } from "react";
+import Link from "next/link";
+import { IconArrowLeft, IconX } from "@tabler/icons-react";
+
+import { getMessages } from "@/i18n";
+import { cn } from "@/lib/utils";
+
+import { BrandWord } from "../landing/brand-name";
+import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
+import { LogoMark } from "../landing/logo-mark";
+
+const messages = getMessages();
+
+export const OnboardingStepShell = ({
+  progress,
+  onBack,
+  continueDisabled,
+  continueLabel,
+  onContinue,
+  children,
+}: {
+  progress: number;
+  onBack?: () => void;
+  continueDisabled?: boolean;
+  continueLabel?: string;
+  onContinue?: () => void;
+  children: ReactNode;
+}) => {
+  const copy = messages.onboarding.shared;
+
+  return (
+    <div className="theme-light flex min-h-dvh flex-col bg-white text-black [color-scheme:light]">
+      <header className="grid h-16 shrink-0 grid-cols-[1fr_minmax(0,16rem)_1fr] items-center gap-4 px-4 sm:px-6">
+        <Link
+          href="/"
+          aria-label={messages.brand.homeAriaLabel}
+          className="flex w-fit items-center gap-2"
+        >
+          <LogoMark className="size-7 rounded-[7px]" />
+          <BrandWord className="hidden text-[15px] font-semibold tracking-tight text-[#141414] sm:inline" />
+        </Link>
+        <div
+          className="h-1.5 overflow-hidden rounded-full bg-black/[0.08]"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={Math.round(progress * 100)}
+        >
+          <div
+            className="h-full rounded-full bg-[var(--primary)]"
+            style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
+          />
+        </div>
+        <Link
+          href="/"
+          aria-label={copy.close}
+          className="ml-auto grid size-10 place-items-center rounded-full text-[#141414] hover:bg-black/[0.04]"
+        >
+          <IconX className="size-5" stroke={1.8} />
+        </Link>
+      </header>
+
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        {onBack ? (
+          <button
+            type="button"
+            onClick={onBack}
+            className="absolute top-4 left-4 z-10 inline-flex h-9 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 text-sm font-semibold text-[#141414] sm:left-8"
+          >
+            <IconArrowLeft className="size-4" stroke={2} />
+            {copy.back}
+          </button>
+        ) : null}
+
+        <div className="flex flex-1 flex-col px-5 pt-16 pb-8 sm:px-8">
+          {children}
+        </div>
+
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-[#f97316]/20 to-transparent"
+        />
+      </div>
+
+      <div className="relative z-10 flex shrink-0 justify-center border-t border-black/[0.04] bg-white px-5 py-4 sm:py-5">
+        <button
+          type="button"
+          disabled={continueDisabled}
+          onClick={onContinue}
+          className={cn(
+            PRIMARY_TINT_BUTTON_CLASS,
+            "inline-flex h-12 w-full max-w-sm items-center justify-center rounded-xl px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
+          )}
+        >
+          {continueLabel ?? copy.continue}
+        </button>
+      </div>
+    </div>
+  );
+};

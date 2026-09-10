@@ -29,11 +29,13 @@ export const softwareApplicationJsonLd: JsonValue = {
   operatingSystem: "Web",
   url: BASE_URL,
   description:
-    "A one-page professional profile you can share with recruiters, clients, and anyone who needs to know what you do.",
+    "An AI headshot generator that turns selfies into professional photos for LinkedIn, CVs, websites, and company profiles.",
   offers: {
-    "@type": "Offer",
-    price: "0",
-    priceCurrency: "USD",
+    "@type": "AggregateOffer",
+    lowPrice: "29",
+    highPrice: "59",
+    offerCount: "3",
+    priceCurrency: "EUR",
   },
   publisher: {
     "@type": "Organization",
