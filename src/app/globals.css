@@ -217,9 +217,22 @@ html {
   }
 }
 
+.homepage-static .faq-toggle-icon {
+  transition: transform 200ms ease !important;
+}
+
+.homepage-static .faq-answer {
+  transition: grid-template-rows 200ms ease !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .homepage-static .headshot-transition-track {
     animation-play-state: paused !important;
+  }
+
+  .homepage-static .faq-toggle-icon,
+  .homepage-static .faq-answer {
+    transition: none !important;
   }
 }
 

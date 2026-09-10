@@ -24,7 +24,7 @@ const LandingLogo = ({
   <Link href="/" aria-label={homeAriaLabel} className="flex items-center gap-2">
     <LogoMark
       className={
-        light ? "size-6" : "size-[30px] rounded-[5px] brightness-0 invert"
+        light ? "size-6" : "size-[30px] rounded-[5px]"
       }
     />
     <BrandWord
