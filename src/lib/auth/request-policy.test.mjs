@@ -43,3 +43,12 @@ test("canonical redirects preserve paths and query parameters", () => {
   assert.equal(policy.status, 301);
   assert.equal(policy.redirect, "https://perfilisto.com/login?redirect=%2Fdashboard");
 });
+
+test("album pages require login, preserve the order link and disable public caching", () => {
+  for (const path of ['/album?order=example', '/album.html?order=example', '/album/']) {
+    const policy = getRequestPolicy(`https://perfilisto.com${path}`);
+    assert.equal(new URL(policy.redirect).searchParams.get('redirect'), path);
+    assert.equal(policy.headers['Cache-Control'], 'private, no-store');
+    assert.equal(getRequestPolicy(`https://perfilisto.com${path}`, true).redirect, null);
+  }
+});

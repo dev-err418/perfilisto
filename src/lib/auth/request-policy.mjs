@@ -4,7 +4,8 @@ export function getRequestPolicy(requestUrl, authenticated = false) {
   const pathname = url.pathname.replace(/\.(html|txt|rsc)$/, "");
   const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isOnboarding = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
-  const requiresLogin = isDashboard || isOnboarding;
+  const isAlbum = pathname === "/album" || pathname.startsWith("/album/");
+  const requiresLogin = isDashboard || isOnboarding || isAlbum;
   const isLogin = url.pathname === "/login" || url.pathname === "/login/";
   const headers = requiresLogin || isLogin
     ? { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" }

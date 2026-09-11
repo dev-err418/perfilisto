@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { IconCheck } from "@tabler/icons-react";
 
 import type { Messages } from "@/i18n";
@@ -74,9 +75,12 @@ export const Pricing = ({ messages }: { messages: Messages }) => {
                 </span>
               </div>
 
-              <button type="button" className={planCtaClassName(plan.featured)}>
+              <Link
+                href={`/onboarding?plan=${plan.name.toLowerCase()}`}
+                className={planCtaClassName(plan.featured)}
+              >
                 {plan.cta}
-              </button>
+              </Link>
 
               <p className="mt-3 text-center text-xs text-muted-foreground">
                 {plan.note}

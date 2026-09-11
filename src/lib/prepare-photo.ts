@@ -1,10 +1,19 @@
-/** Convert HEIC locally before using it in an image element or canvas. */
+/** Convert HEIC and validate image decoding before marking a photo ready. */
 export const preparePhoto = async (file: File): Promise<Blob> => {
-  if (!/\.(heic|heif)$/i.test(file.name) && !/^image\/hei[cf](?:-sequence)?$/i.test(file.type)) {
-    return file;
+  let blob: Blob = file;
+  if (/\.(heic|heif)$/i.test(file.name) || /^image\/hei[cf](?:-sequence)?$/i.test(file.type)) {
+    // Decode locally; the image is sent only when the user submits their photos.
+    const { heicTo } = await import("heic-to/csp");
+    blob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
   }
-
-  // Load the decoder only for HEIC selections; photos never leave the browser.
-  const { heicTo } = await import("heic-to/csp");
-  return heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+  const url = URL.createObjectURL(blob);
+  try {
+    const image = new Image();
+    image.src = url;
+    await image.decode();
+    if (!image.naturalWidth || !image.naturalHeight) throw new Error("Could not read photo");
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+  return blob;
 };

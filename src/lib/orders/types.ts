@@ -1,0 +1,52 @@
+export type Preferences = {
+  attire: string[];
+  backgrounds: string[];
+  poses?: string[];
+  glasses?: string;
+  gender?: string | null;
+  age?: string | null;
+  hair?: string | null;
+  hairLength?: string | null;
+  hairType?: string | null;
+  bodyType?: string | null;
+  headwear?: string;
+};
+export type Review = {
+  photos: {
+    id: string;
+    index: number;
+    accepted: boolean;
+    reason: string;
+    framing: string;
+  }[];
+  summary: string;
+  needsMidRange: boolean;
+};
+export type Order = {
+  id: string;
+  planId: string;
+  name: string;
+  price: number;
+  currency: string;
+  photoCount: number;
+  status:
+    | "draft"
+    | "checkout"
+    | "paid"
+    | "generating"
+    | "complete"
+    | "partial"
+    | "failed";
+  photos: { id: string; name: string; url: string }[];
+  checkoutId?: string;
+  whopPlanId: string;
+  payment?: { amount: number; currency: string };
+  review?: Review;
+  results: { id: string; url: string }[];
+  preferences?: Preferences;
+  batchProgress?: { completed: number; failed: number; total: number };
+  emailNotificationsEnabled?: boolean;
+  batchStatus?: string;
+  error?: string;
+  expiresAt: number;
+};

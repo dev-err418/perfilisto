@@ -9,7 +9,8 @@ export function safeRedirect(target, origin) {
     const url = new URL(target, origin);
     if (url.origin === origin && !url.username && !url.password &&
       (url.pathname === "/onboarding" || url.pathname.startsWith("/onboarding/") ||
-       url.pathname === "/dashboard" || url.pathname.startsWith("/dashboard/"))) {
+       url.pathname === "/dashboard" || url.pathname.startsWith("/dashboard/") ||
+       url.pathname === "/album" || url.pathname.startsWith("/album/"))) {
       return url.href;
     }
   } catch { /* Use the default destination. */ }

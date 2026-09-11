@@ -1,0 +1,20 @@
+.particle {
+  position: absolute;
+  top: -24px;
+  left: var(--left);
+  width: 7px;
+  height: 15px;
+  background: var(--color);
+  border-radius: var(--round);
+  opacity: 0;
+  animation: fall 4.8s linear var(--delay) both;
+}
+@keyframes fall {
+  0% { opacity: 0; transform: translate3d(0, -20px, 0) rotate(0deg); }
+  8% { opacity: .85; }
+  85% { opacity: .85; }
+  100% { opacity: 0; transform: translate3d(var(--drift), 105dvh, 0) rotate(540deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .particle { display: none; animation: none; }
+}

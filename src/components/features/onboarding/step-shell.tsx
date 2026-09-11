@@ -23,6 +23,7 @@ export const OnboardingStepShell = ({
   onClose,
   onContinue,
   children,
+  footerContent,
 }: {
   stepKey: string;
   direction?: "forward" | "back";
@@ -35,12 +36,13 @@ export const OnboardingStepShell = ({
   onClose?: () => void;
   onContinue?: () => void;
   children: ReactNode;
+  footerContent?: ReactNode;
 }) => {
   const copy = messages.onboarding.shared;
 
   return (
     <div className="theme-light flex min-h-dvh flex-col bg-white text-black [color-scheme:light]">
-      <header className="grid h-16 shrink-0 grid-cols-[1fr_minmax(0,16rem)_1fr] items-center gap-4 px-4 sm:px-6">
+      <header className="sticky top-0 z-20 bg-white grid h-16 shrink-0 grid-cols-[1fr_minmax(0,16rem)_1fr] items-center gap-4 px-4 sm:px-6">
         <Link
           href="/"
           aria-label={messages.brand.homeAriaLabel}
@@ -101,7 +103,8 @@ export const OnboardingStepShell = ({
       </div>
 
       {hideContinue ? null : (
-        <div className="sticky bottom-0 z-10 flex shrink-0 justify-center border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div className="sticky bottom-0 z-10 flex shrink-0 flex-col items-center justify-center gap-4 border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+          {footerContent && <div className="w-full max-w-5xl">{footerContent}</div>}
           <button
             type="button"
             disabled={continueDisabled}

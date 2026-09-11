@@ -1,12 +1,12 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   IconBulb,
   IconChevronDown,
-  IconPhoto,
+  IconLoader2,
   IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
@@ -14,8 +14,12 @@ import {
 import { getMessages } from "@/i18n";
 import {
   fileToJpegDataUrl,
+  deleteRemoteSessionPhoto,
+  UploadSessionError,
+  getRemoteSessionPhotos,
   putRemoteSessionPhotos,
 } from "@/lib/upload-session-client";
+import { selectUploadFiles } from "@/lib/photo-upload.mjs";
 import { cn } from "@/lib/utils";
 
 import { BrandWord } from "../landing/brand-name";
@@ -29,7 +33,6 @@ const MAX_PHOTOS = 10;
 type LocalPhoto = {
   id: string;
   name: string;
-  previewUrl: string;
   dataUrl?: string;
 };
 
@@ -41,12 +44,30 @@ export const MobileUploadPage = () => {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("s");
   const inputRef = useRef<HTMLInputElement>(null);
+  const [sentIds, setSentIds] = useState(new Set<string>());
   const [photos, setPhotos] = useState<LocalPhoto[]>([]);
   const [encoding, setEncoding] = useState(false);
   const [listOpen, setListOpen] = useState(true);
   const [sending, setSending] = useState(false);
-  const [sent, setSent] = useState(false);
+  const sent = photos.length > 0 && photos.every((photo) => sentIds.has(photo.id));
   const [error, setError] = useState<string | null>(null);
+  const [sessionState, setSessionState] = useState<"checking" | "ready" | "expired" | "error">("checking");
+
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    void getRemoteSessionPhotos(sessionId).then((remote) => {
+      if (cancelled) return;
+      setSessionState(remote === null ? "expired" : "ready");
+      if (remote) {
+        setSentIds(new Set(remote.map((photo) => photo.id)));
+        setPhotos(remote);
+      }
+    }).catch(() => {
+      if (!cancelled) setSessionState("error");
+    });
+    return () => { cancelled = true; };
+  }, [sessionId]);
 
   const readyCount = useMemo(
     () => photos.filter((photo) => photo.dataUrl).length,
@@ -54,32 +75,33 @@ export const MobileUploadPage = () => {
   );
 
   const addFiles = async (fileList: FileList) => {
-    const incoming = Array.from(fileList).slice(0, MAX_PHOTOS - photos.length);
-    if (!incoming.length) return;
-    const placeholders: LocalPhoto[] = incoming.map((file) => ({
+    const { accepted: incoming, rejected } = selectUploadFiles(fileList, MAX_PHOTOS - photos.length);
+    if (!incoming.length) {
+      setError(rejected.join(" ") || null);
+      return;
+    }
+    const placeholders: LocalPhoto[] = incoming.map((file: File) => ({
       id: crypto.randomUUID(),
       name: file.name,
-      previewUrl: URL.createObjectURL(file),
     }));
     setPhotos((current) => [...current, ...placeholders]);
     setEncoding(true);
-    setSent(false);
-    setError(null);
+    setError(rejected.join(" ") || null);
+    const errors = [...rejected];
     try {
-      const encoded = await Promise.all(
-        incoming.map(async (file, index) => ({
-          id: placeholders[index]?.id ?? crypto.randomUUID(),
-          dataUrl: await fileToJpegDataUrl(file),
-        })),
-      );
-      setPhotos((current) =>
-        current.map((photo) => {
-          const match = encoded.find((item) => item.id === photo.id);
-          return match ? { ...photo, dataUrl: match.dataUrl } : photo;
-        }),
-      );
-    } catch {
-      setError("Could not read one of the photos.");
+      for (const [index, file] of incoming.entries()) {
+        const id = placeholders[index].id;
+        try {
+          const dataUrl = await fileToJpegDataUrl(file);
+          setPhotos((current) => current.map((photo) =>
+            photo.id === id ? { ...photo, dataUrl } : photo,
+          ));
+        } catch {
+          setPhotos((current) => current.filter((photo) => photo.id !== id));
+          errors.push(`${file.name}: could not read this photo. Try another image.`);
+          setError(errors.join(" "));
+        }
+      }
     } finally {
       setEncoding(false);
     }
@@ -88,7 +110,7 @@ export const MobileUploadPage = () => {
   const sendToComputer = async () => {
     if (!sessionId) return;
     const payload = photos
-      .filter((photo) => photo.dataUrl)
+      .filter((photo) => photo.dataUrl && !sentIds.has(photo.id))
       .map((photo) => ({
         id: photo.id,
         name: photo.name,
@@ -99,9 +121,25 @@ export const MobileUploadPage = () => {
     setError(null);
     try {
       await putRemoteSessionPhotos(sessionId, payload);
-      setSent(true);
-    } catch {
-      setError("Could not send photos. Keep the desktop page open and try again.");
+      setSentIds((current) => new Set([...current, ...payload.map((photo) => photo.id)]));
+    } catch (error) {
+      if (error instanceof UploadSessionError && error.status === 404) setSessionState("expired");
+      else setError(error instanceof UploadSessionError ? error.message : "Could not send photos. Keep the desktop page open and try again.");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const removePhoto = async (id: string) => {
+    setSending(true);
+    setError(null);
+    try {
+      if (sessionId && sentIds.has(id)) await deleteRemoteSessionPhoto(sessionId, id);
+      setSentIds((current) => { const next = new Set(current); next.delete(id); return next; });
+      setPhotos((current) => current.filter((photo) => photo.id !== id));
+    } catch (error) {
+      if (error instanceof UploadSessionError && error.status === 404) setSessionState("expired");
+      else setError("Could not remove this photo. Please try again.");
     } finally {
       setSending(false);
     }
@@ -131,8 +169,12 @@ export const MobileUploadPage = () => {
         {copy.keepDesktopOpen}
       </p>
 
-      {!sessionId ? (
+      {!sessionId || sessionState === "expired" ? (
         <p className="mt-6 text-sm text-muted-foreground">{copy.sessionMissing}</p>
+      ) : sessionState !== "ready" ? (
+        <p role="status" className="mt-6 text-sm text-muted-foreground">
+          {sessionState === "checking" ? "Connecting to your computer…" : "Could not connect. Refresh this page to try again."}
+        </p>
       ) : (
         <>
           <input
@@ -140,6 +182,7 @@ export const MobileUploadPage = () => {
             type="file"
             accept={ACCEPT}
             multiple
+            disabled={encoding || sending}
             className="sr-only"
             onChange={(event) => {
               if (event.target.files) void addFiles(event.target.files);
@@ -148,8 +191,9 @@ export const MobileUploadPage = () => {
           />
           <button
             type="button"
+            disabled={encoding || sending}
             onClick={() => inputRef.current?.click()}
-            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white text-[17px] font-semibold text-[#141414] shadow-sm"
+            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white text-[17px] font-semibold text-[#141414] shadow-sm disabled:opacity-50"
           >
             <IconUpload className="size-5 text-[var(--primary)]" stroke={1.8} />
             {copy.mobileUploadCta}
@@ -200,16 +244,16 @@ export const MobileUploadPage = () => {
                       key={photo.id}
                       className="flex items-center gap-3 rounded-2xl border border-black/10 p-3"
                     >
-                      {photo.dataUrl || photo.previewUrl ? (
+                      {photo.dataUrl ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={photo.dataUrl ?? photo.previewUrl}
+                          src={photo.dataUrl}
                           alt=""
                           className="size-16 rounded-xl object-cover"
                         />
                       ) : (
-                        <span className="grid size-16 place-items-center rounded-xl border border-black/10">
-                          <IconPhoto className="size-6 text-muted-foreground" />
+                        <span role="status" aria-label={`Preparing ${photo.name}`} className="grid size-16 place-items-center rounded-xl bg-[#fff4ea] text-[var(--primary)]">
+                          <IconLoader2 className="size-6 animate-spin motion-reduce:animate-none" />
                         </span>
                       )}
                       <p className="min-w-0 flex-1 truncate text-[15px] font-medium text-[#141414]">
@@ -221,11 +265,8 @@ export const MobileUploadPage = () => {
                         <button
                           type="button"
                           aria-label={copy.removePhoto}
-                          onClick={() =>
-                            setPhotos((current) =>
-                              current.filter((item) => item.id !== photo.id),
-                            )
-                          }
+                          disabled={sending}
+                          onClick={() => void removePhoto(photo.id)}
                           className="grid size-9 place-items-center rounded-full bg-black/[0.04] text-[#141414]"
                         >
                           <IconTrash className="size-4" stroke={1.8} />
@@ -233,22 +274,22 @@ export const MobileUploadPage = () => {
                       )}
                     </div>
                   ))}
-                  {!encoding && readyCount > 0 ? (
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => void sendToComputer()}
-                      className={`${PRIMARY_TINT_BUTTON_CLASS} mt-1 inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-base font-semibold disabled:opacity-50`}
-                    >
-                      {sending ? copy.sending : sent ? copy.sent : copy.sendToComputer}
-                    </button>
-                  ) : null}
                 </div>
+              ) : null}
+              {!encoding && readyCount > 0 ? (
+                <button
+                  type="button"
+                  disabled={sending || sent}
+                  onClick={() => void sendToComputer()}
+                  className={`${PRIMARY_TINT_BUTTON_CLASS} mt-1 inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-base font-semibold disabled:opacity-50`}
+                >
+                  {sending ? copy.sending : sent ? copy.sent : copy.sendToComputer}
+                </button>
               ) : null}
             </section>
           ) : null}
           {error ? (
-            <p className="mt-4 text-sm text-[#b42318]">{error}</p>
+            <p role="alert" className="mt-4 text-sm text-[#b42318]">{error}</p>
           ) : null}
         </>
       )}

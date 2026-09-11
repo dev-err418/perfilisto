@@ -135,7 +135,7 @@ html {
   display: flex;
   width: max-content;
   gap: 10px;
-  animation: headshot-transition-scroll 45s linear infinite !important;
+  animation: headshot-transition-scroll 90s linear infinite !important;
   will-change: transform;
 }
 

@@ -31,7 +31,7 @@ export const ConsentCheckbox = ({
         />
         <span
           className={cn(
-            "flex size-5 items-center justify-center rounded-[5px] border",
+            "flex size-5 items-center justify-center rounded-[5px] border peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary",
             checked
               ? "border-transparent bg-[var(--primary)]"
               : "border-black/25 bg-white",

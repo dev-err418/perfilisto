@@ -1,0 +1,13 @@
+{
+  "poses": ["professional", "relaxed"],
+  "glasses": ["none", "mixed", "all"],
+  "gender": ["man", "woman", "other"],
+  "age": ["18-20", "21-24", "25-29", "30-40", "41-50", "51-65", "65+"],
+  "hair": ["brown", "black", "blonde", "gray", "auburn", "red", "white", "other", "bald"],
+  "hairLength": ["bald", "buzz", "short", "medium", "long"],
+  "hairType": ["straight", "wavy", "curly", "dreadlocks"],
+  "bodyType": ["slim", "regular", "athletic", "medium-large", "large", "plus-size"],
+  "attire": ["professional", "business-casual", "smart-casual"],
+  "backgrounds": ["city", "nature", "office", "studio"],
+  "headwear": ["reference", "none"]
+}

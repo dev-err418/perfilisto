@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { getMessages } from "@/i18n";
 
+import { PostUploadFlow } from "./post-upload-flow";
 import { AttireStep, type AttireOption } from "./attire-step";
 import { BackgroundsStep, type BackgroundOption } from "./backgrounds-step";
 import { UploadStep, UPLOAD_MIN, type UploadedPhoto } from "./upload-step";
@@ -27,18 +28,20 @@ type Step =
   | "bodyType"
   | "attire"
   | "backgrounds"
-  | "upload";
+  | "upload"
+  | "purchase";
 
 const STEP_PROGRESS: Record<Exclude<Step, "welcome">, number> = {
-  gender: 2 / 11,
-  age: 3 / 11,
-  hair: 4 / 11,
-  hairLength: 5 / 11,
-  hairType: 6 / 11,
-  bodyType: 7 / 11,
-  attire: 8 / 11,
-  backgrounds: 9 / 11,
-  upload: 10 / 11,
+  gender: 2 / 14,
+  age: 3 / 14,
+  hair: 4 / 14,
+  hairLength: 5 / 14,
+  hairType: 6 / 14,
+  bodyType: 7 / 14,
+  attire: 8 / 14,
+  backgrounds: 9 / 14,
+  upload: 10 / 14,
+  purchase: 11 / 14,
 };
 
 const previousStep: Record<Exclude<Step, "welcome">, Step> = {
@@ -51,6 +54,7 @@ const previousStep: Record<Exclude<Step, "welcome">, Step> = {
   attire: "bodyType",
   backgrounds: "attire",
   upload: "backgrounds",
+  purchase: "upload",
 };
 
 const ALL_ATTIRE: AttireOption[] = [
@@ -84,6 +88,7 @@ const NEXT_STEP: Partial<Record<Step, Step>> = {
   bodyType: "attire",
   attire: "backgrounds",
   backgrounds: "upload",
+  upload: "purchase",
 };
 
 const messages = getMessages();
@@ -94,6 +99,10 @@ export const OnboardingFlow = () => {
   const [direction, setDirection] = useState<"forward" | "back">("forward");
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get("order");
+    if (id) queueMicrotask(() => setStep("purchase"));
+  }, []);
   const [gender, setGender] = useState<GenderOption | null>(null);
   const [age, setAge] = useState<AgeOption | null>(null);
   const [hair, setHair] = useState<HairOption | null>(null);
@@ -125,24 +134,41 @@ export const OnboardingFlow = () => {
     advanceTimer.current = window.setTimeout(() => goNext(from), 250);
   };
 
+  if (step === "purchase")
+    return (
+      <>
+        <PostUploadFlow
+          photos={photos}
+          preferences={{ attire, backgrounds, gender, age, hair, hairLength, hairType, bodyType }}
+          onBack={() => setStep("upload")}
+          onClose={() => setLeaveOpen(true)}
+        />
+        {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}
+      </>
+    );
+
   if (step === "welcome") {
     return (
-      <OnboardingWelcomeScreen onContinue={() => {
-        setDirection("forward");
-        setStep("gender");
-      }} onSkipToUpload={() => {
-        if (process.env.NODE_ENV !== "development") return;
-        window.clearTimeout(advanceTimer.current);
-        setDirection("forward");
-        setStep("upload");
-      }} />
+      <OnboardingWelcomeScreen
+        onContinue={() => {
+          setDirection("forward");
+          setStep("gender");
+        }}
+        onSkipToUpload={() => {
+          if (process.env.NODE_ENV !== "development") return;
+          window.clearTimeout(advanceTimer.current);
+          setDirection("forward");
+          setStep("upload");
+        }}
+      />
     );
   }
 
   const continueDisabled =
     (step === "attire" && attire.length === 0) ||
     (step === "backgrounds" && backgrounds.length === 0) ||
-    (step === "upload" && photos.length < UPLOAD_MIN);
+    (step === "upload" &&
+      (photos.length < UPLOAD_MIN || photos.some((photo) => photo.preparing)));
 
   const hideContinue =
     SINGLE_CHOICE_STEPS.includes(step) &&
@@ -155,80 +181,92 @@ export const OnboardingFlow = () => {
 
   return (
     <>
-    <OnboardingStepShell
-      stepKey={step}
-      direction={direction}
-      progress={STEP_PROGRESS[step]}
-      onBack={() => {
-        window.clearTimeout(advanceTimer.current);
-        setDirection("back");
-        setStep(previousStep[step]);
-      }}
-      hideBack={step === "upload"}
-      hideContinue={hideContinue}
-      continueDisabled={continueDisabled}
-      continueLabel={continueLabel}
-      onClose={() => {
-        window.clearTimeout(advanceTimer.current);
-        setLeaveOpen(true);
-      }}
-      onContinue={() => goNext(step)}
-    >
-      {step === "gender" ? (
-        <GenderStep
-          value={gender}
-          onChange={(value) => selectAndAdvance(setGender, "gender", value)}
-        />
-      ) : null}
-      {step === "age" ? (
-        <AgeStep value={age} onChange={(value) => selectAndAdvance(setAge, "age", value)} />
-      ) : null}
-      {step === "hair" ? (
-        <HairStep value={hair} onChange={(value) => selectAndAdvance(setHair, "hair", value)} />
-      ) : null}
-      {step === "hairLength" ? (
-        <HairLengthStep
-          gender={gender}
-          value={hairLength}
-          onChange={(value) => selectAndAdvance(setHairLength, "hairLength", value)}
-        />
-      ) : null}
-      {step === "hairType" ? (
-        <HairTypeStep
-          gender={gender}
-          value={hairType}
-          onChange={(value) => selectAndAdvance(setHairType, "hairType", value)}
-        />
-      ) : null}
-      {step === "bodyType" ? (
-        <BodyTypeStep
-          gender={gender}
-          value={bodyType}
-          onChange={(value) => selectAndAdvance(setBodyType, "bodyType", value)}
-        />
-      ) : null}
-      {step === "attire" ? (
-        <AttireStep gender={gender} value={attire} onChange={setAttire} />
-      ) : null}
-      {step === "backgrounds" ? (
-        <BackgroundsStep
-          gender={gender}
-          value={backgrounds}
-          onChange={setBackgrounds}
-        />
-      ) : null}
-      {step === "upload" ? (
-        <UploadStep
-          photos={photos}
-          onChange={setPhotos}
-          onBack={() => {
-            setDirection("back");
-            setStep("backgrounds");
-          }}
-        />
-      ) : null}
-    </OnboardingStepShell>
-    {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}
+      <OnboardingStepShell
+        stepKey={step}
+        direction={direction}
+        progress={STEP_PROGRESS[step]}
+        onBack={() => {
+          window.clearTimeout(advanceTimer.current);
+          setDirection("back");
+          setStep(previousStep[step]);
+        }}
+        hideBack={step === "upload"}
+        hideContinue={hideContinue}
+        continueDisabled={continueDisabled}
+        continueLabel={continueLabel}
+        onClose={() => {
+          window.clearTimeout(advanceTimer.current);
+          setLeaveOpen(true);
+        }}
+        onContinue={() => goNext(step)}
+      >
+        {step === "gender" ? (
+          <GenderStep
+            value={gender}
+            onChange={(value) => selectAndAdvance(setGender, "gender", value)}
+          />
+        ) : null}
+        {step === "age" ? (
+          <AgeStep
+            value={age}
+            onChange={(value) => selectAndAdvance(setAge, "age", value)}
+          />
+        ) : null}
+        {step === "hair" ? (
+          <HairStep
+            value={hair}
+            onChange={(value) => selectAndAdvance(setHair, "hair", value)}
+          />
+        ) : null}
+        {step === "hairLength" ? (
+          <HairLengthStep
+            gender={gender}
+            value={hairLength}
+            onChange={(value) =>
+              selectAndAdvance(setHairLength, "hairLength", value)
+            }
+          />
+        ) : null}
+        {step === "hairType" ? (
+          <HairTypeStep
+            gender={gender}
+            value={hairType}
+            onChange={(value) =>
+              selectAndAdvance(setHairType, "hairType", value)
+            }
+          />
+        ) : null}
+        {step === "bodyType" ? (
+          <BodyTypeStep
+            gender={gender}
+            value={bodyType}
+            onChange={(value) =>
+              selectAndAdvance(setBodyType, "bodyType", value)
+            }
+          />
+        ) : null}
+        {step === "attire" ? (
+          <AttireStep gender={gender} value={attire} onChange={setAttire} />
+        ) : null}
+        {step === "backgrounds" ? (
+          <BackgroundsStep
+            gender={gender}
+            value={backgrounds}
+            onChange={setBackgrounds}
+          />
+        ) : null}
+        {step === "upload" ? (
+          <UploadStep
+            photos={photos}
+            onChange={setPhotos}
+            onBack={() => {
+              setDirection("back");
+              setStep("backgrounds");
+            }}
+          />
+        ) : null}
+      </OnboardingStepShell>
+      {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}
     </>
   );
 };

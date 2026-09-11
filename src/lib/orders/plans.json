@@ -1,0 +1,29 @@
+[
+  {
+    "id": "basic",
+    "name": "Basic",
+    "price": 29,
+    "currency": "eur",
+    "photoCount": 10,
+    "whopPlanId": "plan_6Oir8EpB4hfpC",
+    "featured": false
+  },
+  {
+    "id": "professional",
+    "name": "Professional",
+    "price": 39,
+    "currency": "eur",
+    "photoCount": 100,
+    "whopPlanId": "plan_uJW4EHUYtCvwn",
+    "featured": true
+  },
+  {
+    "id": "executive",
+    "name": "Executive",
+    "price": 59,
+    "currency": "eur",
+    "photoCount": 200,
+    "whopPlanId": "plan_Ulyuz0zta4wxK",
+    "featured": false
+  }
+]

@@ -11,6 +11,7 @@ import {
   IconCopy,
   IconDeviceMobile,
   IconLock,
+  IconLoader2,
   IconPhoto,
   IconShieldLock,
   IconSun,
@@ -21,7 +22,8 @@ import {
 import { getMessages } from "@/i18n";
 import {
   createRemoteSession,
-  getRemoteSessionPhotos,
+  getRemoteSessionSnapshot,
+  deleteRemoteSessionPhoto,
 } from "@/lib/upload-session-client";
 import { cn } from "@/lib/utils";
 import { selectUploadFiles } from "@/lib/photo-upload.mjs";
@@ -39,6 +41,7 @@ type UploadedPhoto = {
   id: string;
   name: string;
   url: string;
+  preparing?: boolean;
 };
 
 const formatCount = (template: string, values: Record<string, number | string>) =>
@@ -46,38 +49,6 @@ const formatCount = (template: string, values: Record<string, number | string>) 
     (text, [key, value]) => text.replace(`{${key}}`, String(value)),
     template,
   );
-
-const QrMark = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 29 29" className={className} aria-hidden="true">
-    {Array.from({ length: 29 * 29 }, (_, index) => {
-      const x = index % 29;
-      const y = Math.floor(index / 29);
-      const filled =
-        ((x * 7 + y * 13) % 5 !== 0 && x > 1 && y > 1 && x < 27 && y < 27) ||
-        (x < 7 && y < 7) ||
-        (x > 21 && y < 7) ||
-        (x < 7 && y > 21);
-      const finder =
-        (x < 7 && y < 7) || (x > 21 && y < 7) || (x < 7 && y > 21);
-      const hole =
-        finder &&
-        x % 6 !== 0 &&
-        y % 6 !== 0 &&
-        x !== 0 &&
-        y !== 0 &&
-        x !== 28 &&
-        y !== 28 &&
-        !(
-          (x > 1 && x < 5 && y > 1 && y < 5) ||
-          (x > 23 && x < 27 && y > 1 && y < 5) ||
-          (x > 1 && x < 5 && y > 23 && y < 27)
-        );
-      if (finder && hole) return null;
-      if (!filled && !finder) return null;
-      return <rect key={index} x={x} y={y} width="1" height="1" fill="currentColor" />;
-    })}
-  </svg>
-);
 
 const ExamplePhoto = ({ src, label }: { src: string; label: string }) => (
   <span className="relative block overflow-hidden rounded-xl">
@@ -119,9 +90,13 @@ export const UploadStep = ({
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [mobileUrl, setMobileUrl] = useState("");
   const [qrSvg, setQrSvg] = useState("");
+  const [sessionError, setSessionError] = useState("");
+  const [sessionRetry, setSessionRetry] = useState(0);
+  const [syncNotice, setSyncNotice] = useState("");
   const photosRef = useRef(photos);
-  const importedIds = useRef(new Set<string>());
-  useEffect(() => { photosRef.current = photos; }, [photos]);
+  const importedIds = useRef(new Set(photos.filter((photo) => photo.url.startsWith("data:")).map((photo) => photo.id)));
+  // Uploads and polling update this ref together with onChange; a delayed render
+  // must not overwrite newer async results with an older photo list.
   useEffect(() => {
     mounted.current = true;
     return () => { mounted.current = false; };
@@ -129,52 +104,67 @@ export const UploadStep = ({
 
   useEffect(() => {
     let cancelled = false;
-    void createRemoteSession()
-      .then((id) => {
-        if (!cancelled) {
-          setSessionId(id);
-          setMobileUrl(`${window.location.origin}/upload-session?s=${id}`);
+    async function connect() {
+      try {
+        let session: { id: string; mobileUrl: string } | null = null;
+        try {
+          const saved = JSON.parse(sessionStorage.getItem("perfilisto-upload-session") || "null");
+          if (saved?.id && saved?.mobileUrl && await getRemoteSessionSnapshot(saved.id, [...importedIds.current])) session = saved;
+        } catch { /* Recreate expired or unavailable sessions. */ }
+        session ??= await createRemoteSession();
+        if (cancelled) return;
+        const svg = await QRCode.toString(session.mobileUrl, {
+          type: "svg", margin: 1, color: { dark: "#141414", light: "#00000000" },
+        });
+        if (cancelled) return;
+        try { sessionStorage.setItem("perfilisto-upload-session", JSON.stringify(session)); } catch { /* Storage may be disabled. */ }
+        setSessionId(session.id);
+        setMobileUrl(session.mobileUrl);
+        setQrSvg(svg);
+        setSessionError("");
+      } catch {
+        if (!cancelled) setSessionError("Could not connect to phone uploads. Try again.");
+      }
+    }
+    void connect();
+    return () => { cancelled = true; };
+  }, [sessionRetry]);
+
+  useEffect(() => {
+    if (!sessionId) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout>;
+    async function poll() {
+      try {
+        const remote = await getRemoteSessionSnapshot(sessionId!, [...importedIds.current]);
+        if (cancelled) return;
+        if (!remote) {
+          setSessionId(null);
+          setMobileUrl("");
+          setQrSvg("");
+          setSessionError("Your phone upload link expired. Create a new QR code to continue.");
+          try { sessionStorage.removeItem("perfilisto-upload-session"); } catch { /* Storage may be disabled. */ }
+          return;
         }
-      })
-      .catch(() => {
-        if (!cancelled) setSessionId(null);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const url = `${window.location.origin}/upload-session?s=${sessionId}`;
-    void QRCode.toString(url, {
-      type: "svg",
-      margin: 1,
-      color: { dark: "#141414", light: "#00000000" },
-    }).then(setQrSvg);
-  }, [sessionId]);
-
-  useEffect(() => {
-    if (!sessionId) return;
-    const timer = window.setInterval(() => {
-      void getRemoteSessionPhotos(sessionId).then((remote) => {
-        if (!remote?.length) return;
-        const fresh = remote.filter((photo) => !importedIds.current.has(photo.id));
-        if (!fresh.length) return;
-        for (const photo of fresh) importedIds.current.add(photo.id);
-        const next = [
-          ...photosRef.current,
-          ...fresh.map((photo) => ({
-            id: photo.id,
-            name: photo.name,
-            url: photo.dataUrl,
-          })),
-        ].slice(0, MAX_PHOTOS);
-        photosRef.current = next;
-        onChange(next);
-      }).catch(() => { /* Retry on the next poll after a transient network error. */ });
-    }, 1500);
-    return () => window.clearInterval(timer);
+        const remoteIds = new Set(remote.ids);
+        const current = photosRef.current.filter((photo) => !importedIds.current.has(photo.id) || remoteIds.has(photo.id));
+        const fresh = remote.photos.filter((photo) => !importedIds.current.has(photo.id));
+        const accepted = fresh.slice(0, Math.max(0, MAX_PHOTOS - current.length));
+        for (const photo of accepted) importedIds.current.add(photo.id);
+        if (accepted.length || current.length !== photosRef.current.length) {
+          const next = [...current, ...accepted.map((photo) => ({ id: photo.id, name: photo.name, url: photo.dataUrl }))];
+          photosRef.current = next;
+          onChange(next);
+        }
+        setSyncNotice(fresh.length > accepted.length ? "More photos are waiting on your phone. Remove a photo here to make room (10 maximum)." : "");
+      } catch {
+        if (!cancelled) setSyncNotice("Phone connection interrupted. Retrying automatically…");
+      } finally {
+        if (!cancelled) timer = setTimeout(poll, 1500);
+      }
+    }
+    void poll();
+    return () => { cancelled = true; clearTimeout(timer); };
   }, [onChange, sessionId]);
 
   useEffect(() => {
@@ -189,26 +179,32 @@ export const UploadStep = ({
   const addFiles = useCallback((fileList: FileList | File[]) => {
     const files = Array.from(fileList);
     if (!files.length) return;
+    const { accepted, rejected } = selectUploadFiles(files, MAX_PHOTOS - photosRef.current.length);
+    const entries = (accepted as File[]).map((file) => ({ file, id: crypto.randomUUID() }));
+    const placeholders = entries.map(({ file, id }) => ({ id, name: file.name, url: "", preparing: true }));
+    photosRef.current = [...photosRef.current, ...placeholders];
+    onChange(photosRef.current);
+    setUploadError(rejected.join(" "));
+    if (!entries.length) return;
     setPendingBatches((count) => count + 1);
-    setUploadError("");
-    // Serialize batches so conversion and mobile sync cannot overwrite photos
-    // or let a second selection claim the same remaining slots.
+    // Reserve slots immediately, then replace each placeholder in selection order.
     uploadQueue.current = uploadQueue.current.then(async () => {
-      const { accepted, rejected } = selectUploadFiles(files, MAX_PHOTOS - photosRef.current.length);
-      for (const file of accepted as File[]) {
+      for (const { file, id } of entries) {
         if (!mounted.current) return;
+        if (!photosRef.current.some((photo) => photo.id === id)) continue;
         try {
           const blob = await preparePhoto(file);
           if (!mounted.current) return;
-          if (photosRef.current.length >= MAX_PHOTOS) {
-            rejected.push(`${file.name}: you can upload up to 10 photos.`);
-            continue;
-          }
-          const photo = { id: crypto.randomUUID(), name: file.name, url: URL.createObjectURL(blob) };
-          const next = [...photosRef.current, photo];
+          if (!photosRef.current.some((photo) => photo.id === id)) continue;
+          const ready = { id, name: file.name, url: URL.createObjectURL(blob) };
+          const next = photosRef.current.map((photo) => photo.id === id ? ready : photo);
           photosRef.current = next;
           onChange(next);
         } catch {
+          if (!mounted.current) return;
+          if (!photosRef.current.some((photo) => photo.id === id)) continue;
+          photosRef.current = photosRef.current.filter((photo) => photo.id !== id);
+          onChange(photosRef.current);
           rejected.push(`${file.name}: could not read this photo. Try exporting it as JPG or PNG.`);
         }
       }
@@ -274,13 +270,19 @@ export const UploadStep = ({
 
   const removePhoto = (id: string) => {
     const match = photosRef.current.find((photo) => photo.id === id);
-    if (match) URL.revokeObjectURL(match.url);
+    if (match?.url) URL.revokeObjectURL(match.url);
+    if (sessionId && importedIds.current.has(id)) {
+      void deleteRemoteSessionPhoto(sessionId, id).catch(() => {
+        setSyncNotice("Photo removed here, but could not update your phone. Remove it there too before adding more.");
+      });
+    }
     const next = photosRef.current.filter((photo) => photo.id !== id);
     photosRef.current = next;
     onChange(next);
   };
 
-  const progress = photos.length / MAX_PHOTOS;
+  const readyCount = photos.filter((photo) => !photo.preparing).length;
+  const progress = readyCount / MAX_PHOTOS;
   const minMark = MIN_PHOTOS / MAX_PHOTOS;
 
   return (
@@ -288,6 +290,7 @@ export const UploadStep = ({
       <aside className="lg:pt-1">
         <button
           type="button"
+          disabled={photos.some((photo) => photo.preparing)}
           onClick={onBack}
           className="mb-6 inline-flex h-9 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 text-sm font-semibold text-[#141414]"
         >
@@ -357,6 +360,7 @@ export const UploadStep = ({
         </p>
         <button
           type="button"
+          disabled={!qrSvg}
           onClick={() => setQrOpen(true)}
           className="mt-3 flex w-full flex-col items-center rounded-2xl border border-dashed border-black/15 px-4 py-5 text-center"
         >
@@ -367,25 +371,31 @@ export const UploadStep = ({
               dangerouslySetInnerHTML={{ __html: qrSvg }}
             />
           ) : (
-            <QrMark className="mt-3 size-24 text-[#141414]" />
+            <span role="status" className="mt-3 text-sm text-muted-foreground">{sessionError || "Connecting…"}</span>
           )}
           <span className="mt-3 text-xs font-medium text-muted-foreground underline underline-offset-2">
             {copy.howToPhone}
           </span>
         </button>
+        {sessionError ? (
+          <button type="button" onClick={() => { setSessionError(""); setSessionRetry((value) => value + 1); }} className="mt-3 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-primary">
+            Create a new QR code
+          </button>
+        ) : null}
+        {syncNotice ? <p role="status" className="mt-3 text-xs text-primary">{syncNotice}</p> : null}
       </aside>
 
       <div className="min-w-0">
         <div className="relative pb-6 sm:pb-0">
           <p className="text-sm font-semibold text-[#141414]">
-            {formatCount(copy.count, { count: photos.length, max: MAX_PHOTOS })}
+            {formatCount(copy.count, { count: readyCount, max: MAX_PHOTOS })}
           </p>
           <div
             className="absolute bottom-0 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase"
             style={{ left: `${minMark * 100}%` }}
             role="status"
           >
-            {photos.length >= MIN_PHOTOS ? (
+            {readyCount >= MIN_PHOTOS ? (
               <span className="grid size-5 place-items-center rounded-full bg-[#16a34a] text-white">
                 <IconCheck aria-hidden="true" className="size-3.5" stroke={3} />
                 <span className="sr-only">{copy.minimumReached}</span>
@@ -413,12 +423,25 @@ export const UploadStep = ({
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
               {photos.map((photo) => (
                 <span key={photo.id} className="relative overflow-hidden rounded-xl">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={photo.url}
-                    alt=""
-                    className="aspect-square w-full object-cover"
-                  />
+                  {photo.preparing ? (
+                    <span
+                      role="status"
+                      aria-label={`${copy.preparingPhotos} ${photo.name}`}
+                      className="flex aspect-square w-full flex-col items-center justify-center gap-3 border border-orange-100 bg-[#fff4ea] px-3 text-primary"
+                    >
+                      <IconLoader2 className="size-7 animate-spin motion-reduce:animate-none" stroke={1.8} aria-hidden="true" />
+                      <span className="w-full truncate text-center text-xs">{photo.name}</span>
+                    </span>
+                  ) : (
+                    <>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.url}
+                        alt=""
+                        className="aspect-square w-full object-cover"
+                      />
+                    </>
+                  )}
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.id)}
@@ -572,7 +595,7 @@ export const UploadStep = ({
                   dangerouslySetInnerHTML={{ __html: qrSvg }}
                 />
               ) : (
-                <QrMark className="size-32 shrink-0 text-[#141414] sm:size-36" />
+                <span role="status" className="text-sm text-muted-foreground">{sessionError || "Connecting…"}</span>
               )}
               <ol className="space-y-2 text-[15px] leading-6 text-[#141414]">
                 {copy.qrSteps.map((step, index) => (

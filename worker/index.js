@@ -1,61 +1,13 @@
+export { EmailDelivery } from "./email-delivery.js";
 import { handleAuth, hasSession, safeRedirect } from "../src/lib/auth/server.mjs";
 import { getRequestPolicy } from "../src/lib/auth/request-policy.mjs";
 
-const TTL_MS = 2 * 60 * 60 * 1000;
-const sessions = (globalThis.__perfilistoUploadSessions ??= new Map());
+import { handleUploadSessions } from "./upload-session.js";
+export { UploadSession } from "./upload-session.js";
 
-const json = (data, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      "Content-Type": "application/json",
-      "Cache-Control": "no-store",
-    },
-  });
-
-const pruneSessions = () => {
-  const cutoff = Date.now() - TTL_MS;
-  for (const [id, session] of sessions) {
-    if (session.updatedAt < cutoff) sessions.delete(id);
-  }
-};
-
-const handleUploadSessions = async (request, url) => {
-  pruneSessions();
-  const parts = url.pathname.split("/").filter(Boolean);
-
-  if (request.method === "POST" && parts.length === 2) {
-    const id = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
-    sessions.set(id, { photos: [], updatedAt: Date.now() });
-    return json({ id });
-  }
-
-  if (parts.length !== 3) return json({ error: "Not found" }, 404);
-  const id = parts[2];
-
-  if (request.method === "GET") {
-    const session = sessions.get(id);
-    if (!session) return json({ error: "Session not found" }, 404);
-    return json({ id, photos: session.photos });
-  }
-
-  if (request.method === "PUT") {
-    const session = sessions.get(id);
-    if (!session) return json({ error: "Session not found" }, 404);
-    const body = await request.json();
-    if (!Array.isArray(body?.photos)) return json({ error: "photos required" }, 400);
-    const existing = new Set(session.photos.map((photo) => photo.id));
-    for (const photo of body.photos) {
-      if (!photo?.id || existing.has(photo.id)) continue;
-      session.photos.push(photo);
-    }
-    session.updatedAt = Date.now();
-    sessions.set(id, session);
-    return json({ id, photos: session.photos });
-  }
-
-  return json({ error: "Method not allowed" }, 405);
-};
+import { handleOrders } from "./headshot-order.js";
+import { handleWhopWebhook } from "./whop-webhook.js";
+export { HeadshotOrder } from "./headshot-order.js";
 
 const worker = {
   async fetch(request, env) {
@@ -69,6 +21,9 @@ const worker = {
       });
     }
 
+    if (url.pathname === "/api/webhooks/whop") return handleWhopWebhook(request, env);
+    if (url.pathname.startsWith("/api/orders/")) return handleOrders(request, env);
+
     if (url.pathname.startsWith("/api/auth/")) return handleAuth(request, env);
 
     if (url.pathname === "/login" && authenticated) {
@@ -76,7 +31,7 @@ const worker = {
     }
 
     if (url.pathname.startsWith("/api/upload-sessions")) {
-      return handleUploadSessions(request, url);
+      return handleUploadSessions(request, url, env);
     }
 
     const assetResponse = await env.ASSETS.fetch(request);

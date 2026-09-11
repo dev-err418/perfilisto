@@ -13,7 +13,66 @@
     "not_found_handling": "404-page"
   },
   "routes": [
-    { "pattern": "perfilisto.com", "custom_domain": true },
-    { "pattern": "www.perfilisto.com", "custom_domain": true }
+    {
+      "pattern": "perfilisto.com",
+      "custom_domain": true
+    },
+    {
+      "pattern": "www.perfilisto.com",
+      "custom_domain": true
+    }
+  ],
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "UPLOAD_SESSIONS",
+        "class_name": "UploadSession"
+      },
+      {
+        "name": "HEADSHOT_ORDERS",
+        "class_name": "HeadshotOrder"
+      },
+      {
+        "name": "EMAIL_DELIVERIES",
+        "class_name": "EmailDelivery"
+      }
+    ]
+  },
+  "migrations": [
+    {
+      "tag": "v1-upload-sessions",
+      "new_sqlite_classes": [
+        "UploadSession"
+      ]
+    },
+    {
+      "tag": "v2-headshot-orders",
+      "new_sqlite_classes": [
+        "HeadshotOrder"
+      ]
+    },
+    {
+      "tag": "v3-email-deliveries",
+      "new_sqlite_classes": [
+        "EmailDelivery"
+      ]
+    }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "ORDER_PHOTOS",
+      "bucket_name": "perfilisto-order-photos"
+    }
+  ],
+  "vars": {
+    "WHOP_ACCOUNT_ID": "biz_KrDEESTmp4RqPG"
+  },
+  "send_email": [
+    {
+      "name": "EMAIL",
+      "allowed_sender_addresses": [
+        "hello@perfilisto.com"
+      ]
+    }
   ]
 }

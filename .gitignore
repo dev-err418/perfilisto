@@ -45,3 +45,6 @@ next-env.d.ts
 .api-export-skip
 .proxy-export-skip
 src/app/.api-export-skip
+
+# local image-generation source exports
+/output/

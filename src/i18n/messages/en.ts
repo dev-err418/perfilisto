@@ -1,3 +1,5 @@
+import plans from "@/lib/orders/plans.json";
+
 export const en = {
   meta: {
     title: "AI Headshot Generator for Professional Photos | Perfilisto",
@@ -37,7 +39,7 @@ export const en = {
     titleLine1: "headshots.",
     titleLine2: "From your selfies.",
     description:
-      "Skip the 300€ photographer. Turn your selfies into studio-quality headshots in 30 minutes.",
+      "Skip the 300€ photographer. Turn your selfies into studio-quality headshots within 24 hours.",
     cta: "Create my headshots",
     supportingText: "Your photos stay private",
     rating: "4.8/5",
@@ -49,7 +51,7 @@ export const en = {
   },
   howItWorks: {
     titleBefore: "Get your headshots in",
-    titleTint: "minutes",
+    titleTint: "24 hours",
     titleAfter: ", not days",
     subtitle: "It's as easy as 1–2–3–4.",
     uploaded: "Uploaded successfully",
@@ -80,14 +82,16 @@ export const en = {
   clients: {
     titleBefore: "Our clients",
     titleTint: "trust us",
-    subtitle: "Full before-and-afters, with a few words from the people in the photos.",
+    subtitle:
+      "Full before-and-afters, with a few words from the people in the photos.",
     before: "Before",
     after: "After",
   },
   compare: {
     titleBefore: "Compare Perfilisto to hiring a",
     titleTint: "corporate photographer",
-    subtitle: "Same job. Less calendar, less travel, less than a studio session.",
+    subtitle:
+      "Same job. Less calendar, less travel, less than a studio session.",
     perfilisto: "With Perfilisto",
     photographer: "Hiring a photographer",
     rows: [
@@ -136,39 +140,39 @@ export const en = {
     plans: [
       {
         name: "Basic",
-        price: "29",
+        price: String(plans[0].price),
         description: "Get 10 photos with unique backgrounds and outfits.",
-        cta: "Get 10 photos in 3 hours",
-        note: "29€ due today. Photos in 3 hours.",
+        cta: "Get 10 photos",
+        note: "29€ due today. Photos within 24 hours.",
         featured: false,
         features: [
-          "Delivery time: 3 hours",
+          "Delivery within 24 hours",
           "10 photos",
           "Unique backgrounds and outfits",
         ],
       },
       {
         name: "Professional",
-        price: "39",
+        price: String(plans[1].price),
         description: "Get 100 photos with unique backgrounds and outfits.",
-        cta: "Get 100 photos in 2 hours",
+        cta: "Get 100 photos",
         note: "39€ due today. 100% money-back guarantee.",
         featured: true,
         features: [
-          "Delivery time: 2 hours",
+          "Delivery within 24 hours",
           "100 photos",
           "Unique backgrounds and outfits",
         ],
       },
       {
         name: "Executive",
-        price: "59",
+        price: String(plans[2].price),
         description: "Get 200 photos with unique backgrounds and outfits.",
-        cta: "Get 200 photos in 1 hour",
-        note: "59€ due today. Photos in 1 hour.",
+        cta: "Get 200 photos",
+        note: "59€ due today. Photos within 24 hours.",
         featured: false,
         features: [
-          "Delivery time: 1 hour",
+          "Delivery within 24 hours",
           "200 photos",
           "Unique backgrounds and outfits",
         ],
@@ -203,7 +207,7 @@ export const en = {
       {
         question: "How long does the AI headshot generator take?",
         answer:
-          "Uploading your photos and choosing your looks takes a few minutes. Delivery is within 3 hours on Basic, 2 hours on Professional, and 1 hour on Executive.",
+          "Uploading your photos and choosing your looks takes a few minutes. Generation runs in batches, with delivery within 24 hours on every plan.",
       },
       {
         question: "How many AI headshots will I receive?",
@@ -213,7 +217,7 @@ export const en = {
       {
         question: "Which plan should I choose?",
         answer:
-          "Choose Basic for a small set of essentials. Professional gives you 100 photos, two-hour delivery, and the money-back guarantee. Executive is for the widest selection and one-hour delivery.",
+          "Choose Basic for a small set of essentials. Professional gives you 100 photos and the money-back guarantee. Executive gives you the widest selection with 200 photos. All packages are delivered within 24 hours.",
       },
       {
         question: "How realistic are AI-generated professional headshots?",
@@ -236,9 +240,10 @@ export const en = {
           "Yes. You can use your Perfilisto headshots on LinkedIn, your CV, company profile, portfolio, website, email signature, and other places where you need a professional photo.",
       },
       {
-        question: "What should I look for in an AI headshot generator in Spain?",
+        question:
+          "What should I look for in an AI headshot generator in Spain?",
         answer:
-          "Compare the realism of the results, the number of photos included, delivery time, privacy terms, outfit and background options, and refund policy. Perfilisto is built for professionals in Spain, starts at 29€, and delivers 10 to 200 headshots within 1 to 3 hours depending on the plan.",
+          "Compare the realism of the results, the number of photos included, delivery time, privacy terms, outfit and background options, and refund policy. Perfilisto is built for professionals in Spain, starts at 29€, and delivers 10 to 200 headshots within 24 hours.",
       },
       {
         question: "How much do AI professional headshots cost?",
@@ -276,7 +281,8 @@ export const en = {
           "The Professional plan includes a 100% money-back guarantee. Following the upload guidance gives the AI the best material to work with and helps produce stronger results.",
       },
       {
-        question: "How is an AI headshot generator different from hiring a photographer?",
+        question:
+          "How is an AI headshot generator different from hiring a photographer?",
         answer:
           "There is no studio, appointment, or travel. Create your headshots from home, try multiple outfits and backgrounds, and receive a larger gallery for a fraction of the typical 300€ studio cost.",
       },
@@ -473,9 +479,11 @@ export const en = {
       ],
     },
     upload: {
-      privacyNotice: "As a paid product, we value user privacy and transparency.",
+      privacyNotice:
+        "As a paid product, we value user privacy and transparency.",
       dropAnywhere: "Drop your photos anywhere",
-      dropAnywhereHint: "Release to add them to your upload. You can add up to 10 photos.",
+      dropAnywhereHint:
+        "Release to add them to your upload. You can add up to 10 photos.",
       uploadLimitReached: "You’ve added 10 photos",
       removeBeforeUpload: "Remove a photo before adding more.",
       title: "Upload Photos",
@@ -521,7 +529,8 @@ export const en = {
       sendToComputer: "Upload photos to computer",
       sending: "Sending…",
       sent: "Photos sent to your computer",
-      sessionMissing: "This upload link is missing or expired. Scan the QR code again from your desktop.",
+      sessionMissing:
+        "This upload link is missing or expired. Scan the QR code again from your desktop.",
       removePhoto: "Remove photo",
       count: "Uploaded {count} of {max}",
       minimum: "Minimum of {min} photos",
@@ -533,29 +542,53 @@ export const en = {
         {
           caption: "Front-facing, eye-level",
           photos: [
-            { src: "/onboarding/hair-length/woman-short.jpg", label: "Front-facing" },
-            { src: "/onboarding/body-type/man-regular.jpg", label: "Eye-level" },
+            {
+              src: "/onboarding/hair-length/woman-short.jpg",
+              label: "Front-facing",
+            },
+            {
+              src: "/onboarding/body-type/man-regular.jpg",
+              label: "Eye-level",
+            },
           ],
         },
         {
           caption: "Mix of close-up + mid-range",
           photos: [
-            { src: "/onboarding/attire/woman-professional.jpg", label: "Selfie" },
-            { src: "/onboarding/body-type/woman-regular.jpg", label: "Waist up" },
+            {
+              src: "/onboarding/attire/woman-professional.jpg",
+              label: "Selfie",
+            },
+            {
+              src: "/onboarding/body-type/woman-regular.jpg",
+              label: "Waist up",
+            },
           ],
         },
         {
           caption: "Several outfits, backgrounds",
           photos: [
-            { src: "/onboarding/backgrounds/man-city.jpg", label: "City, sweater" },
-            { src: "/onboarding/attire/man-smart-casual.jpg", label: "Home, polo" },
+            {
+              src: "/onboarding/backgrounds/man-city.jpg",
+              label: "City, sweater",
+            },
+            {
+              src: "/onboarding/attire/man-smart-casual.jpg",
+              label: "Home, polo",
+            },
           ],
         },
         {
           caption: "Recent, with consistent hair",
           photos: [
-            { src: "/onboarding/attire/woman-professional.jpg", label: "Recent" },
-            { src: "/onboarding/hair-length/woman-medium.jpg", label: "Neat hair" },
+            {
+              src: "/onboarding/attire/woman-professional.jpg",
+              label: "Recent",
+            },
+            {
+              src: "/onboarding/hair-length/woman-medium.jpg",
+              label: "Neat hair",
+            },
           ],
         },
       ],
@@ -586,18 +619,18 @@ export const en = {
     },
     privacy: {
       title: "Privacy",
-      updated: "Last updated September 10, 2026",
+      updated: "Last updated September 11, 2026",
       body: [
-        "Perfilisto is a headshot product from Tap & Swipe SAS. This page describes what we intend to collect once accounts are live.",
-        "If you create headshots, we store the photos you upload and the results we generate so we can deliver your gallery.",
-        "If you create an account, we store your email so you can sign back in.",
-        "We do not sell personal data. Result photos are labeled as AI generated.",
+        "Perfilisto is a headshot product operated by Tap & Swipe SAS. We process your sign-in information, reference photos and order details to provide the service.",
+        "Reference photos and generated galleries are stored privately on Cloudflare. Phone-upload sessions expire after two hours. Unpaid orders expire after 24 hours. Paid reference photos and galleries are scheduled for deletion 30 days after payment.",
+        "Google or Facebook provides your sign-in identifier, name, email address and profile picture where available. We use a secure session cookie to keep you signed in and your sign-in identifier to associate orders with your account.",
+        "When you request photo processing, we send your reference images to OpenAI to check photographic quality and generate headshots. Whop processes payments through its secure checkout; Perfilisto does not receive your card number. We do not sell personal data. Generated results are labeled as AI generated.",
         "You can ask us to delete your account and photos by writing to hello@perfilisto.com.",
       ],
     },
     terms: {
       title: "Terms",
-      updated: "Last updated September 10, 2026",
+      updated: "Last updated September 11, 2026",
       body: [
         "By using Perfilisto, you agree to these terms.",
         "You are responsible for the photos you upload. Only upload pictures of yourself that you have the right to use.",

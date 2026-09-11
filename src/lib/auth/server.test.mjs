@@ -13,6 +13,8 @@ test("redirects stay on protected same-origin pages", () => {
   for (const value of ["https://evil.example/onboarding", "//evil.example/onboarding", "/login", "/api/auth/signout", "javascript:alert(1)"]) {
     assert.equal(safeRedirect(value, origin), `${origin}/onboarding`);
   }
+  assert.equal(safeRedirect("/album?order=one", origin), `${origin}/album?order=one`);
+  assert.equal(safeRedirect("https://evil.example/album?order=one", origin), `${origin}/onboarding`);
   assert.equal(safeRedirect("/onboarding?plan=pro", origin), `${origin}/onboarding?plan=pro`);
 });
 

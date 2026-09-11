@@ -1,7 +1,4 @@
-import { createUploadSession } from "@/lib/upload-session-store";
+import { forwardUploadSession } from "@/lib/upload-session-proxy";
 
 export const dynamic = "force-dynamic";
-
-export function POST() {
-  return Response.json({ id: createUploadSession() });
-}
+export const POST = forwardUploadSession;
