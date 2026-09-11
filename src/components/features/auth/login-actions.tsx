@@ -41,7 +41,7 @@ export function LoginActions() {
       if (!csrfResponse.ok) throw new Error();
       const { csrfToken } = await csrfResponse.json();
       if (!csrfToken) throw new Error();
-      const target = new URLSearchParams(window.location.search).get("redirect") ?? "/onboarding";
+      const target = new URLSearchParams(window.location.search).get("redirect") ?? "/dashboard";
       const response = await fetch(`/api/auth/signin/${provider}`, {
         method: "POST",
         headers: { "Content-Type": "application/x-www-form-urlencoded", "X-Auth-Return-Redirect": "1" },

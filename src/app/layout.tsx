@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Geist_Mono } from "next/font/google";
 
-import { Toaster } from "@/components/ui/toast";
+import { Toaster } from "@/components/ui/sonner";
 import { WhopPixel } from "@/components/analytics/whop-pixel";
 import { getMessages } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -79,7 +79,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground">
         {children}
         <WhopPixel />
-        <Toaster />
+        <Toaster theme="light" className="theme-light toaster group" />
       </body>
     </html>
   );

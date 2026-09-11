@@ -2,7 +2,7 @@
 
 import { trackFunnel } from "@/lib/analytics/client";
 import { Spinner } from "@/components/ui/spinner";
-import { toast } from "@/components/ui/toast";
+import { toast } from "sonner";
 import { Fireworks } from "@/components/ui/fireworks";
 
 import {
@@ -12,11 +12,10 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { FinishingSteps, type FinishingStep } from "./finishing-steps";
 import { ConsentCheckbox } from "./consent-checkbox";
-import { AlbumPage, GenerationSubmitted } from "./album-page";
+import { AlbumPage } from "./album-page";
 import { ResultImageScroll } from "./result-image-scroll";
 import { CheckoutPage } from "./checkout-page";
 import {
@@ -26,7 +25,6 @@ import {
   IconPhoto,
   IconClock,
   IconArrowRight,
-  IconInfoCircle,
 } from "@tabler/icons-react";
 import plans from "@/lib/orders/plans.json";
 import type { Order, Preferences } from "@/lib/orders/types";
@@ -40,16 +38,8 @@ import { OnboardingStepShell } from "./step-shell";
 import { UploadStep, type UploadedPhoto } from "./upload-step";
 
 const primary = `${PRIMARY_TINT_BUTTON_CLASS} inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold disabled:opacity-40 disabled:pointer-events-none`;
-const secondary =
-  "inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-black/10 bg-[#f4f4f4] px-6 py-3 font-semibold hover:bg-[#ebebeb] disabled:opacity-40";
 const money = (value: number, currency = "eur") =>
   new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(value);
-const examples = [
-  "/onboarding/attire/woman-professional.jpg",
-  "/onboarding/backgrounds/man-city.jpg",
-  "/onboarding/backgrounds/woman-office.jpg",
-  "/onboarding/attire/man-business-casual.jpg",
-];
 const savedOrderKey = "perfilisto-active-order";
 
 async function api(
@@ -131,77 +121,6 @@ function Modal({
     </dialog>
   );
 }
-function Requirements() {
-  const copy = getMessages().onboarding.upload;
-  return (
-    <div className="space-y-5">
-      <details
-        open
-        className="rounded-2xl border border-green-700/10 bg-[#f3faf5] p-5"
-      >
-        <summary className="cursor-pointer font-semibold">
-          Photo requirements
-        </summary>
-        <div className="mt-4 grid gap-5 sm:grid-cols-2">
-          {copy.requirementGroups.map((group) => (
-            <div key={group.caption} className="group relative" tabIndex={0}>
-              <div className="grid grid-cols-2 gap-2">
-                {group.photos.map((photo) => (
-                  <div
-                    key={photo.src}
-                    className="relative overflow-hidden rounded-xl"
-                  >
-                    <Image
-                      src={photo.src}
-                      alt={photo.label}
-                      width={200}
-                      height={200}
-                      unoptimized
-                      className="aspect-[4/5] w-full object-cover"
-                    />
-                    <span className="absolute inset-x-2 bottom-2 rounded-full bg-white/95 p-1 text-center text-[10px] font-bold uppercase">
-                      {photo.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-2 text-sm font-medium">{group.caption}</p>
-              <div className="pointer-events-none absolute inset-x-0 bottom-10 hidden rounded-xl bg-white p-4 text-sm shadow-xl group-focus-visible:block [@media(hover:hover)]:group-hover:block">
-                {group.caption}. Keep your face clearly visible, use recent
-                photos and natural lighting.
-              </div>
-            </div>
-          ))}
-        </div>
-      </details>
-      <details className="rounded-2xl border border-red-200/60 bg-[#fff7f7] p-5">
-        <summary className="cursor-pointer font-semibold">
-          Photo restrictions
-        </summary>
-        <p className="mt-3 text-sm text-neutral-600">
-          Avoid group photos, sunglasses, covered faces, blur, extreme angles,
-          or photos where your face is too small.
-        </p>
-        <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          {copy.restrictionPhotos.map((photo) => (
-            <div key={photo.src}>
-              <Image
-                src={photo.src}
-                alt={photo.label}
-                width={160}
-                height={160}
-                unoptimized
-                className="aspect-square w-full rounded-xl object-cover"
-              />
-              <p className="mt-1 text-xs">{photo.label}</p>
-            </div>
-          ))}
-        </div>
-      </details>
-    </div>
-  );
-}
-
 export function PostUploadFlow({
   photos,
   preferences,
@@ -219,9 +138,7 @@ export function PostUploadFlow({
     ...preferences,
     poses: ["professional", "relaxed"],
     glasses: "none",
-    headwear: "reference",
   });
-  const [submitted, setSubmitted] = useState(false);
   const [detailsConsent, setDetailsConsent] = useState(false);
   const [selected, setSelected] = useState("professional");
   const [order, setOrder] = useState<Order | null>(null);
@@ -230,10 +147,8 @@ export function PostUploadFlow({
   const [error, setError] = useState("");
   const [restoring, setRestoring] = useState(true);
   const [modal, setModal] = useState<
-    "payment" | "framing" | "confirm" | "submit" | null
+    "payment" | null
   >(null);
-  const [ownPhotos, setOwnPhotos] = useState(false);
-  const [acceptedFraming, setAcceptedFraming] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editPhotos, setEditPhotos] = useState<UploadedPhoto[]>([]);
   const [demo, setDemo] = useState(false);
@@ -266,7 +181,6 @@ export function PostUploadFlow({
       setDetails({
         poses: ["professional", "relaxed"],
         glasses: "none",
-        headwear: "reference",
         ...next.preferences,
       });
     if (next.photos.length) sourcePhotos.current = next.photos;
@@ -379,7 +293,7 @@ export function PostUploadFlow({
     return run("Checking your photos…", async () => {
       const current = savedOrder || order;
       if (!current) return;
-      const toastId = toast.add({ title: "Checking your photos…", type: "loading", timeout: 0 });
+      const toastId = toast.loading("Checking your photos…");
       try {
         const next = demo
           ? {
@@ -401,31 +315,18 @@ export function PostUploadFlow({
         const acceptedCount = next.review?.photos.filter((photo) => photo.accepted).length ?? 0;
         const ready = acceptedCount >= 6;
         const needsMidRange = next.review?.needsMidRange;
-        toast.update(toastId, {
-          title: ready ? "Your photos look good!" : "Some photos need replacing",
+        (ready ? toast.success : toast.warning)(ready ? "Your photos look good!" : "Some photos need replacing", {
+          id: toastId,
           description: !ready
             ? `${acceptedCount} photos accepted. Add ${6 - acceptedCount} more clear photos with your face visible to continue.`
             : needsMidRange
               ? "You have enough accepted photos. A mid-range shot showing your shoulders and upper body would help."
               : `${acceptedCount} photos accepted. You’re ready to continue.`,
-          type: ready ? "success" : "warning",
-          timeout: ready && !needsMidRange ? 6000 : 0,
-          actionProps: {
-            children: ready ? "Continue" : "Replace photos",
-            onClick: () => {
-              toast.close(toastId);
-              if (ready) setModal(needsMidRange ? "framing" : "confirm");
-              else {
-                setEditPhotos(next.photos);
-                setEditing(true);
-                setOwnPhotos(false);
-                setAcceptedFraming(false);
-              }
-            },
-          },
+          duration: 6000,
+
         });
       } catch (error) {
-        toast.update(toastId, { title: "We couldn’t check your photos", description: "Please try again. Your photos and payment are saved.", type: "error", timeout: 6000 });
+        toast.error("We couldn’t check your photos", { id: toastId, description: "Please try again. Your photos and payment are saved.", duration: 6000 });
         throw error;
       }
     });
@@ -440,11 +341,10 @@ export function PostUploadFlow({
       /* Optional browser storage. */
     }
     setModal(null);
+    setDetailsConsent(false);
     setEditPhotos(order.photos);
     setEditing(true);
     setFinishing("photos");
-    setOwnPhotos(false);
-    setAcceptedFraming(false);
   };
   const saveUploads = async () => {
     let saved: Order | undefined;
@@ -460,26 +360,23 @@ export function PostUploadFlow({
   };
   const generate = () =>
     run("Starting your headshots…", async () => {
-      if (!order) return;
+      if (!order || !detailsConsent || !finishValid || accepted < 6) return;
       if (demo) {
-        setOrder({
-          ...order,
-          preferences: details,
-          status: "generating",
-          batchStatus: "validating",
-        });
-        setSubmitted(true);
+        const previewOrder: Order = { ...order, preferences: details, status: "generating", batchStatus: "validating" };
+        try { sessionStorage.setItem("perfilisto-dashboard-preview", JSON.stringify(previewOrder)); }
+        catch { sessionStorage.setItem("perfilisto-dashboard-preview", JSON.stringify({ ...previewOrder, photos: [] })); }
+        setOrder(previewOrder);
         setModal(null);
+        router.replace("/dashboard?preview=1");
         return;
       }
       const next = await api(order.id, "generate", {
-        confirmOwnPhotos: ownPhotos,
-        acceptFraming: acceptedFraming,
+        confirmOwnPhotos: detailsConsent,
+        acceptFraming: true,
         preferences: details,
       });
       setOrder(next);
-      setSubmitted(true);
-      setModal(null);
+      router.replace(`/dashboard?order=${encodeURIComponent(next.id)}`);
     });
   const startDemo = async () => {
     setDemo(true);
@@ -500,6 +397,9 @@ export function PostUploadFlow({
   const inGeneration =
     order &&
     ["generating", "complete", "partial", "failed"].includes(order.status);
+  useEffect(() => {
+    if (inGeneration && !demo) router.replace(`/dashboard?order=${encodeURIComponent(order.id)}`);
+  }, [inGeneration, demo, order?.id, router]);
   const reviewStage = !!order?.payment && !inGeneration;
   const checkingPhotos = reviewStage && finishing === "photos" && !editing;
   const needsPhotoCheck = checkingPhotos && !order?.review;
@@ -515,43 +415,16 @@ export function PostUploadFlow({
     window.history.replaceState(null, "", "/onboarding");
     onBack();
   };
-  const openAlbum = useCallback(() => {
-    if (!order) return;
-    if (demo) setSubmitted(false);
-    else router.replace(`/album?order=${encodeURIComponent(order.id)}`);
-  }, [order?.id, demo, router]); // eslint-disable-line react-hooks/exhaustive-deps
   const finishValid =
     !!details.poses?.length &&
     !!details.glasses &&
     !!details.attire.length &&
     !!details.backgrounds.length;
   const advance = () => {
-    if (finishing === "poses") {
-      setFinishing("glasses");
-    } else if (finishing === "glasses") {
-      if (demo) setFinishing("details");
-      else
-        void run("Saving your preferences…", async () => {
-          if (!order) return;
-          setOrder(
-            await api(order.id, "preferences", { preferences: details }, "PUT"),
-          );
-          setFinishing("details");
-        });
-    } else if (finishing === "details") setModal("submit");
-    else
-      setModal(
-        order?.review?.needsMidRange && !acceptedFraming
-          ? "framing"
-          : "confirm",
-      );
+    if (finishing === "details") void generate();
+    else if (accepted >= 6) setFinishing(finishing === "photos" ? "poses" : finishing === "poses" ? "glasses" : "details");
   };
-  if (inGeneration)
-    return submitted ? (
-      <GenerationSubmitted onContinue={openAlbum} />
-    ) : (
-      <AlbumPage initialOrder={order} preview={demo} />
-    );
+  if (inGeneration) return <AlbumPage initialOrder={order} preview={demo} />;
   return (
     <>
       <OnboardingStepShell
@@ -568,31 +441,8 @@ export function PostUploadFlow({
                     ? "checkout"
                     : "pricing"
         }
-        progress={
-          finishing === "details"
-            ? 1
-            : finishing === "glasses"
-              ? 0.95
-              : finishing === "poses"
-                ? 0.9
-                : reviewStage
-                  ? 0.84
-                  : 0.78
-        }
-        onBack={
-          editing
-            ? () => setEditing(false)
-            : finishing !== "photos"
-              ? () =>
-                  setFinishing(
-                    finishing === "details"
-                      ? "glasses"
-                      : finishing === "glasses"
-                        ? "poses"
-                        : "photos",
-                  )
-              : leavePricing
-        }
+        progress={finishing === "details" ? 1 : finishing === "glasses" ? 0.95 : finishing === "poses" ? 0.9 : reviewStage ? 0.84 : 0.78}
+        onBack={finishing !== "photos" ? () => setFinishing(finishing === "details" ? "glasses" : finishing === "glasses" ? "poses" : "photos") : leavePricing}
         hideBack={!!order?.payment && finishing === "photos"}
         hideContinue={checkoutStage || !!inGeneration || restoring}
         continueDisabled={
@@ -619,7 +469,7 @@ export function PostUploadFlow({
               ? "Replace photos"
             : reviewStage
               ? finishing === "details"
-                ? "Submit"
+                ? "Create my headshots"
                 : "Continue"
               : `Continue with ${order?.name || plan.name}`)
         }
@@ -648,11 +498,6 @@ export function PostUploadFlow({
           ) : undefined
         }
       >
-        {demo && (
-          <div className="mb-5 rounded-xl bg-amber-100 px-4 py-3 text-sm font-semibold">
-            DEBUG PREVIEW — no payment or AI request is made.
-          </div>
-        )}
         {error && (
           <div
             role="alert"
@@ -671,11 +516,12 @@ export function PostUploadFlow({
             <UploadStep
               photos={editing ? editPhotos : order.photos}
               disabled={!!busy || !!modal}
+              review={order.review}
+              reviewPending={editing}
               onChange={(next) => {
+                setDetailsConsent(false);
                 setEditPhotos(next);
                 setEditing(true);
-                setOwnPhotos(false);
-                setAcceptedFraming(false);
               }}
             />
           </fieldset>
@@ -821,7 +667,7 @@ export function PostUploadFlow({
         )}
       </OnboardingStepShell>
       {modal === "payment" && order && (
-        <Modal title="Payment received" onClose={() => setModal(null)}>
+        <Modal title="Payment received" onClose={() => { void verify(); }}>
           <Fireworks />
           <div className="py-5 text-center">
             <LogoMark className="mx-auto mb-6 size-14" />
@@ -843,167 +689,6 @@ export function PostUploadFlow({
           </div>
         </Modal>
       )}
-      {modal === "framing" && (
-        <Modal title="Add more mid-range photos" onClose={() => setModal(null)}>
-          <IconInfoCircle className="mb-4 size-10 text-amber-500" />
-          <h2 className="pr-7 text-3xl font-semibold tracking-tight">
-            A few mid-range shots would help
-          </h2>
-          <p className="mt-4 leading-relaxed text-neutral-500">
-            Your photos are mostly close-ups. Add photos showing your shoulders
-            and upper body to give us a better reference for natural-looking
-            portraits.
-          </p>
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            {[
-              "/onboarding/attire/woman-business-casual.jpg",
-              "/onboarding/attire/man-professional.jpg",
-              "/onboarding/attire/woman-smart-casual.jpg",
-            ].map((src, i) => (
-              <div key={src}>
-                <Image
-                  src={src}
-                  width={200}
-                  height={260}
-                  unoptimized
-                  alt={
-                    [
-                      "Half-body example",
-                      "Waist-up example",
-                      "Chest-up example",
-                    ][i]
-                  }
-                  className="aspect-[3/4] rounded-xl object-cover"
-                />
-                <p className="mt-2 text-xs font-semibold">
-                  ✓ {["Half body", "Waist up", "Chest up"][i]}
-                </p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-7 flex flex-wrap justify-end gap-3">
-            <button
-              className={secondary}
-              onClick={() => {
-                setAcceptedFraming(true);
-                setModal("confirm");
-              }}
-            >
-              Continue anyway
-            </button>
-            <button className={primary} onClick={changeUploads}>
-              Upload more photos
-            </button>
-          </div>
-        </Modal>
-      )}
-      {modal === "submit" && (
-        <Modal
-          title="Confirm your details"
-          onClose={() => {
-            if (!busy) setModal(null);
-          }}
-        >
-          <h2 className="pr-8 text-2xl font-semibold">
-            Are all your details correct?
-          </h2>
-          <p className="mt-4 text-neutral-500">
-            We’ll use your selected poses, glasses, outfits and backgrounds to
-            create your professional headshots. Once generation starts, these
-            choices are final.
-          </p>
-          <div className="mt-6 grid grid-cols-3 gap-3">
-            {[
-              ...examples,
-              "/onboarding/attire/man-professional.jpg",
-              "/onboarding/backgrounds/woman-nature.jpg",
-            ].map((src) => (
-              <Image
-                key={src}
-                src={src}
-                alt="Example professional headshot"
-                width={180}
-                height={200}
-                unoptimized
-                className="aspect-square w-full rounded-xl object-cover"
-              />
-            ))}
-          </div>
-          {error && (
-            <p role="alert" className="mt-4 text-red-700">
-              {error}
-            </p>
-          )}
-          <div className="mt-7 flex flex-wrap justify-between gap-3">
-            <button
-              className={secondary}
-              disabled={!!busy}
-              onClick={() => setModal(null)}
-            >
-              Update details
-            </button>
-            <button
-              className={primary}
-              disabled={!!busy || !detailsConsent || !ownPhotos || !finishValid}
-              onClick={generate}
-            >
-              {busy && <Spinner className="size-5" aria-hidden="true" />}
-              {busy || "Confirm and submit"}
-            </button>
-          </div>
-        </Modal>
-      )}
-      {modal === "confirm" && (
-        <Modal
-          title="Confirm your reference photos"
-          onClose={() => setModal(null)}
-          wide
-        >
-          <h2 className="pr-8 text-3xl font-semibold tracking-tight">
-            Happy with your uploads?
-          </h2>
-          <p className="mt-3 mb-6 text-neutral-500">
-            A mix of clear close-ups and mid-range shots gives the best results.
-          </p>
-          <Requirements />
-          <div className="mt-6">
-            <ConsentCheckbox
-              id="confirm-reference-photos"
-              checked={ownPhotos}
-              onChange={setOwnPhotos}
-            >
-              These are recent photos of me, I am 18 or older, and I have
-              permission to use them to generate my headshots.
-            </ConsentCheckbox>
-          </div>
-          {error && (
-            <p role="alert" className="mt-3 text-red-700">
-              {error}
-            </p>
-          )}
-          <div className="mt-7 flex flex-wrap justify-end gap-3">
-            <button
-              className={secondary}
-              onClick={changeUploads}
-              disabled={!!busy}
-            >
-              Change uploads
-            </button>
-            <button
-              className={primary}
-              onClick={() => {
-                setModal(null);
-                setFinishing("poses");
-              }}
-              disabled={!ownPhotos || !!busy}
-            >
-              {busy && <Spinner className="size-5" aria-hidden="true" />}
-              {busy || "Continue to poses"}
-            </button>
-          </div>
-        </Modal>
-      )}
-
     </>
   );
 }

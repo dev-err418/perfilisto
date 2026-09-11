@@ -1,7 +1,7 @@
 "use client";
 
 import { Spinner } from "@/components/ui/spinner";
-import { useEffect, useRef, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
 
@@ -9,7 +9,7 @@ import { getMessages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { BrandWord } from "../landing/brand-name";
-import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
+import { ONBOARDING_CONTINUE_BUTTON_CLASS } from "../landing/button-styles";
 import { LogoMark } from "../landing/logo-mark";
 
 const messages = getMessages();
@@ -44,30 +44,6 @@ export const OnboardingStepShell = ({
   footerContent?: ReactNode;
 }) => {
   const copy = messages.onboarding.shared;
-  const footerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const footer = footerRef.current;
-    if (!footer) return;
-    const updateOffset = () => {
-      const rect = footer.getBoundingClientRect();
-      const offset = rect.bottom > 0 && rect.top < window.innerHeight
-        ? window.innerHeight - rect.top
-        : 0;
-      document.documentElement.style.setProperty("--app-action-bar-offset", `${offset}px`);
-    };
-    const observer = new ResizeObserver(updateOffset);
-    observer.observe(footer);
-    window.addEventListener("resize", updateOffset);
-    window.addEventListener("scroll", updateOffset, { passive: true });
-    updateOffset();
-    return () => {
-      observer.disconnect();
-      window.removeEventListener("resize", updateOffset);
-      window.removeEventListener("scroll", updateOffset);
-      document.documentElement.style.removeProperty("--app-action-bar-offset");
-    };
-  }, [hideContinue]);
 
   return (
     <div className="theme-light flex min-h-dvh flex-col bg-white text-black [color-scheme:light]">
@@ -132,17 +108,14 @@ export const OnboardingStepShell = ({
       </div>
 
       {hideContinue ? null : (
-        <div ref={footerRef} data-slot="onboarding-action-bar" className="sticky bottom-0 z-10 flex shrink-0 flex-col items-center justify-center gap-4 border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div data-slot="onboarding-action-bar" className="sticky bottom-0 z-10 flex shrink-0 flex-col items-center justify-center gap-4 border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {footerContent && <div className="w-full max-w-5xl">{footerContent}</div>}
           <button
             type="button"
             disabled={continueDisabled || continueLoading}
             aria-busy={continueLoading}
             onClick={onContinue}
-            className={cn(
-              PRIMARY_TINT_BUTTON_CLASS,
-              "inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
-            )}
+            className={ONBOARDING_CONTINUE_BUTTON_CLASS}
           >
             {continueLoading && <Spinner className="size-5" aria-hidden="true" />}
             {continueLabel ?? copy.continue}

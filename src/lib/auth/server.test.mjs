@@ -11,10 +11,10 @@ const cookieName = "__Secure-authjs.session-token";
 
 test("redirects stay on protected same-origin pages", () => {
   for (const value of ["https://evil.example/onboarding", "//evil.example/onboarding", "/login", "/api/auth/signout", "javascript:alert(1)"]) {
-    assert.equal(safeRedirect(value, origin), `${origin}/onboarding`);
+    assert.equal(safeRedirect(value, origin), `${origin}/dashboard`);
   }
   assert.equal(safeRedirect("/album?order=one", origin), `${origin}/album?order=one`);
-  assert.equal(safeRedirect("https://evil.example/album?order=one", origin), `${origin}/onboarding`);
+  assert.equal(safeRedirect("https://evil.example/album?order=one", origin), `${origin}/dashboard`);
   assert.equal(safeRedirect("/onboarding?plan=pro", origin), `${origin}/onboarding?plan=pro`);
 });
 
@@ -27,7 +27,7 @@ test("both providers are configured with callback protection", () => {
 
 test("forged, missing and expired sessions cannot enter onboarding", async () => {
   for (const value of ["", "forged", await encode({ token: { sub: "google:123" }, secret: env.AUTH_SECRET, salt: cookieName, maxAge: -60 })]) {
-    const request = new Request(`${origin}/onboarding`, { headers: { cookie: `${cookieName}=${value}` } });
+    const request = new Request(`${origin}/dashboard`, { headers: { cookie: `${cookieName}=${value}` } });
     assert.equal(await hasSession(request, env), false);
   }
 });
@@ -49,7 +49,7 @@ test("worker protects assets and permits a verified session", async () => {
   assert.equal(denied.status, 307);
   assert.equal(assetCalls, 0);
   const value = await encode({ token: { sub: "facebook:123" }, secret: env.AUTH_SECRET, salt: cookieName });
-  const allowed = await worker.fetch(new Request(`${origin}/onboarding`, { headers: { cookie: `${cookieName}=${value}` } }), bindings);
+  const allowed = await worker.fetch(new Request(`${origin}/dashboard`, { headers: { cookie: `${cookieName}=${value}` } }), bindings);
   assert.equal(allowed.status, 200);
   assert.equal(allowed.headers.get("Cache-Control"), "private, no-store");
   assert.equal(assetCalls, 1);

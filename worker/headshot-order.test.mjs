@@ -428,6 +428,7 @@ test("Preferences are validated, restored to their owner and locked when generat
   assert.deepEqual(saved.preferences.poses, ["relaxed"]);
   assert.equal(saved.preferences.glasses, "mixed");
   assert.equal(saved.preferences.arbitrary, undefined);
+  assert.equal(saved.preferences.headwear, undefined);
   assert.equal(
     (
       await s.req(
@@ -485,7 +486,7 @@ test("Image prompts honor selected poses, eyewear split and confirmed details", 
       (r) =>
         r.body.prompt.includes("relaxed natural stance") &&
         r.body.prompt.includes("hair: brown") &&
-        r.body.prompt.includes("Headwear: no headwear"),
+        !r.body.prompt.includes("Headwear:"),
     ),
   );
   o.preferences.glasses = "all";
@@ -570,4 +571,44 @@ test("Checkout email comes from the stored signed-in customer and is only return
   assert.equal((await s.req("", undefined, "GET", "other:user")).status, 404);
   o.payment = { amount: o.price, currency: o.currency };
   assert.equal(s.order.public(o).checkoutEmail, undefined);
+});
+
+test("Dashboard lookup restores only the signed-in owner's generated order without a browser hint", async () => {
+  const s = setup();
+  const order = await create(s);
+  order.status = "generating";
+  order.payment = { amount: 29, currency: "eur" };
+  await s.order.save(order);
+  const lookup = async (sub) => {
+    const salt = "__Secure-authjs.session-token";
+    const token = await encode({ token: { sub }, secret: s.env.AUTH_SECRET, salt, maxAge: 600 });
+    return handleOrders(new Request("https://perfilisto.com/api/orders/current", { headers: { Cookie: `${salt}=${token}`, "X-Order-Owner": owner } }), s.env);
+  };
+  const restored = await lookup(owner);
+  assert.equal(restored.status, 200);
+  assert.equal((await restored.json()).id, id);
+  assert.equal(await (await lookup("test:someone-else")).json(), null);
+  assert.equal((await handleOrders(new Request("https://perfilisto.com/api/orders/current"), s.env)).status, 401);
+  order.expiresAt = Date.now() - 1;
+  await s.order.save(order);
+  assert.equal(await (await lookup(owner)).json(), null);
+});
+
+test("favorites persist, are idempotent, and only accept the owner's result images", async () => {
+  const s = setup();
+  const order = await create(s);
+  order.status = "complete";
+  order.results = [{ id: "result-one" }, { id: "result-two" }];
+  s.data.set("order", order);
+  const change = (imageId, favorite, identity = owner) => s.req("favorites", { imageId, favorite }, "PUT", identity);
+  assert.equal((await change("result-one", true)).status, 200);
+  await change("result-one", true);
+  await change("result-two", true);
+  assert.deepEqual((await (await s.req("", {}, "GET")).json()).favorites, ["result-one", "result-two"]);
+  assert.equal((await change("result-one", false, "another-owner")).status, 404);
+  assert.equal((await change("p-0", true)).status, 400);
+  assert.equal((await change("unknown-result", true)).status, 400);
+  assert.equal((await change("result-one", "yes")).status, 400);
+  await change("result-one", false);
+  assert.deepEqual(s.data.get("order").favorites, ["result-two"]);
 });

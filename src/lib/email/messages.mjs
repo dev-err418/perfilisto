@@ -18,7 +18,7 @@ export function emailMessage(kind, order) {
   )
     throw new Error("Invalid email recipient or template");
   if (!/^[a-f0-9-]{36}$/.test(order.id)) throw new Error("Invalid order");
-  const actionUrl = `https://perfilisto.com/${kind === "ready" ? "album" : "onboarding"}?order=${order.id}`;
+  const actionUrl = `https://perfilisto.com/${kind === "ready" ? "dashboard" : "onboarding"}?order=${order.id}`;
   const name = String(order.customer.name || "")
     .trim()
     .split(/\s+/)[0]

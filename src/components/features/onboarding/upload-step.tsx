@@ -1,5 +1,6 @@
 "use client";
 
+import type { Review } from "@/lib/orders/types";
 import { Spinner } from "@/components/ui/spinner";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -72,8 +73,12 @@ export const UploadStep = ({
   onChange,
   onBack,
   disabled = false,
+  review,
+  reviewPending = false,
 }: {
   disabled?: boolean;
+  review?: Review;
+  reviewPending?: boolean;
   photos: UploadedPhoto[];
   onChange: (photos: UploadedPhoto[]) => void;
   onBack?: () => void;
@@ -428,8 +433,10 @@ export const UploadStep = ({
         {photos.length > 0 ? (
           <div className="mt-6 rounded-2xl border border-black/[0.08] bg-white p-4 shadow-sm sm:p-5">
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
-              {photos.map((photo) => (
-                <span key={photo.id} className="relative overflow-hidden rounded-xl">
+              {photos.map((photo) => {
+                const assessment = review?.photos.find((item) => item.id === photo.id);
+                return <div key={photo.id}>
+                <div className="relative overflow-hidden rounded-xl">
                   {photo.preparing ? (
                     <span
                       role="status"
@@ -449,6 +456,10 @@ export const UploadStep = ({
                       />
                     </>
                   )}
+                  {assessment && <span className={cn("absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold text-white", assessment.accepted ? "bg-green-600" : "bg-red-600")}>
+                    {assessment.accepted ? <IconCheck className="size-3" /> : <IconX className="size-3" />}
+                    {assessment.accepted ? "Accepted" : "Replace"}
+                  </span>}
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.id)}
@@ -457,9 +468,16 @@ export const UploadStep = ({
                   >
                     <IconX className="size-3.5" stroke={2.2} />
                   </button>
-                </span>
-              ))}
+                </div>
+                {assessment && !assessment.accepted && <p className="mt-2 text-xs leading-relaxed text-red-700">{assessment.reason || "Use a clearer photo with your face visible."}</p>}
+                </div>;
+              })}
             </div>
+            {review && <p role="status" className="mt-4 text-sm text-neutral-600">
+              {reviewPending ? "Check your updated photos when you’re ready." : review.photos.filter((photo) => photo.accepted).length < MIN_PHOTOS
+                ? `Replace the marked photos. You need ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length} more accepted photos.`
+                : review.needsMidRange ? "Optional: add a mid-range photo showing your shoulders and upper body for better results. You can also continue with these photos." : "Your photos are ready. Continue to review your details."}
+            </p>}
             <p className="mt-4 flex items-start gap-3 rounded-2xl bg-[#fff4ea] px-4 py-3 text-[15px] leading-6 text-[#141414]">
               <IconShieldLock
                 className="mt-0.5 size-5 shrink-0 text-[var(--primary)]"

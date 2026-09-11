@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { IconX } from "@tabler/icons-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -17,9 +16,13 @@ const messages = getMessages();
 export const OnboardingWelcomeModal = ({
   onContinue,
   onSkipToUpload,
+  onSkipWelcome,
+  onOpenDashboard,
 }: {
   onContinue?: () => void;
   onSkipToUpload?: () => void;
+  onSkipWelcome?: () => void;
+  onOpenDashboard?: () => void;
 }) => {
   const router = useRouter();
   const copy = messages.onboarding.welcome;
@@ -47,9 +50,6 @@ export const OnboardingWelcomeModal = ({
       onCancel={(event) => { event.preventDefault(); router.push("/"); }}
       className="theme-light fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-[520px] overflow-y-auto rounded-[28px] bg-white p-7 text-black shadow-2xl backdrop:bg-black/45 backdrop:backdrop-blur-sm [color-scheme:light] sm:p-9"
     >
-      <Link href="/" aria-label="Close onboarding" className="absolute top-4 right-4 grid size-10 place-items-center rounded-full hover:bg-black/5">
-        <IconX className="size-5" />
-      </Link>
       <div className="mb-6 flex items-center gap-2.5">
         <LogoMark className="size-8 rounded-[8px]" />
         <BrandWord className="text-lg font-semibold tracking-tight" />
@@ -111,7 +111,7 @@ export const OnboardingWelcomeModal = ({
               <div className="mt-4 flex flex-wrap justify-center gap-3">
                 <button
                   type="button"
-                  onClick={onContinue}
+                  onClick={onSkipWelcome}
                   className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black/60 shadow-md transition-colors hover:bg-neutral-100 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
                 >
                   <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide text-orange-700">
@@ -131,6 +131,14 @@ export const OnboardingWelcomeModal = ({
                     Skip to upload →
                   </button>
                 ) : null}
+                {onOpenDashboard && <button
+                  type="button"
+                  onClick={onOpenDashboard}
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
+                >
+                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide">DEBUG</span>
+                  Open dashboard →
+                </button>}
               </div>
             ) : null}
     </dialog>

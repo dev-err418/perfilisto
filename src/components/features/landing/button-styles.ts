@@ -1,4 +1,5 @@
 export const PRIMARY_TINT_BUTTON_CLASS = "primary-tint-button";
+export const ONBOARDING_CONTINUE_BUTTON_CLASS = `${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40`;
 
 export const PRIMARY_CTA_BUTTON_CLASS = `${PRIMARY_TINT_BUTTON_CLASS} group inline-flex h-14 items-center justify-center gap-2 rounded-full px-7 text-lg leading-6 font-semibold tracking-[0.2px] whitespace-nowrap select-none`;
 

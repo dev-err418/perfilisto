@@ -7,7 +7,6 @@ import { HairSwatch, hairSwatches, type HairOption } from "./hair-step";
 import {
   IconPhoto,
   IconCalendar,
-  IconUserScan,
   IconCheck,
   IconChevronDown,
   IconEyeglass,
@@ -36,7 +35,6 @@ const labels: Record<string, string> = {
   backgrounds: "Backgrounds",
   attire: "Attire",
   poses: "Poses",
-  headwear: "Headwear",
   age: "Age",
   glasses: "Glasses",
   reference: "As in my photos",
@@ -57,13 +55,13 @@ function ChoicePreview({ field, choice, gender }: { field: string; choice: strin
   if (field === "hair" && choice && choice !== "bald") return <span className="grid size-8 shrink-0 place-items-center"><HairSwatch tone={hairSwatches[choice as HairOption]} /></span>;
   if (choice === "bald") src = `/onboarding/hair-length/${gender}-bald.jpg`;
   if (src) return <Image src={src} alt="" width={32} height={36} unoptimized className="h-9 w-8 shrink-0 rounded-md object-cover object-top" />;
-  const Icon = field === "glasses" ? choice === "all" ? IconEyeglass : choice === "mixed" ? IconAdjustmentsHorizontal : IconEyeglassOff : field === "age" ? IconCalendar : field === "headwear" && choice === "none" ? IconUserScan : IconPhoto;
+  const Icon = field === "glasses" ? choice === "all" ? IconEyeglass : choice === "mixed" ? IconAdjustmentsHorizontal : IconEyeglassOff : field === "age" ? IconCalendar : IconPhoto;
   return <span className="grid size-8 shrink-0 place-items-center text-primary" aria-hidden="true"><Icon className="size-5" stroke={1.7} /></span>;
 }
-const choiceLabel = (field: string, choice: string) => !choice ? "As in my photos" : field === "headwear" && choice === "none" ? "No headwear" : labelFor(choice);
+const choiceLabel = (field: string, choice: string) => !choice ? "As in my photos" : labelFor(choice);
 
 function SingleChoice({ field, value, gender, onChange }: { field: keyof Preferences; value: string; gender: string; onChange: (value: string | null) => void }) {
-  const choices = [...(!["glasses", "headwear"].includes(field) ? [""] : []), ...options[field as keyof typeof options]];
+  const choices = [...(!["glasses"].includes(field) ? [""] : []), ...options[field as keyof typeof options]];
   return <div>
     <label id={`detail-label-${field}`} className="mb-2 block text-sm text-muted-foreground">{labelFor(field)}</label>
     <Select.Root value={value} onValueChange={onChange}>
@@ -207,7 +205,7 @@ export function FinishingSteps({
           ? "Select your poses"
           : step === "glasses"
             ? "Would you like glasses in your headshots?"
-            : "Confirm your details"}
+            : "Review and create"}
       </h1>
       <p className="mt-3 max-w-2xl text-center text-[17px] leading-7 text-muted-foreground">
         {step === "poses"
@@ -355,7 +353,6 @@ export function FinishingSteps({
               "backgrounds",
               "attire",
               "poses",
-              "headwear",
             ] as const
           ).map((key) =>
             ["backgrounds", "attire", "poses"].includes(key) ? (

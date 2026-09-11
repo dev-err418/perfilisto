@@ -7,7 +7,7 @@ import { getRequestPolicy } from "@/lib/auth/request-policy.mjs";
 export async function proxy(request: NextRequest) {
   const authenticated = await hasSession(request, process.env);
   if (request.nextUrl.pathname === "/login" && authenticated) {
-    return NextResponse.redirect(safeRedirect(request.nextUrl.searchParams.get("redirect") ?? "/onboarding", request.nextUrl.origin));
+    return NextResponse.redirect(safeRedirect(request.nextUrl.searchParams.get("redirect") ?? "/dashboard", request.nextUrl.origin));
   }
   const policy = getRequestPolicy(request.url, authenticated);
   const response = policy.redirect

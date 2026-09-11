@@ -9,7 +9,6 @@ export type Preferences = {
   hairLength?: string | null;
   hairType?: string | null;
   bodyType?: string | null;
-  headwear?: string;
 };
 export type Review = {
   photos: {
@@ -45,6 +44,7 @@ export type Order = {
   payment?: { amount: number; currency: string };
   review?: Review;
   results: { id: string; url: string }[];
+  favorites?: string[];
   preferences?: Preferences;
   batchProgress?: { completed: number; failed: number; total: number };
   emailNotificationsEnabled?: boolean;

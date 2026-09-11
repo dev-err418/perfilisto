@@ -31,7 +31,7 @@ const worker = {
     if (url.pathname.startsWith("/api/auth/")) return handleAuth(request, env);
 
     if (url.pathname === "/login" && authenticated) {
-      return new Response(null, { status: 307, headers: { Location: safeRedirect(url.searchParams.get("redirect") ?? "/onboarding", url.origin), "Cache-Control": "private, no-store" } });
+      return new Response(null, { status: 307, headers: { Location: safeRedirect(url.searchParams.get("redirect") ?? "/dashboard", url.origin), "Cache-Control": "private, no-store" } });
     }
 
     if (url.pathname.startsWith("/api/upload-sessions")) {

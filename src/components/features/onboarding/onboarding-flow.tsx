@@ -3,6 +3,11 @@
 import { useFunnelStage } from "@/components/analytics/whop-pixel";
 import { ANALYTICS_READY, trackFunnel } from "@/lib/analytics/client";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { loadCurrentOrder } from "@/lib/orders/current-order";
+import plans from "@/lib/orders/plans.json";
+import type { Order } from "@/lib/orders/types";
+import { Spinner } from "@/components/ui/spinner";
 
 import { getMessages } from "@/i18n";
 
@@ -95,6 +100,9 @@ const NEXT_STEP: Partial<Record<Step, Step>> = {
 const messages = getMessages();
 
 export const OnboardingFlow = () => {
+  const router = useRouter();
+  const [restoringAccount, setRestoringAccount] = useState(true);
+  const [restoreError, setRestoreError] = useState(false);
   const [step, setStep] = useState<Step>("gender");
   const [welcomeOpen, setWelcomeOpen] = useState(true);
   useFunnelStage(welcomeOpen ? "welcome" : step === "purchase" ? "packages" : step.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`));
@@ -103,9 +111,23 @@ export const OnboardingFlow = () => {
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
   useEffect(() => {
+    let cancelled = false;
+    if (new URLSearchParams(window.location.search).get("new") === "1") {
+      queueMicrotask(() => setRestoringAccount(false));
+      return;
+    }
     const id = new URLSearchParams(window.location.search).get("order");
-    if (id) queueMicrotask(() => { setWelcomeOpen(false); setStep("purchase"); });
-  }, []);
+    if (id) { queueMicrotask(() => { setWelcomeOpen(false); setStep("purchase"); setRestoringAccount(false); }); return; }
+    void loadCurrentOrder().then(order => {
+      if (cancelled) return;
+      if (order && ["generating", "complete", "partial", "failed"].includes(order.status)) {
+        router.replace(`/dashboard?order=${encodeURIComponent(order.id)}`);
+        return;
+      }
+      setRestoringAccount(false);
+    }).catch(() => { if (!cancelled) { setRestoreError(true); setRestoringAccount(false); } });
+    return () => { cancelled = true; };
+  }, [router]);
   const [gender, setGender] = useState<GenderOption | null>(null);
   const [age, setAge] = useState<AgeOption | null>(null);
   const [hair, setHair] = useState<HairOption | null>(null);
@@ -125,6 +147,37 @@ export const OnboardingFlow = () => {
     return () => window.removeEventListener(ANALYTICS_READY, record);
   }, [readyPhotos]);
 
+  const skipWithExampleDetails = (target: "gender" | "upload") => {
+    if (process.env.NODE_ENV !== "development") return;
+    window.clearTimeout(advanceTimer.current);
+    setGender("man");
+    setAge("25-29");
+    setHair("brown");
+    setHairLength("short");
+    setHairType("wavy");
+    setBodyType("regular");
+    setAttire([...ALL_ATTIRE]);
+    setBackgrounds([...ALL_BACKGROUNDS]);
+    setWelcomeOpen(false);
+    setDirection("forward");
+    setStep(target);
+  };
+
+  const openDashboardPreview = () => {
+    if (process.env.NODE_ENV !== "development") return;
+    const plan = plans[0];
+    const preview: Order = {
+      ...plan, id: "dashboard-preview", planId: plan.id,
+      status: "generating", batchStatus: "in_progress",
+      preferences: { gender: "man", age: "25-29", hair: "brown", hairLength: "short", hairType: "wavy", bodyType: "regular", attire: ALL_ATTIRE, backgrounds: ALL_BACKGROUNDS, poses: ["professional", "relaxed"], glasses: "none" },
+      photos: ["professional", "business-casual", "smart-casual", "professional"].map((attire, index) => ({ id: `example-${index}`, name: "Example portrait", url: `/onboarding/attire/man-${attire}.jpg` })),
+      results: [], expiresAt: Date.now() + 86400000,
+    };
+    sessionStorage.setItem("perfilisto-dashboard-preview", JSON.stringify(preview));
+    sessionStorage.removeItem("perfilisto-progress-start:dashboard-preview");
+    router.push("/dashboard?preview=1");
+  };
+
   const goNext = (from: Step) => {
     const next = NEXT_STEP[from];
     if (next) {
@@ -143,6 +196,10 @@ export const OnboardingFlow = () => {
     window.clearTimeout(advanceTimer.current);
     advanceTimer.current = window.setTimeout(() => goNext(from), 250);
   };
+
+  if (restoringAccount || restoreError) return <main className="theme-light grid min-h-dvh place-content-center justify-items-center gap-4 bg-white text-black">
+    {restoreError ? <><p>Could not restore your headshots.</p><button className="rounded-full border px-6 py-3" onClick={() => window.location.reload()}>Try again</button></> : <Spinner className="size-8 text-primary" aria-label="Restoring your headshots" />}
+  </main>;
 
   if (step === "purchase")
     return (
@@ -261,13 +318,9 @@ export const OnboardingFlow = () => {
       </OnboardingStepShell>
       {welcomeOpen && <OnboardingWelcomeModal
         onContinue={() => setWelcomeOpen(false)}
-        onSkipToUpload={() => {
-          if (process.env.NODE_ENV !== "development") return;
-          window.clearTimeout(advanceTimer.current);
-          setWelcomeOpen(false);
-          setDirection("forward");
-          setStep("upload");
-        }}
+        onSkipWelcome={() => skipWithExampleDetails("gender")}
+        onSkipToUpload={() => skipWithExampleDetails("upload")}
+        onOpenDashboard={openDashboardPreview}
       />}
       {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}
     </>

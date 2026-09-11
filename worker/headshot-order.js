@@ -16,6 +16,20 @@ const json = (data, status = 200) =>
     headers: { "Cache-Control": "private, no-store" },
   });
 const DAY = 86_400_000;
+async function accountOrderKey(owner) {
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(owner));
+  return `accounts/${Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, "0")).join("")}/dashboard.json`;
+}
+async function rememberDashboardOrder(env, order) {
+  if (!order.owner || !["generating", "complete", "partial", "failed"].includes(order.status)) return;
+  const key = await accountOrderKey(order.owner);
+  const existing = await env.ORDER_PHOTOS.get(key);
+  const previous = existing ? await new Response(existing.body).json() : null;
+  if (previous && previous.createdAt > order.createdAt) return;
+  if (previous?.id === order.id && previous.expiresAt === order.expiresAt) return;
+  await env.ORDER_PHOTOS.put(key, JSON.stringify({ id: order.id, createdAt: order.createdAt, expiresAt: order.expiresAt }));
+}
+
 export class HeadshotOrder {
   constructor(ctx, env) {
     this.ctx = ctx;
@@ -37,6 +51,7 @@ export class HeadshotOrder {
   }
   async save(order) {
     await this.ctx.storage.put("order", order);
+    await rememberDashboardOrder(this.env, order);
   }
   async handle(request) {
     const url = new URL(request.url);
@@ -281,6 +296,14 @@ export class HeadshotOrder {
         order.review = await verifyPhotos(this.env, photos);
         await this.save(order);
       }
+    } else if (request.method === "PUT" && action === "favorites") {
+      if (typeof body.favorite !== "boolean" || !order.results.some(photo => photo.id === body.imageId))
+        return json({ error: "Choose a generated photo from this album" }, 400);
+      const favorites = new Set(order.favorites || []);
+      if (body.favorite) favorites.add(body.imageId);
+      else favorites.delete(body.imageId);
+      order.favorites = [...favorites];
+      await this.save(order);
     } else if (request.method === "PUT" && action === "preferences") {
       if (!order.payment) return json({ error: "Payment required" }, 402);
       if (order.batchId || order.batchSubmitting || order.inputFileId)
@@ -367,6 +390,7 @@ export class HeadshotOrder {
         ].includes(action))
     )
       return json({ error: "Not found" }, 404);
+    await rememberDashboardOrder(this.env, order);
     return json(this.public(order));
   }
   public(order) {
@@ -676,11 +700,18 @@ export async function handleOrders(request, env) {
     : null;
   if (!token?.sub || !token.exp || token.exp <= Date.now() / 1000)
     return json({ error: "Please sign in again" }, 401);
-  const id = url.pathname.split("/")[3];
-  if (!/^[a-f0-9-]{36}$/.test(id || ""))
-    return json({ error: "Order not found" }, 404);
+  let id = url.pathname.split("/")[3];
   if (!env.HEADSHOT_ORDERS || !env.ORDER_PHOTOS)
     return json({ error: "Order service is not configured yet" }, 503);
+  if (id === "current" && request.method === "GET" && url.pathname === "/api/orders/current") {
+    const record = await env.ORDER_PHOTOS.get(await accountOrderKey(token.sub));
+    const current = record ? await new Response(record.body).json() : null;
+    if (!current || current.expiresAt < Date.now()) return json(null);
+    id = current.id;
+    url.pathname = `/api/orders/${id}`;
+  }
+  if (!/^[a-f0-9-]{36}$/.test(id || ""))
+    return json({ error: "Order not found" }, 404);
   const headers = new Headers(request.headers);
   headers.set("X-Order-Owner", token.sub);
   headers.delete("X-Order-Customer");
@@ -696,6 +727,6 @@ export async function handleOrders(request, env) {
     );
   headers.delete("X-Verified-Whop-Event");
   return env.HEADSHOT_ORDERS.getByName(id).fetch(
-    new Request(request, { headers }),
+    new Request(url, { method: request.method, headers, body: request.method === "GET" ? undefined : request.body, duplex: "half" }),
   );
 }

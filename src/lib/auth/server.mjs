@@ -14,7 +14,7 @@ export function safeRedirect(target, origin) {
       return url.href;
     }
   } catch { /* Use the default destination. */ }
-  return `${origin}/onboarding`;
+  return `${origin}/dashboard`;
 }
 
 /** @param {Record<string, string | undefined>} env */
