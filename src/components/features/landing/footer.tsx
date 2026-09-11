@@ -83,6 +83,11 @@ export const LandingFooter = ({
                       {copy.terms}
                     </Link>
                   </li>
+                  <li>
+                    <Link href="/data-deletion" className={footerLinkClass}>
+                      {copy.dataDeletion}
+                    </Link>
+                  </li>
                 </ul>
               </nav>
             </div>

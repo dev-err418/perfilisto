@@ -13,8 +13,19 @@ test("dashboard redirects retain the intended path and query on the same origin"
 });
 
 test("public pages, API routes, and similar prefixes remain accessible", () => {
-  for (const path of ["/", "/onboarding", "/upload-session?s=abc", "/api/upload-sessions", "/dashboard-example"]) {
+  for (const path of ["/", "/onboarding-example", "/upload-session?s=abc", "/api/upload-sessions", "/dashboard-example"]) {
     assert.equal(getRequestPolicy(`http://localhost:3000${path}`).redirect, null);
+  }
+});
+
+test("onboarding requires login and preserves the requested destination", () => {
+  for (const path of ["/onboarding", "/onboarding/", "/onboarding/upload?plan=professional"]) {
+    const policy = getRequestPolicy(`http://localhost:3000${path}`);
+    const destination = new URL(policy.redirect);
+    assert.equal(policy.status, 307);
+    assert.equal(destination.pathname, "/login");
+    assert.equal(destination.searchParams.get("redirect"), path);
+    assert.equal(policy.headers["Cache-Control"], "private, no-store");
   }
 });
 

@@ -1,3 +1,5 @@
+import { preparePhoto } from "./prepare-photo";
+
 export type RemotePhoto = {
   id: string;
   name: string;
@@ -35,10 +37,11 @@ export const putRemoteSessionPhotos = async (
   if (!response.ok) throw new Error("Could not send photos");
 };
 
-export const fileToJpegDataUrl = (file: File, maxEdge = 1600) =>
-  new Promise<string>((resolve, reject) => {
+export const fileToJpegDataUrl = async (file: File, maxEdge = 1600) => {
+  const blob = await preparePhoto(file);
+  return new Promise<string>((resolve, reject) => {
     const image = new Image();
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(blob);
     image.onload = () => {
       const scale = Math.min(1, maxEdge / Math.max(image.width, image.height));
       const canvas = document.createElement("canvas");
@@ -60,3 +63,4 @@ export const fileToJpegDataUrl = (file: File, maxEdge = 1600) =>
     };
     image.src = objectUrl;
   });
+};

@@ -1,9 +1,12 @@
 /** Shared by Next.js development and the production Cloudflare Worker. */
-export function getRequestPolicy(requestUrl) {
+export function getRequestPolicy(requestUrl, authenticated = false) {
   const url = new URL(requestUrl);
-  const isDashboard = url.pathname === "/dashboard" || url.pathname.startsWith("/dashboard/");
+  const pathname = url.pathname.replace(/\.(html|txt|rsc)$/, "");
+  const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
+  const isOnboarding = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
+  const requiresLogin = isDashboard || isOnboarding;
   const isLogin = url.pathname === "/login" || url.pathname === "/login/";
-  const headers = isDashboard || isLogin
+  const headers = requiresLogin || isLogin
     ? { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" }
     : {};
 
@@ -13,9 +16,8 @@ export function getRequestPolicy(requestUrl) {
     return { redirect: url.toString(), status: 301, headers };
   }
 
-  // Fail closed until a provider-backed session verifier is connected.
-  // Never grant access based solely on the presence of a cookie.
-  if (isDashboard) {
+  // Callers supply only the result of cryptographic session verification.
+  if (requiresLogin && !authenticated) {
     const destination = new URL("/login", url);
     destination.searchParams.set("redirect", url.pathname + url.search);
     return { redirect: destination.toString(), status: 307, headers };

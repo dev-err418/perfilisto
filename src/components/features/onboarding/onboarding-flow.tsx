@@ -130,6 +130,11 @@ export const OnboardingFlow = () => {
       <OnboardingWelcomeScreen onContinue={() => {
         setDirection("forward");
         setStep("gender");
+      }} onSkipToUpload={() => {
+        if (process.env.NODE_ENV !== "development") return;
+        window.clearTimeout(advanceTimer.current);
+        setDirection("forward");
+        setStep("upload");
       }} />
     );
   }

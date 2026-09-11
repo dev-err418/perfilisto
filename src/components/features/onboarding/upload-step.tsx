@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type DragEvent } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 import Image from "next/image";
@@ -12,6 +12,7 @@ import {
   IconDeviceMobile,
   IconLock,
   IconPhoto,
+  IconShieldLock,
   IconSun,
   IconUpload,
   IconX,
@@ -23,6 +24,8 @@ import {
   getRemoteSessionPhotos,
 } from "@/lib/upload-session-client";
 import { cn } from "@/lib/utils";
+import { selectUploadFiles } from "@/lib/photo-upload.mjs";
+import { preparePhoto } from "@/lib/prepare-photo";
 
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
 
@@ -30,7 +33,6 @@ const messages = getMessages();
 
 const MIN_PHOTOS = 6;
 const MAX_PHOTOS = 10;
-const MAX_BYTES = 120 * 1024 * 1024;
 const ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif";
 
 type UploadedPhoto = {
@@ -106,6 +108,10 @@ export const UploadStep = ({
   const shared = messages.onboarding.shared;
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [pendingBatches, setPendingBatches] = useState(0);
+  const uploadQueue = useRef(Promise.resolve());
+  const mounted = useRef(true);
   const [requirementsOpen, setRequirementsOpen] = useState(true);
   const [restrictionsOpen, setRestrictionsOpen] = useState(true);
   const [qrOpen, setQrOpen] = useState(false);
@@ -115,13 +121,20 @@ export const UploadStep = ({
   const [qrSvg, setQrSvg] = useState("");
   const photosRef = useRef(photos);
   const importedIds = useRef(new Set<string>());
-  photosRef.current = photos;
+  useEffect(() => { photosRef.current = photos; }, [photos]);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
     void createRemoteSession()
       .then((id) => {
-        if (!cancelled) setSessionId(id);
+        if (!cancelled) {
+          setSessionId(id);
+          setMobileUrl(`${window.location.origin}/upload-session?s=${id}`);
+        }
       })
       .catch(() => {
         if (!cancelled) setSessionId(null);
@@ -134,7 +147,6 @@ export const UploadStep = ({
   useEffect(() => {
     if (!sessionId) return;
     const url = `${window.location.origin}/upload-session?s=${sessionId}`;
-    setMobileUrl(url);
     void QRCode.toString(url, {
       type: "svg",
       margin: 1,
@@ -150,15 +162,17 @@ export const UploadStep = ({
         const fresh = remote.filter((photo) => !importedIds.current.has(photo.id));
         if (!fresh.length) return;
         for (const photo of fresh) importedIds.current.add(photo.id);
-        onChange([
+        const next = [
           ...photosRef.current,
           ...fresh.map((photo) => ({
             id: photo.id,
             name: photo.name,
             url: photo.dataUrl,
           })),
-        ]);
-      });
+        ].slice(0, MAX_PHOTOS);
+        photosRef.current = next;
+        onChange(next);
+      }).catch(() => { /* Retry on the next poll after a transient network error. */ });
     }, 1500);
     return () => window.clearInterval(timer);
   }, [onChange, sessionId]);
@@ -172,33 +186,98 @@ export const UploadStep = ({
     return () => window.removeEventListener("keydown", onKey);
   }, [qrOpen]);
 
-  const addFiles = (fileList: FileList | File[]) => {
-    const next = [...photos];
-    for (const file of Array.from(fileList)) {
-      if (next.length >= MAX_PHOTOS) break;
-      if (!file.type.startsWith("image/") && !/\.(heic|heif)$/i.test(file.name)) {
-        continue;
+  const addFiles = useCallback((fileList: FileList | File[]) => {
+    const files = Array.from(fileList);
+    if (!files.length) return;
+    setPendingBatches((count) => count + 1);
+    setUploadError("");
+    // Serialize batches so conversion and mobile sync cannot overwrite photos
+    // or let a second selection claim the same remaining slots.
+    uploadQueue.current = uploadQueue.current.then(async () => {
+      const { accepted, rejected } = selectUploadFiles(files, MAX_PHOTOS - photosRef.current.length);
+      for (const file of accepted as File[]) {
+        if (!mounted.current) return;
+        try {
+          const blob = await preparePhoto(file);
+          if (!mounted.current) return;
+          if (photosRef.current.length >= MAX_PHOTOS) {
+            rejected.push(`${file.name}: you can upload up to 10 photos.`);
+            continue;
+          }
+          const photo = { id: crypto.randomUUID(), name: file.name, url: URL.createObjectURL(blob) };
+          const next = [...photosRef.current, photo];
+          photosRef.current = next;
+          onChange(next);
+        } catch {
+          rejected.push(`${file.name}: could not read this photo. Try exporting it as JPG or PNG.`);
+        }
       }
-      if (file.size > MAX_BYTES) continue;
-      next.push({
-        id: `${file.name}-${file.size}-${file.lastModified}-${Math.random()}`,
-        name: file.name,
-        url: URL.createObjectURL(file),
-      });
-    }
-    onChange(next);
-  };
+      if (mounted.current) setUploadError(rejected.join(" "));
+    }).finally(() => {
+      if (mounted.current) setPendingBatches((count) => count - 1);
+    });
+  }, [onChange]);
 
-  const onDrop = (event: DragEvent<HTMLLabelElement>) => {
-    event.preventDefault();
-    setDragging(false);
-    if (event.dataTransfer.files.length) addFiles(event.dataTransfer.files);
-  };
+  useEffect(() => {
+    let dragDepth = 0;
+    const containsFiles = (event: DragEvent) =>
+      Array.from(event.dataTransfer?.types ?? []).includes("Files");
+    const reset = () => {
+      dragDepth = 0;
+      setDragging(false);
+    };
+    const onEnter = (event: DragEvent) => {
+      if (!containsFiles(event)) return;
+      event.preventDefault();
+      dragDepth += 1;
+      setDragging(true);
+    };
+    const onOver = (event: DragEvent) => {
+      if (!containsFiles(event)) return;
+      event.preventDefault();
+      if (event.dataTransfer) {
+        event.dataTransfer.dropEffect = photosRef.current.length < MAX_PHOTOS ? "copy" : "none";
+      }
+    };
+    const onLeave = (event: DragEvent) => {
+      if (!containsFiles(event) && dragDepth === 0) return;
+      dragDepth = Math.max(0, dragDepth - 1);
+      if (dragDepth === 0) reset();
+    };
+    const onDrop = (event: DragEvent) => {
+      if (!containsFiles(event)) return;
+      event.preventDefault();
+      reset();
+      const files = Array.from(event.dataTransfer?.files ?? []);
+      if (files.length) addFiles(files);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") reset();
+    };
+    window.addEventListener("dragenter", onEnter);
+    window.addEventListener("dragover", onOver);
+    window.addEventListener("dragleave", onLeave);
+    window.addEventListener("drop", onDrop);
+    window.addEventListener("dragend", reset);
+    window.addEventListener("blur", reset);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("dragenter", onEnter);
+      window.removeEventListener("dragover", onOver);
+      window.removeEventListener("dragleave", onLeave);
+      window.removeEventListener("drop", onDrop);
+      window.removeEventListener("dragend", reset);
+      window.removeEventListener("blur", reset);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [addFiles]);
 
   const removePhoto = (id: string) => {
-    const match = photos.find((photo) => photo.id === id);
+    const match = photosRef.current.find((photo) => photo.id === id);
     if (match) URL.revokeObjectURL(match.url);
-    onChange(photos.filter((photo) => photo.id !== id));
+    const next = photosRef.current.filter((photo) => photo.id !== id);
+    photosRef.current = next;
+    onChange(next);
   };
 
   const progress = photos.length / MAX_PHOTOS;
@@ -234,13 +313,7 @@ export const UploadStep = ({
           <IconUpload className="size-4" stroke={1.8} />
           {copy.computerTitle}
         </p>
-        <label
-          onDragOver={(event) => {
-            event.preventDefault();
-            setDragging(true);
-          }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={onDrop}
+        <div
           className={cn(
             "mt-3 flex cursor-pointer flex-col items-center rounded-2xl border border-dashed px-4 py-6 text-center",
             dragging
@@ -255,23 +328,28 @@ export const UploadStep = ({
             multiple
             className="sr-only"
             onChange={(event) => {
-              if (event.target.files) addFiles(event.target.files);
+              const files = Array.from(event.target.files ?? []);
               event.target.value = "";
+              addFiles(files);
             }}
           />
-          <span
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
             className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-sm font-semibold`}
           >
             <IconUpload className="size-4" stroke={2} />
             {copy.uploadFiles}
-          </span>
+          </button>
           <span className="mt-3 text-xs leading-5 text-muted-foreground">
             {copy.dropHint}
           </span>
           <span className="mt-1 text-[11px] text-muted-foreground">
             {copy.formats}
           </span>
-        </label>
+        </div>
+        {pendingBatches > 0 ? <p role="status" className="mt-3 text-sm text-primary">{copy.preparingPhotos}</p> : null}
+        {uploadError ? <p role="alert" className="mt-3 text-xs leading-5 text-red-700">{uploadError}</p> : null}
 
         <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-[#141414]">
           <IconDeviceMobile className="size-4" stroke={1.8} />
@@ -298,17 +376,26 @@ export const UploadStep = ({
       </aside>
 
       <div className="min-w-0">
-        <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="relative pb-6 sm:pb-0">
           <p className="text-sm font-semibold text-[#141414]">
             {formatCount(copy.count, { count: photos.length, max: MAX_PHOTOS })}
           </p>
-          <p className="text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase">
-            {formatCount(copy.minimum, { min: MIN_PHOTOS })}
-          </p>
+          <div
+            className="absolute bottom-0 -translate-x-1/2 whitespace-nowrap text-[11px] font-semibold tracking-[0.14em] text-muted-foreground uppercase"
+            style={{ left: `${minMark * 100}%` }}
+            role="status"
+          >
+            {photos.length >= MIN_PHOTOS ? (
+              <span className="grid size-5 place-items-center rounded-full bg-[#16a34a] text-white">
+                <IconCheck aria-hidden="true" className="size-3.5" stroke={3} />
+                <span className="sr-only">{copy.minimumReached}</span>
+              </span>
+            ) : formatCount(copy.minimum, { min: MIN_PHOTOS })}
+          </div>
         </div>
         <div className="relative mt-2 h-1.5 rounded-full bg-black/[0.08]">
           <div
-            className="absolute top-0 left-0 h-full rounded-full bg-[var(--primary)]"
+            className="absolute top-0 left-0 h-full rounded-full bg-[#16a34a]"
             style={{ width: `${progress * 100}%` }}
           />
           <span
@@ -322,25 +409,34 @@ export const UploadStep = ({
         </div>
 
         {photos.length > 0 ? (
-          <div className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-5">
-            {photos.map((photo) => (
-              <span key={photo.id} className="relative overflow-hidden rounded-xl">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={photo.url}
-                  alt=""
-                  className="aspect-square w-full object-cover"
-                />
-                <button
-                  type="button"
-                  onClick={() => removePhoto(photo.id)}
-                  className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white"
-                  aria-label="Remove photo"
-                >
-                  <IconX className="size-3.5" stroke={2.2} />
-                </button>
-              </span>
-            ))}
+          <div className="mt-6 rounded-2xl border border-black/[0.08] bg-white p-4 shadow-sm sm:p-5">
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
+              {photos.map((photo) => (
+                <span key={photo.id} className="relative overflow-hidden rounded-xl">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={photo.url}
+                    alt=""
+                    className="aspect-square w-full object-cover"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => removePhoto(photo.id)}
+                    className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white"
+                    aria-label="Remove photo"
+                  >
+                    <IconX className="size-3.5" stroke={2.2} />
+                  </button>
+                </span>
+              ))}
+            </div>
+            <p className="mt-4 flex items-start gap-3 rounded-2xl bg-[#fff4ea] px-4 py-3 text-[15px] leading-6 text-[#141414]">
+              <IconShieldLock
+                className="mt-0.5 size-5 shrink-0 text-[var(--primary)]"
+                stroke={1.8}
+              />
+              {copy.privacyNotice}
+            </p>
           </div>
         ) : (
           <p className="mt-5 text-sm text-muted-foreground">{copy.hoverHint}</p>
@@ -421,6 +517,24 @@ export const UploadStep = ({
           ) : null}
         </section>
       </div>
+
+      {dragging ? createPortal(
+        <div className="theme-light pointer-events-none fixed inset-0 z-[100] flex items-center justify-center bg-white/90 p-5 text-primary backdrop-blur-sm" role="status" aria-live="polite">
+          <div className="absolute inset-4 rounded-[28px] border-2 border-dashed border-primary" />
+          <div className="relative flex max-w-md flex-col items-center text-center">
+            <span className="mb-5 grid size-20 place-items-center rounded-full bg-primary/10">
+              <IconUpload className="size-10" stroke={1.8} aria-hidden="true" />
+            </span>
+            <p className="text-3xl font-semibold tracking-tight">
+              {photos.length < MAX_PHOTOS ? copy.dropAnywhere : copy.uploadLimitReached}
+            </p>
+            <p className="mt-3 text-base leading-6">
+              {photos.length < MAX_PHOTOS ? copy.dropAnywhereHint : copy.removeBeforeUpload}
+            </p>
+          </div>
+        </div>,
+        document.body,
+      ) : null}
 
       {qrOpen ? createPortal(
         <div

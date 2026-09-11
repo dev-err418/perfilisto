@@ -1,3 +1,4 @@
+import { handleAuth, hasSession, safeRedirect } from "../src/lib/auth/server.mjs";
 import { getRequestPolicy } from "../src/lib/auth/request-policy.mjs";
 
 const TTL_MS = 2 * 60 * 60 * 1000;
@@ -59,12 +60,19 @@ const handleUploadSessions = async (request, url) => {
 const worker = {
   async fetch(request, env) {
     const url = new URL(request.url);
-    const policy = getRequestPolicy(request.url);
+    const authenticated = await hasSession(request, env);
+    const policy = getRequestPolicy(request.url, authenticated);
     if (policy.redirect) {
       return new Response(null, {
         status: policy.status,
         headers: { ...policy.headers, Location: policy.redirect },
       });
+    }
+
+    if (url.pathname.startsWith("/api/auth/")) return handleAuth(request, env);
+
+    if (url.pathname === "/login" && authenticated) {
+      return new Response(null, { status: 307, headers: { Location: safeRedirect(url.searchParams.get("redirect") ?? "/onboarding", url.origin), "Cache-Control": "private, no-store" } });
     }
 
     if (url.pathname.startsWith("/api/upload-sessions")) {

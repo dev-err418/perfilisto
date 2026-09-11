@@ -318,6 +318,7 @@ export const en = {
     terms: "Terms",
     copyright: "Perfilisto · TAP & SWIPE SAS",
     privacyPolicy: "Privacy policy",
+    dataDeletion: "Data deletion",
   },
   onboarding: {
     welcome: {
@@ -472,7 +473,13 @@ export const en = {
       ],
     },
     upload: {
+      privacyNotice: "As a paid product, we value user privacy and transparency.",
+      dropAnywhere: "Drop your photos anywhere",
+      dropAnywhereHint: "Release to add them to your upload. You can add up to 10 photos.",
+      uploadLimitReached: "You’ve added 10 photos",
+      removeBeforeUpload: "Remove a photo before adding more.",
       title: "Upload Photos",
+      preparingPhotos: "Preparing your photos…",
       tips: [
         "Upload 6–10 photos",
         "Mix of selfies and mid-range shots",
@@ -518,6 +525,7 @@ export const en = {
       removePhoto: "Remove photo",
       count: "Uploaded {count} of {max}",
       minimum: "Minimum of {min} photos",
+      minimumReached: "Minimum photo requirement met",
       hoverHint: "Hover over an example to preview more",
       requirementsTitle: "Photo requirements",
       restrictionsTitle: "Photo restrictions",
@@ -564,6 +572,18 @@ export const en = {
     },
   },
   legal: {
+    dataDeletion: {
+      title: "Data deletion instructions",
+      updated: "Last updated September 11, 2026",
+      body: [
+        "You can request deletion of the personal data you have provided to Perfilisto, a service operated by Tap & Swipe SAS, without signing in.",
+        "1. Email hello@perfilisto.com with the subject “Perfilisto data deletion request”. Send the request from the email address associated with your Perfilisto account, if you have one.",
+        "2. Tell us whether you want to delete your entire account and associated data, or specific uploaded photos or generated headshots. If you used Google or Facebook to sign in, mention the provider and the email associated with that sign-in. Do not send passwords or access tokens.",
+        "3. If you no longer have access to that email address, explain this in your request so we can help identify your account. We may need to verify that the account or data belongs to you before processing deletion.",
+        "Your request can include your account information, uploaded photos, generated headshots, and profile information received through Google or Facebook sign-in. Contact hello@perfilisto.com to ask about the status of your request.",
+        "Removing Perfilisto from your connected apps in Google or Facebook revokes that connection, but does not itself request deletion of data already held by Perfilisto. Use the email instructions above to request deletion from Perfilisto as well.",
+      ],
+    },
     privacy: {
       title: "Privacy",
       updated: "Last updated September 10, 2026",

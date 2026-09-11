@@ -9,6 +9,12 @@ export const dynamic = "force-static";
 export default function sitemap(): MetadataRoute.Sitemap {
   return [
     {
+      url: `${BASE_URL}/data-deletion`,
+      lastModified: new Date("2026-09-11"),
+      changeFrequency: "yearly",
+      priority: 0.3,
+    },
+    {
       url: `${BASE_URL}/`,
       lastModified: MARKETING_UPDATED_AT,
       changeFrequency: "weekly",
