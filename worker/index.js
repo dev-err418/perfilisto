@@ -1,3 +1,5 @@
+import { getRequestPolicy } from "../src/lib/auth/request-policy.mjs";
+
 const TTL_MS = 2 * 60 * 60 * 1000;
 const sessions = (globalThis.__perfilistoUploadSessions ??= new Map());
 
@@ -57,17 +59,23 @@ const handleUploadSessions = async (request, url) => {
 const worker = {
   async fetch(request, env) {
     const url = new URL(request.url);
-    if (url.hostname === "www.perfilisto.com") {
-      url.hostname = "perfilisto.com";
-      url.protocol = "https:";
-      return Response.redirect(url.toString(), 301);
+    const policy = getRequestPolicy(request.url);
+    if (policy.redirect) {
+      return new Response(null, {
+        status: policy.status,
+        headers: { ...policy.headers, Location: policy.redirect },
+      });
     }
 
     if (url.pathname.startsWith("/api/upload-sessions")) {
       return handleUploadSessions(request, url);
     }
 
-    const response = await env.ASSETS.fetch(request);
+    const assetResponse = await env.ASSETS.fetch(request);
+    const response = new Response(assetResponse.body, assetResponse);
+    for (const [name, value] of Object.entries(policy.headers)) {
+      response.headers.set(name, value);
+    }
     if (
       url.pathname ===
         "/.well-known/apple-developer-merchantid-domain-association" &&

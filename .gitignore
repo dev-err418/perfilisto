@@ -43,4 +43,5 @@ next-env.d.ts
 
 # temporarily moved during static export
 .api-export-skip
+.proxy-export-skip
 src/app/.api-export-skip

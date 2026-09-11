@@ -101,6 +101,20 @@ export const OnboardingWelcomeScreen = ({
             >
               {copy.continue}
             </button>
+            {process.env.NODE_ENV === "development" && onContinue ? (
+              <div className="mt-4 flex justify-center">
+                <button
+                  type="button"
+                  onClick={onContinue}
+                  className="inline-flex items-center gap-2 rounded-full border border-black/10 bg-white px-4 py-2 text-xs font-semibold text-black/60 shadow-md transition-colors hover:bg-neutral-100 hover:text-black focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
+                >
+                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide text-orange-700">
+                    DEBUG
+                  </span>
+                  Skip welcome →
+                </button>
+              </div>
+            ) : null}
           </div>
         </div>
       </div>

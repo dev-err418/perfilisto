@@ -34,7 +34,7 @@ export const AgeStep = ({
               onClick={() => onChange(option.id)}
               aria-pressed={selected}
               className={cn(
-                "inline-flex h-12 min-w-[6.5rem] items-center justify-between gap-4 rounded-2xl border px-4 text-[15px] font-medium transition-colors",
+                "inline-flex h-12 min-w-[6.5rem] items-center justify-between gap-4 rounded-full border px-4 text-[15px] font-medium transition-colors",
                 selected
                   ? "border-transparent bg-[var(--primary)] text-white"
                   : "border-black/15 bg-white text-[#141414] hover:border-black/30",

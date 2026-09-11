@@ -12,6 +12,8 @@ import { LogoMark } from "../landing/logo-mark";
 const messages = getMessages();
 
 export const OnboardingStepShell = ({
+  stepKey,
+  direction = "forward",
   progress,
   onBack,
   continueDisabled,
@@ -22,6 +24,8 @@ export const OnboardingStepShell = ({
   onContinue,
   children,
 }: {
+  stepKey: string;
+  direction?: "forward" | "back";
   progress: number;
   onBack?: () => void;
   continueDisabled?: boolean;
@@ -53,7 +57,7 @@ export const OnboardingStepShell = ({
           aria-valuenow={Math.round(progress * 100)}
         >
           <div
-            className="h-full rounded-full bg-[var(--primary)]"
+            className="h-full rounded-full bg-[var(--primary)] transition-[width] duration-200 ease-out motion-reduce:transition-none"
             style={{ width: `${Math.min(100, Math.max(0, progress * 100))}%` }}
           />
         </div>
@@ -81,23 +85,30 @@ export const OnboardingStepShell = ({
 
         <div
           className={cn(
-            "flex min-h-0 flex-1 flex-col pb-8",
+            "t-page-slide flex min-h-0 flex-1 flex-col pb-8",
             hideBack ? "px-5 pt-4 sm:px-8" : "px-5 pt-16 sm:px-8",
           )}
+          data-page={direction === "back" ? "1" : "2"}
         >
-          {children}
+          <div
+            key={stepKey}
+            className="t-page onboarding-step-page"
+            data-page-id={direction === "back" ? "1" : "2"}
+          >
+            {children}
+          </div>
         </div>
       </div>
 
       {hideContinue ? null : (
-        <div className="relative z-10 flex shrink-0 justify-center border-t border-black/[0.04] bg-white px-5 py-4 sm:py-5">
+        <div className="sticky bottom-0 z-10 flex shrink-0 justify-center border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             disabled={continueDisabled}
             onClick={onContinue}
             className={cn(
               PRIMARY_TINT_BUTTON_CLASS,
-              "inline-flex h-12 w-full max-w-sm items-center justify-center rounded-xl px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
+              "inline-flex h-12 w-full max-w-sm items-center justify-center rounded-full px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
             )}
           >
             {continueLabel ?? copy.continue}

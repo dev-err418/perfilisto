@@ -38,7 +38,7 @@ export default function HomePage() {
   };
 
   return (
-    <main className="homepage-static theme-light flex min-h-screen flex-col overflow-x-hidden bg-white font-[family-name:var(--font-saans)] text-black [color-scheme:light]">
+    <main className="homepage-static theme-light flex min-h-screen flex-col overflow-x-clip bg-white font-[family-name:var(--font-saans)] text-black [color-scheme:light]">
       <JsonLdScript data={softwareApplicationJsonLd} />
       <JsonLdScript data={faqPageJsonLd} />
       <LandingNavbar theme="light" />

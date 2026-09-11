@@ -74,7 +74,7 @@ export const HairStep = ({
               onClick={() => onChange(option.id)}
               aria-pressed={selected}
               className={cn(
-                "flex h-14 items-center gap-3 rounded-2xl border px-4 text-left text-[15px] font-medium transition-colors",
+                "flex h-14 items-center gap-3 rounded-full border px-4 text-left text-[15px] font-medium transition-colors",
                 selected
                   ? "border-transparent bg-[var(--primary)] text-white"
                   : "border-black/15 bg-white text-[#141414] hover:border-black/30",

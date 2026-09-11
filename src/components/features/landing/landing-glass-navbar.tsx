@@ -23,7 +23,7 @@ export function LandingGlassNavbar({
 }) {
   const navRef = useRef<HTMLDivElement>(null);
   const [triggerReached, setTriggerReached] = useState(false);
-  const showCta = !ctaRevealTrigger || triggerReached;
+  const showCta = Boolean(ctaAction) && (!ctaRevealTrigger || triggerReached);
 
   useEffect(() => {
     if (!ctaRevealTrigger) return;

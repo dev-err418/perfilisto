@@ -149,7 +149,7 @@ export const MobileUploadPage = () => {
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-black/10 bg-white text-[17px] font-semibold text-[#141414] shadow-sm"
+            className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white text-[17px] font-semibold text-[#141414] shadow-sm"
           >
             <IconUpload className="size-5 text-[var(--primary)]" stroke={1.8} />
             {copy.mobileUploadCta}
@@ -238,7 +238,7 @@ export const MobileUploadPage = () => {
                       type="button"
                       disabled={sending}
                       onClick={() => void sendToComputer()}
-                      className={`${PRIMARY_TINT_BUTTON_CLASS} mt-1 inline-flex h-12 w-full items-center justify-center rounded-xl px-4 text-base font-semibold disabled:opacity-50`}
+                      className={`${PRIMARY_TINT_BUTTON_CLASS} mt-1 inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-base font-semibold disabled:opacity-50`}
                     >
                       {sending ? copy.sending : sent ? copy.sent : copy.sendToComputer}
                     </button>

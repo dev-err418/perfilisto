@@ -14,7 +14,7 @@ export const LegalPage = ({
   updated: string;
   body: readonly string[];
 }) => (
-  <main className="homepage-static theme-light flex min-h-screen flex-col overflow-x-hidden bg-white font-[family-name:var(--font-saans)] text-black [color-scheme:light]">
+  <main className="homepage-static theme-light flex min-h-screen flex-col overflow-x-clip bg-white font-[family-name:var(--font-saans)] text-black [color-scheme:light]">
     <LandingNavbar theme="light" />
     <article className="mx-auto w-full max-w-3xl flex-1 px-6 pt-8 pb-24">
       <h1 className="text-4xl font-semibold tracking-tight text-[#141414] sm:text-5xl">

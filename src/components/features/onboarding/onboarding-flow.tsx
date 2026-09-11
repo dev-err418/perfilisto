@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { getMessages } from "@/i18n";
 
@@ -91,6 +91,9 @@ const messages = getMessages();
 export const OnboardingFlow = () => {
   const [step, setStep] = useState<Step>("welcome");
   const advanceTimer = useRef<number>(0);
+  const [direction, setDirection] = useState<"forward" | "back">("forward");
+
+  useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
   const [gender, setGender] = useState<GenderOption | null>(null);
   const [age, setAge] = useState<AgeOption | null>(null);
   const [hair, setHair] = useState<HairOption | null>(null);
@@ -105,22 +108,30 @@ export const OnboardingFlow = () => {
 
   const goNext = (from: Step) => {
     const next = NEXT_STEP[from];
-    if (next) setStep(next);
+    if (next) {
+      window.clearTimeout(advanceTimer.current);
+      setDirection("forward");
+      setStep(next);
+    }
   };
 
   const selectAndAdvance = <T,>(
     setter: (value: T) => void,
     from: Step,
+    value: T,
   ) => {
-    return (value: T) => {
-      setter(value);
-      window.clearTimeout(advanceTimer.current);
-      advanceTimer.current = window.setTimeout(() => goNext(from), 850);
-    };
+    setter(value);
+    window.clearTimeout(advanceTimer.current);
+    advanceTimer.current = window.setTimeout(() => goNext(from), 250);
   };
 
   if (step === "welcome") {
-    return <OnboardingWelcomeScreen onContinue={() => setStep("gender")} />;
+    return (
+      <OnboardingWelcomeScreen onContinue={() => {
+        setDirection("forward");
+        setStep("gender");
+      }} />
+    );
   }
 
   const continueDisabled =
@@ -140,49 +151,55 @@ export const OnboardingFlow = () => {
   return (
     <>
     <OnboardingStepShell
+      stepKey={step}
+      direction={direction}
       progress={STEP_PROGRESS[step]}
       onBack={() => {
         window.clearTimeout(advanceTimer.current);
+        setDirection("back");
         setStep(previousStep[step]);
       }}
       hideBack={step === "upload"}
       hideContinue={hideContinue}
       continueDisabled={continueDisabled}
       continueLabel={continueLabel}
-      onClose={() => setLeaveOpen(true)}
+      onClose={() => {
+        window.clearTimeout(advanceTimer.current);
+        setLeaveOpen(true);
+      }}
       onContinue={() => goNext(step)}
     >
       {step === "gender" ? (
         <GenderStep
           value={gender}
-          onChange={selectAndAdvance(setGender, "gender")}
+          onChange={(value) => selectAndAdvance(setGender, "gender", value)}
         />
       ) : null}
       {step === "age" ? (
-        <AgeStep value={age} onChange={selectAndAdvance(setAge, "age")} />
+        <AgeStep value={age} onChange={(value) => selectAndAdvance(setAge, "age", value)} />
       ) : null}
       {step === "hair" ? (
-        <HairStep value={hair} onChange={selectAndAdvance(setHair, "hair")} />
+        <HairStep value={hair} onChange={(value) => selectAndAdvance(setHair, "hair", value)} />
       ) : null}
       {step === "hairLength" ? (
         <HairLengthStep
           gender={gender}
           value={hairLength}
-          onChange={selectAndAdvance(setHairLength, "hairLength")}
+          onChange={(value) => selectAndAdvance(setHairLength, "hairLength", value)}
         />
       ) : null}
       {step === "hairType" ? (
         <HairTypeStep
           gender={gender}
           value={hairType}
-          onChange={selectAndAdvance(setHairType, "hairType")}
+          onChange={(value) => selectAndAdvance(setHairType, "hairType", value)}
         />
       ) : null}
       {step === "bodyType" ? (
         <BodyTypeStep
           gender={gender}
           value={bodyType}
-          onChange={selectAndAdvance(setBodyType, "bodyType")}
+          onChange={(value) => selectAndAdvance(setBodyType, "bodyType", value)}
         />
       ) : null}
       {step === "attire" ? (
@@ -199,7 +216,10 @@ export const OnboardingFlow = () => {
         <UploadStep
           photos={photos}
           onChange={setPhotos}
-          onBack={() => setStep("backgrounds")}
+          onBack={() => {
+            setDirection("back");
+            setStep("backgrounds");
+          }}
         />
       ) : null}
     </OnboardingStepShell>

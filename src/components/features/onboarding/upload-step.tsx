@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type DragEvent } from "react";
+import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 import Image from "next/image";
 import {
@@ -314,7 +315,10 @@ export const UploadStep = ({
             className="absolute top-1/2 h-3 w-px -translate-y-1/2 bg-black/30"
             style={{ left: `${minMark * 100}%` }}
           />
-          <span className="absolute top-1/2 right-0 size-3.5 -translate-y-1/2 rounded-full border border-black/20 bg-white" />
+          <span
+            className="absolute top-1/2 size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border border-black/20 bg-white"
+            style={{ left: `${progress * 100}%` }}
+          />
         </div>
 
         {photos.length > 0 ? (
@@ -418,16 +422,16 @@ export const UploadStep = ({
         </section>
       </div>
 
-      {qrOpen ? (
+      {qrOpen ? createPortal(
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4"
+          className="theme-light fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 text-black [color-scheme:light]"
           onClick={() => setQrOpen(false)}
         >
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="qr-modal-title"
-            className="relative w-full max-w-[34rem] rounded-[24px] bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8"
+            className="relative max-h-[calc(100dvh-2rem)] w-full max-w-[34rem] overflow-y-auto rounded-[24px] bg-white p-6 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-8"
             onClick={(event) => event.stopPropagation()}
           >
             <button
@@ -482,14 +486,15 @@ export const UploadStep = ({
                     setCopied(false);
                   }
                 }}
-                className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl px-4 text-sm font-semibold`}
+                className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-11 shrink-0 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold`}
               >
                 {copied ? copy.copied : copy.copy}
                 <IconCopy className="size-4" stroke={1.8} />
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       ) : null}
     </div>
   );
