@@ -1,6 +1,6 @@
 "use client";
 
-import { campaignParams, eventProperties, funnelPage, funnelEvent, hasAnalyticsConsent, CONSENT_COOKIE } from "./shared.mjs";
+import { campaignParams, eventProperties, funnelPage, funnelEvent, isAnalyticsEnabled, CONSENT_COOKIE } from "./shared.mjs";
 
 type Properties = { step?: string; plan_id?: string; provider?: string; placement?: string; photo_count?: number; value?: number; currency?: string };
 type Pixel = { c?: Record<string, boolean>; config?: (options: Record<string, boolean>) => void; q: unknown[][]; t: number; s: string[]; o: string; track: (...args: unknown[]) => void; setScope: (...args: string[]) => void };
@@ -55,7 +55,7 @@ export function privacySignal() {
   return typeof navigator !== "undefined" && (navigator.doNotTrack === "1" || (navigator as Navigator & { globalPrivacyControl?: boolean }).globalPrivacyControl === true);
 }
 export function analyticsAllowed() {
-  return typeof window !== "undefined" && window.location.hostname === "perfilisto.com" && !privacySignal() && hasAnalyticsConsent(document.cookie);
+  return typeof window !== "undefined" && window.location.hostname === "perfilisto.com" && !privacySignal() && isAnalyticsEnabled(document.cookie);
 }
 function eligiblePage() {
   return funnelPage(location.pathname) && !/[?&](s|token|code|secret|access_token)=/i.test(location.search);
@@ -63,7 +63,7 @@ function eligiblePage() {
 export function consentChoice(): "yes" | "no" | null {
   if (typeof document === "undefined") return null;
   if (privacySignal()) return "no";
-  return document.cookie.match(/(?:^|;\s*)perfilisto_analytics=(yes|no)(?:;|$)/)?.[1] as "yes" | "no" || null;
+  return document.cookie.match(/(?:^|;\s*)perfilisto_analytics=(yes|no)(?:;|$)/)?.[1] as "yes" | "no" || "yes";
 }
 export function saveConsent(value: "yes" | "no") {
   document.cookie = `${CONSENT_COOKIE}=${value}; Path=/; Max-Age=15552000; SameSite=Lax${location.protocol === "https:" ? "; Secure" : ""}`;

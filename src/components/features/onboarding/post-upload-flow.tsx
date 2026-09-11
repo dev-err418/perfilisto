@@ -201,7 +201,7 @@ export function PostUploadFlow({
       queueMicrotask(() => setSelected(requestedPlan!));
     let id = query.get("order");
     try {
-      id ||= localStorage.getItem(savedOrderKey);
+      if (query.get("new") !== "1") id ||= localStorage.getItem(savedOrderKey);
     } catch {
       /* Optional recovery. */
     }
@@ -323,10 +323,11 @@ export function PostUploadFlow({
               ? "You have enough accepted photos. A mid-range shot showing your shoulders and upper body would help."
               : `${acceptedCount} photos accepted. You’re ready to continue.`,
           duration: 6000,
+          closeButton: true,
 
         });
       } catch (error) {
-        toast.error("We couldn’t check your photos", { id: toastId, description: "Please try again. Your photos and payment are saved.", duration: 6000 });
+        toast.error("We couldn’t check your photos", { id: toastId, description: "Please try again. Your photos and payment are saved.", duration: 6000, closeButton: true });
         throw error;
       }
     });
@@ -466,7 +467,7 @@ export function PostUploadFlow({
             : needsPhotoCheck
               ? "Check my photos"
             : needsReplacementPhotos
-              ? "Replace photos"
+              ? "Upload a new photo to continue"
             : reviewStage
               ? finishing === "details"
                 ? "Create my headshots"

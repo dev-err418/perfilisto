@@ -129,7 +129,7 @@ export function ResultsDashboard({ order }: { order: Order }) {
                   <Heart className="size-6" fill={favorite ? "currentColor" : "none"} aria-hidden="true" />
                 </button>
                 <div className="absolute inset-x-0 bottom-0 flex justify-center bg-gradient-to-t from-black/50 to-transparent px-3 pb-4 pt-12">
-                  <a href={`${photo.url}?download=1`} aria-label={`Download headshot ${index}`} className="inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full bg-white px-5 text-base font-semibold tracking-[0.2px] text-neutral-900 shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"><Download className="size-5" aria-hidden="true" /> Download</a>
+                  <a href={`${photo.url}?download=1`} aria-label={`Download headshot ${index}`} className="inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full bg-white px-3 text-base sm:px-5 font-semibold tracking-[0.2px] text-neutral-900 shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"><Download className="size-5 shrink-0" aria-hidden="true" /> Download</a>
                 </div>
               </div>
             );

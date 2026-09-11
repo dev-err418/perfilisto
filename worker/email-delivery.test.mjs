@@ -24,7 +24,7 @@ test('Email templates use Perfilisto, private order links and no Aragon tracking
     assert.equal(m.to, order.customer.email);
     assert.match(m.html, /Perfilisto/);
     assert.doesNotMatch(m.html, /aragon|sendgrid|\{\{|wf\/open/i);
-    assert.match(m.html, new RegExp(`https://perfilisto.com/${kind === 'ready' ? 'album' : 'onboarding'}\\?order=${order.id}`));
+    assert.match(m.html, new RegExp(`https://perfilisto.com/${kind === 'ready' ? 'dashboard' : 'onboarding'}\\?order=${order.id}`));
     for (const url of m.html.matchAll(/(?:href|src)="([^"]+)"/g))
       assert.ok(url[1].startsWith('https://perfilisto.com/') || url[1] === 'mailto:hello@perfilisto.com', url[1]);
   }

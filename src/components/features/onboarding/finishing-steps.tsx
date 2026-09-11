@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Popover } from "@base-ui/react/popover";
 import Image from "next/image";
 import { Select } from "@base-ui/react/select";
 import { HairSwatch, hairSwatches, type HairOption } from "./hair-step";
@@ -99,49 +99,24 @@ function MultiChoice({
   choices: string[];
   onToggle: (v: string) => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const close = (e: PointerEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("pointerdown", close);
-    return () => document.removeEventListener("pointerdown", close);
-  }, []);
   return (
-    <div
-      className="relative"
-      ref={ref}
-      onBlur={(e) => {
-        if (!e.currentTarget.contains(e.relatedTarget)) setOpen(false);
-      }}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") {
-          setOpen(false);
-          ref.current?.querySelector("button")?.focus();
-        }
-      }}
-    >
+    <Popover.Root>
+      <div className="relative">
       <span className="mb-2 block text-sm text-muted-foreground">{title}</span>
-      <button
-        type="button"
+      <Popover.Trigger
         className={fieldClass}
         aria-label={`${title}: ${values.map(labelFor).join(", ") || "Choose at least one"}`}
-        aria-expanded={open}
-        onClick={() => setOpen(!open)}
       >
         <span className="flex min-w-0 items-center gap-2.5">
           <span className="flex shrink-0 -space-x-2" aria-hidden="true">{values.slice(0, 2).map(choice => <span key={choice} className="rounded-md ring-2 ring-white"><ChoicePreview field={field} choice={choice} gender={gender} /></span>)}</span>
           <span className="truncate">{values.map(labelFor).join(", ") || "Choose at least one"}</span>
         </span>
         <IconChevronDown className="size-4 shrink-0 text-black/35" />
-      </button>
-      {open && (
-        <div
-          className="absolute inset-x-0 top-full z-20 mt-2 space-y-3 rounded-2xl border border-black/10 bg-white p-4 shadow-lg"
-          role="group"
-          aria-label={title}
-        >
+      </Popover.Trigger>
+      </div>
+      <Popover.Portal>
+        <Popover.Positioner sideOffset={8} align="start" className="z-[80]">
+        <Popover.Popup className="theme-light max-h-[var(--available-height)] w-[var(--anchor-width)] space-y-3 overflow-y-auto rounded-2xl border border-black/10 bg-white p-4 text-black shadow-lg outline-none" aria-label={title}>
           {choices.map((choice) => (
             <ConsentCheckbox
               key={choice}
@@ -152,9 +127,10 @@ function MultiChoice({
               <span className="flex items-center gap-2.5"><ChoicePreview field={field} choice={choice} gender={gender} />{labelFor(choice)}</span>
             </ConsentCheckbox>
           ))}
-        </div>
-      )}
-    </div>
+        </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 function SelectionMark({ selected }: { selected: boolean }) {

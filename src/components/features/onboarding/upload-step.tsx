@@ -475,7 +475,7 @@ export const UploadStep = ({
             </div>
             {review && <p role="status" className="mt-4 text-sm text-neutral-600">
               {reviewPending ? "Check your updated photos when you’re ready." : review.photos.filter((photo) => photo.accepted).length < MIN_PHOTOS
-                ? `Replace the marked photos. You need ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length} more accepted photos.`
+                ? `Upload ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length} more clear ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length === 1 ? "photo" : "photos"} to continue.`
                 : review.needsMidRange ? "Optional: add a mid-range photo showing your shoulders and upper body for better results. You can also continue with these photos." : "Your photos are ready. Continue to review your details."}
             </p>}
             <p className="mt-4 flex items-start gap-3 rounded-2xl bg-[#fff4ea] px-4 py-3 text-[15px] leading-6 text-[#141414]">

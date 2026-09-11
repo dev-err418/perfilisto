@@ -2,15 +2,15 @@ import { handleOrders } from "./headshot-order.js";
 import plans from "../src/lib/orders/plans.json" with { type: "json" };
 import { campaignParams, funnelEvent, funnelPage } from "../src/lib/analytics/shared.mjs";
 import { getToken } from "@auth/core/jwt";
-import { cloudflareCustomer, hasAnalyticsConsent } from "../src/lib/analytics/shared.mjs";
+import { cloudflareCustomer, isAnalyticsEnabled } from "../src/lib/analytics/shared.mjs";
 
-/** Private, same-origin context for the consented pixel; no per-user data enters cached HTML. */
+/** Private, same-origin context for the pixel with opt-outs respected; no per-user data enters cached HTML. */
 export async function handleAnalyticsContext(request, env) {
   const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie", "X-Robots-Tag": "noindex, nofollow", "X-Content-Type-Options": "nosniff" };
   if (request.method !== "GET") return new Response(null, { status: 405, headers: { ...headers, Allow: "GET" } });
   const origin = new URL(request.url).origin;
   if (request.headers.get("Sec-Fetch-Site") === "cross-site" || (request.headers.get("Origin") && request.headers.get("Origin") !== origin)) return new Response(null, { status: 403, headers });
-  if (!hasAnalyticsConsent(request.headers.get("Cookie") || "") || request.headers.get("Sec-GPC") === "1" || request.headers.get("DNT") === "1" || request.cf?.botManagement?.verifiedBot) return Response.json({}, { headers });
+  if (!isAnalyticsEnabled(request.headers.get("Cookie") || "") || request.headers.get("Sec-GPC") === "1" || request.headers.get("DNT") === "1" || request.cf?.botManagement?.verifiedBot) return Response.json({}, { headers });
   const customer = cloudflareCustomer(request.cf);
   if (env.AUTH_SECRET) {
     try {
@@ -34,7 +34,7 @@ export async function handleAnalyticsEvent(request, env) {
   const reply = status => new Response(null, { status, headers });
   if (request.method !== "POST") return reply(405);
   if (new URL(request.url).origin !== "https://perfilisto.com" || request.headers.get("Origin") !== "https://perfilisto.com" || request.headers.get("Sec-Fetch-Site") === "cross-site") return reply(403);
-  if (!hasAnalyticsConsent(request.headers.get("Cookie") || "") || request.headers.get("Sec-GPC") === "1" || request.headers.get("DNT") === "1" || request.cf?.botManagement?.verifiedBot) return reply(204);
+  if (!isAnalyticsEnabled(request.headers.get("Cookie") || "") || request.headers.get("Sec-GPC") === "1" || request.headers.get("DNT") === "1" || request.cf?.botManagement?.verifiedBot) return reply(204);
   if (!env.ANALYTICS_DELIVERIES || !env.WHOP_EVENTS_API_KEY) return reply(503);
   const ip = request.cf ? request.headers.get("CF-Connecting-IP") : null;
   if (env.ANALYTICS_RATE_LIMIT && !(await env.ANALYTICS_RATE_LIMIT.limit({ key: ip || "unknown" })).success) return reply(429);

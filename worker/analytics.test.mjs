@@ -6,9 +6,9 @@ import { handleAnalyticsContext, handleAnalyticsEvent } from './analytics.js';
 import { AnalyticsDelivery } from './analytics-delivery.js';
 const secret = 'analytics-test-secret-long-enough-to-sign-sessions';
 const cf = { city: 'Paris', regionCode: 'IDF', postalCode: '75001', country: 'FR', latitude: '48.85', longitude: '2.35' };
-async function request(path = 'context', { consent = true, signed = true, origin = 'https://perfilisto.com', body, more = {} } = {}) {
+async function request(path = 'context', { consent = null, signed = true, origin = 'https://perfilisto.com', body, more = {} } = {}) {
   const jwt = signed ? await encode({ secret, salt: '__Secure-authjs.session-token', token: { sub: 'google:test-user', email: 'test@example.com', name: 'Test User' } }) : '';
-  const req = new Request(`https://perfilisto.com/api/analytics/${path}`, { method: path === 'context' ? 'GET' : 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', Cookie: `${consent ? 'perfilisto_analytics=yes;' : ''} __Secure-authjs.session-token=${jwt}`, 'CF-Connecting-IP': '203.0.113.5', 'User-Agent': 'Test browser', ...more }, ...(body ? { body: JSON.stringify(body) } : {}) });
+  const req = new Request(`https://perfilisto.com/api/analytics/${path}`, { method: path === 'context' ? 'GET' : 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', Cookie: `${consent === null ? '' : `perfilisto_analytics=${consent ? 'yes' : 'no'};`} __Secure-authjs.session-token=${jwt}`, 'CF-Connecting-IP': '203.0.113.5', 'User-Agent': 'Test browser', ...more }, ...(body ? { body: JSON.stringify(body) } : {}) });
   Object.defineProperty(req, 'cf', { value: cf }); return req;
 }
 function environment() {
@@ -16,7 +16,7 @@ function environment() {
   return { payloads, env: { AUTH_SECRET: secret, WHOP_ACCOUNT_ID: 'biz_test', WHOP_EVENTS_API_KEY: 'fake-test-key', ANALYTICS_DELIVERIES: { getByName: () => ({ fetch: async r => { payloads.push(await r.json()); return new Response(null, { status: 202 }); } }) } } };
 }
 const event = { name: 'onboarding_step', id: 'perfilisto:test:welcome', props: { step: 'welcome' }, url: 'https://perfilisto.com/onboarding?code=secret&order=private', campaign: { utm_source: 'google', gclid: 'test-click', code: 'secret' }, wuid: 'wuid_test' };
-test('Cloudflare enrichment is consented, uncached and limited to verified identity and coarse location', async () => {
+test('Cloudflare enrichment is enabled by default, uncached and limited to verified identity and coarse location', async () => {
   const response = await handleAnalyticsContext(await request(), { AUTH_SECRET: secret });
   const user = await response.json();
   assert.equal(user.city, 'Paris'); assert.equal(user.email, 'test@example.com'); assert.match(user.external_id, /^[a-f0-9]{64}$/);
@@ -36,7 +36,7 @@ test('Events use original visitor IP, verified account, and a sanitized campaign
   assert.doesNotMatch(JSON.stringify(payload), /secret|private|forged|latitude/);
   assert.equal(payload.context.gclid, 'test-click');
 });
-test('No events without consent, across origins, for anonymous onboarding, or unverified purchases/orders', async () => {
+test('No events after opting out, across origins, for anonymous onboarding, or unverified purchases/orders', async () => {
   const { env, payloads } = environment();
   assert.equal((await handleAnalyticsEvent(await request('events', { consent: false, body: event }), env)).status, 204);
   assert.equal((await handleAnalyticsEvent(await request('events', { origin: 'https://evil.test', body: event }), env)).status, 403);

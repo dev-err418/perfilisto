@@ -5,7 +5,9 @@ export function getRequestPolicy(requestUrl, authenticated = false) {
   const isDashboard = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const isOnboarding = pathname === "/onboarding" || pathname.startsWith("/onboarding/");
   const isAlbum = pathname === "/album" || pathname.startsWith("/album/");
-  const requiresLogin = isDashboard || isOnboarding || isAlbum;
+  // These bundled examples are public marketing assets, not customer uploads.
+  const isPublicExample = url.pathname.startsWith("/onboarding/") && /\.(?:jpe?g|png|webp|avif|gif|svg)$/i.test(url.pathname);
+  const requiresLogin = (isDashboard || isOnboarding || isAlbum) && !isPublicExample;
   const isLogin = url.pathname === "/login" || url.pathname === "/login/";
   const headers = requiresLogin || isLogin
     ? { "Cache-Control": "private, no-store", "X-Robots-Tag": "noindex, nofollow" }

@@ -145,6 +145,7 @@ test("Verified Whop discounts are accepted without accepting unexplained underpa
   const o = await create(s);
   const promo_code = { id: "promo_new10", code: "NEW10", amount_off: 0.1, promo_type: "percentage", base_currency: "eur" };
   assert.equal(paymentMatches(o, payment(o, { promo_code, subtotal: 26.1, total: 26.1 }), "biz_test"), true);
+  assert.equal(paymentMatches(o, payment(o, { promo_code: { ...promo_code, amount_off: 1 }, subtotal: 0, total: 0 }), "biz_test"), true);
   assert.equal(paymentMatches(o, payment(o, { promo_code, subtotal: 26.1, total: 31.32, tax_amount: 5.22 }), "biz_test"), true);
   for (const overrides of [
     { subtotal: 26.1, total: 26.1 },
@@ -611,4 +612,56 @@ test("favorites persist, are idempotent, and only accept the owner's result imag
   assert.equal((await change("result-one", "yes")).status, 400);
   await change("result-one", false);
   assert.deepEqual(s.data.get("order").favorites, ["result-two"]);
+});
+
+test('order mutations reject null and non-object JSON instead of failing internally', async () => {
+  const s = setup();
+  for (const body of [null, [], 42, 'invalid']) assert.equal((await s.req('', body)).status, 400);
+});
+
+test('Background alarm completes the batch and queues the ready email without a browser', async (t) => {
+  const s = setup();
+  const o = await create(s);
+  o.customer = { email: 'owner@example.com', name: 'Owner' };
+  const queued = [];
+  s.env.EMAIL_DELIVERIES = { getByName: name => ({ fetch: async request => {
+    const { kind } = await request.json();
+    if (kind === 'ready') {
+      assert.equal(s.data.get('order').status, 'complete');
+      for (let i = 0; i < o.photoCount; i++) assert.ok(s.objects.has(`${id}/result-${i}`));
+    }
+    queued.push({ name, kind });
+    return Response.json({ status: 'pending' });
+  } }) };
+  await s.order.markPaid(o, payment(o));
+  o.batchId = 'batch_background';
+  o.status = 'generating';
+  s.data.set('order', o);
+  t.mock.method(globalThis, 'fetch', async url => String(url).endsWith('/content')
+    ? new Response(Array.from({ length: o.photoCount }, (_, i) => JSON.stringify({
+        custom_id: `headshot-${i}`,
+        response: { status_code: 200, body: { data: [{ b64_json: '/9j/2Q==' }] } },
+      })).join('\n'))
+    : Response.json({ status: 'completed', output_file_id: 'file_background' }));
+  await s.order.alarm();
+  await s.order.alarm();
+  assert.deepEqual(queued.map(item => item.kind), ['payment', 'ready']);
+  assert.equal(new Set(queued.map(item => item.name)).size, 2);
+});
+
+test('Background alarm retries an email enqueue outage without an account visit', async () => {
+  const s = setup();
+  const o = await create(s);
+  o.customer = { email: 'owner@example.com' };
+  let calls = 0;
+  s.env.EMAIL_DELIVERIES = { getByName: () => ({ fetch: async () => {
+    if (++calls === 1) throw new Error('Temporary outage');
+    return Response.json({ status: 'pending' });
+  } }) };
+  await s.order.markPaid(o, payment(o));
+  assert.equal(s.data.get('order').emailQueued?.payment, undefined);
+  await s.order.alarm();
+  assert.equal(s.data.get('order').emailQueued.payment, true);
+  await s.order.alarm();
+  assert.equal(calls, 2);
 });

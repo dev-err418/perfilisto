@@ -132,6 +132,8 @@ export class HeadshotOrder {
           offset += chunk.byteLength;
         }
         body = JSON.parse(new TextDecoder().decode(bytes));
+        if (!body || typeof body !== "object" || Array.isArray(body))
+          return json({ error: "Invalid request" }, 400);
       } catch {
         return json({ error: "Invalid request" }, 400);
       }

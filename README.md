@@ -1,48 +1,22 @@
 # Perfilisto
 
-Marketing site for Perfilisto. English first; copy lives in `src/i18n` so Spanish can be added later.
+Next.js frontend, exported as static assets and hosted by a Cloudflare Worker. The Worker implements authentication, orders, mobile uploads, Whop payments/webhooks, OpenAI batch processing, analytics and transactional email. Private photo storage uses R2; durable state and retries use Durable Objects.
 
-The glass topbar is the same system as [Postback](https://postback.sh): sticky pill nav, blur, and the expanding Get started control.
-
-```bash
-npm run dev
-```
-
-## Cloudflare Workers
-
-Use Node.js 22 or newer (`.nvmrc` selects Node 22). Wrangler requires it.
-The Miniflare `sharp` override pins a patched release for local tooling.
-
-The current landing page uses Next.js static export. `npm run build` creates
-`out/`, which Cloudflare Workers serves as static assets. There is no server
-Next.js server runtime, database, or application secret required for this version.
-The small Worker entry point redirects www and otherwise serves the static assets.
+Use Node.js 22 or newer. Keep secrets in ignored local environment files or Cloudflare secrets; never commit them.
 
 ```bash
 npm ci
-npm run deploy:check # lint, production build, and Wrangler dry run; does not publish
-npm start            # preview the built assets in the local Workers runtime
+npm run dev          # Next.js UI on localhost
+npm test             # Complete backend, auth, email, analytics and upload suite
+npm run lint
+npm run build        # Exports the frontend to out/
+npm run deploy:check # Lint, build and Cloudflare dry run; does not publish
+npm start            # Local Cloudflare runtime using built assets
+npm run deploy       # Build and publish to Cloudflare
 ```
 
-To publish, provide `CLOUDFLARE_API_TOKEN` in the deployment process environment
-and run `npm run deploy`. Keep the token outside source control and the `out/`
-directory. The token used for the readiness check remains in the local Postback
-project; it has not been copied into this project.
+Local Next.js order requests use the authenticated proxy to the production Worker. Treat non-debug checkout and generation as real operations. Debug previews are development-only and use sample results.
 
-`wrangler.jsonc` targets the verified Cloudflare account and creates Custom
-Domains for `perfilisto.com` and `www.perfilisto.com`. Cloudflare provisions DNS
-and certificates when deployed. `worker/index.js` redirects www to the apex.
-Unknown paths return the exported 404 page.
+A Git push alone does not deploy the Cloudflare Worker. Publish the frontend and Worker together when API contracts or routes change.
 
-This static setup must be replaced with a Workers-compatible server adapter if
-server-side authentication, Server Actions, or dynamic API routes are added.
-
-## Launch blockers found during readiness review
-
-- `/login` is not implemented.
-- The homepage has no `how-it-works` or `pricing` sections, although the navigation
-  links to them.
-
-The deployment setup can host the landing page, but these user flows need real
-destinations or an intentional prelaunch experience before a product launch.
-The readiness check does not publish the site or modify Cloudflare DNS.
+See [the website audit](docs/website-audit-2026-09-11.md) for verified behavior, remaining launch checks and known product gaps. Authentication details are in [src/lib/auth/README.md](src/lib/auth/README.md).

@@ -52,3 +52,12 @@ test("album pages require login, preserve the order link and disable public cach
     assert.equal(getRequestPolicy(`https://perfilisto.com${path}`, true).redirect, null);
   }
 });
+
+test('bundled onboarding images remain public while onboarding pages stay private', () => {
+  for (const path of ['/onboarding/welcome-bg.jpg', '/onboarding/attire/man-professional.jpg']) {
+    const policy = getRequestPolicy(`https://perfilisto.com${path}`, false);
+    assert.equal(policy.redirect, null);
+  }
+  assert.equal(getRequestPolicy('https://perfilisto.com/onboarding', false).status, 307);
+  assert.equal(getRequestPolicy('https://perfilisto.com/onboarding.html', false).status, 307);
+});

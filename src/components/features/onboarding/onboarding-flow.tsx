@@ -112,7 +112,8 @@ export const OnboardingFlow = () => {
   useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
   useEffect(() => {
     let cancelled = false;
-    if (new URLSearchParams(window.location.search).get("new") === "1") {
+    const query = new URLSearchParams(window.location.search);
+    if (query.get("new") === "1" && !query.get("order")) {
       queueMicrotask(() => setRestoringAccount(false));
       return;
     }

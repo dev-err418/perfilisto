@@ -9,8 +9,8 @@ export function campaignParams(input) {
     }));
   } catch { return {}; }
 }
-export function hasAnalyticsConsent(cookie = "") {
-  return cookie.split(";").some(part => part.trim() === `${CONSENT_COOKIE}=yes`);
+export function isAnalyticsEnabled(cookie = "") {
+  return !cookie.split(";").some(part => part.trim() === `${CONSENT_COOKIE}=no`);
 }
 export function funnelPage(path) {
   return ["/", "/login", "/onboarding", "/dashboard", "/album"].includes(path.replace(/\/$/, "") || "/");
