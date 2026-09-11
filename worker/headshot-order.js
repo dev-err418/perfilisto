@@ -407,7 +407,7 @@ export class HeadshotOrder {
     order.payment = {
       id: payment.id,
       amount: Number(
-        payment.total ?? payment.final_amount ?? payment.amount ?? order.price,
+        payment.total ?? payment.final_amount ?? payment.amount ?? payment.subtotal,
       ),
       currency: payment.currency,
     };

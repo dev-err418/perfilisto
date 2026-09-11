@@ -2,6 +2,8 @@
 
 import { trackFunnel } from "@/lib/analytics/client";
 import { Spinner } from "@/components/ui/spinner";
+import { toast } from "@/components/ui/toast";
+import { Fireworks } from "@/components/ui/fireworks";
 
 import {
   useCallback,
@@ -234,7 +236,6 @@ export function PostUploadFlow({
   const [acceptedFraming, setAcceptedFraming] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editPhotos, setEditPhotos] = useState<UploadedPhoto[]>([]);
-  const [toast, setToast] = useState(false);
   const [demo, setDemo] = useState(false);
   const [waitingPayment, setWaitingPayment] = useState(false);
   useEffect(() => {
@@ -347,11 +348,6 @@ export function PostUploadFlow({
       clearTimeout(timer);
     };
   }, [order?.id, order?.status, order?.payment, demo, editing]); // eslint-disable-line react-hooks/exhaustive-deps
-  useEffect(() => {
-    if (!toast) return;
-    const timer = setTimeout(() => setToast(false), 5000);
-    return () => clearTimeout(timer);
-  }, [toast]);
 
   const checkout = () =>
     run("Saving your photos…", async () => {
@@ -399,7 +395,12 @@ export function PostUploadFlow({
           }
         : await api(order.id, "verify", {});
       setOrder(next);
-      setToast(true);
+      const ready = (next.review?.photos.filter((photo) => photo.accepted).length ?? 0) >= 6;
+      toast.add({
+        title: ready ? "Your photo check is complete!" : "Photo check complete. Some photos need replacing.",
+        type: ready ? "success" : "warning",
+        timeout: 5000,
+      });
       if (
         next.review?.needsMidRange &&
         next.review.photos.filter((p) => p.accepted).length >= 6
@@ -480,6 +481,9 @@ export function PostUploadFlow({
     order &&
     ["generating", "complete", "partial", "failed"].includes(order.status);
   const reviewStage = !!order?.payment && !inGeneration;
+  const checkingPhotos = reviewStage && finishing === "photos" && !editing;
+  const needsPhotoCheck = checkingPhotos && !order?.review;
+  const needsReplacementPhotos = checkingPhotos && !!order?.review && accepted < 6;
   const checkoutStage = !!order?.checkoutId && !order.payment;
   const leavePricing = () => {
     if (order?.payment) return;
@@ -575,6 +579,8 @@ export function PostUploadFlow({
           !!busy ||
           (editing
             ? editPhotos.length < 6 || editPhotos.some((p) => p.preparing)
+            : checkingPhotos
+              ? needsPhotoCheck && order.photos.length < 6
             : reviewStage
               ? !order.review ||
                 accepted < 6 ||
@@ -587,13 +593,17 @@ export function PostUploadFlow({
           busy ||
           (editing
             ? "Save photos"
+            : needsPhotoCheck
+              ? "Check photos"
+            : needsReplacementPhotos
+              ? "Replace photos"
             : reviewStage
               ? finishing === "details"
                 ? "Submit"
                 : "Continue"
               : `Continue with ${order?.name || plan.name}`)
         }
-        onContinue={editing ? saveUploads : reviewStage ? advance : checkout}
+        onContinue={editing ? saveUploads : needsPhotoCheck ? verify : needsReplacementPhotos ? changeUploads : reviewStage ? advance : checkout}
         onClose={onClose}
         footerContent={
           finishing === "details" && !editing ? (
@@ -775,11 +785,6 @@ export function PostUploadFlow({
                     );
                   })}
                 </div>
-                {!order.review && !busy && (
-                  <button className={`${primary} mt-5`} onClick={verify}>
-                    Check my photos
-                  </button>
-                )}
                 {order.review && accepted < 6 && (
                   <p className="mt-5 text-sm font-medium text-red-700">
                     Please replace the rejected photos. You need {6 - accepted}{" "}
@@ -926,6 +931,7 @@ export function PostUploadFlow({
       </OnboardingStepShell>
       {modal === "payment" && order && (
         <Modal title="Payment received" onClose={() => setModal(null)}>
+          <Fireworks />
           <div className="py-5 text-center">
             <LogoMark className="mx-auto mb-6 size-14" />
             <h2 className="text-3xl font-semibold tracking-tight">
@@ -1069,16 +1075,16 @@ export function PostUploadFlow({
             A mix of clear close-ups and mid-range shots gives the best results.
           </p>
           <Requirements />
-          <label className="mt-6 flex items-start gap-3 text-sm">
-            <input
-              type="checkbox"
+          <div className="mt-6">
+            <ConsentCheckbox
+              id="confirm-reference-photos"
               checked={ownPhotos}
-              onChange={(e) => setOwnPhotos(e.target.checked)}
-              className="mt-1 size-5 accent-orange-500"
-            />
-            These are recent photos of me, I am 18 or older, and I have
-            permission to use them to generate my headshots.
-          </label>
+              onChange={setOwnPhotos}
+            >
+              These are recent photos of me, I am 18 or older, and I have
+              permission to use them to generate my headshots.
+            </ConsentCheckbox>
+          </div>
           {error && (
             <p role="alert" className="mt-3 text-red-700">
               {error}
@@ -1106,23 +1112,7 @@ export function PostUploadFlow({
           </div>
         </Modal>
       )}
-      {toast && finishing === "photos" && (
-        <div
-          role="status"
-          className="fixed right-5 bottom-24 z-40 flex max-w-sm items-center gap-3 rounded-2xl border border-black/10 bg-white p-5 text-sm font-semibold text-black shadow-xl"
-        >
-          <IconCheck className="size-6 shrink-0 text-green-600" />
-          {accepted >= 6
-            ? "Your photo check is complete!"
-            : "Photo check complete. Some photos need replacing."}
-          <button
-            aria-label="Dismiss notification"
-            onClick={() => setToast(false)}
-          >
-            <IconX className="size-4" />
-          </button>
-        </div>
-      )}
+
     </>
   );
 }

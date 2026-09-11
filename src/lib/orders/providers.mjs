@@ -1,3 +1,5 @@
+import { discountAmount } from "./discount.mjs";
+
 export async function whop(
   env,
   path,
@@ -170,6 +172,15 @@ export function paymentMatches(order, payment, accountId) {
     payment.checkout_configuration_id || payment.checkout_configuration?.id;
   const amount =
     payment.subtotal ?? payment.total ?? payment.final_amount ?? payment.amount;
+  // Only use promo details from the verified Whop payment, never from the client.
+  const promo = payment.promo_code;
+  const discount = discountAmount(order.price, order.currency, promo ? {
+    amount: promo.amount_off,
+    type: promo.promo_type,
+    currency: promo.base_currency ?? promo.currency,
+  } : null);
+  if (discount === null || (promo && !promo.id) || amount == null || !Number.isFinite(Number(amount)))
+    return false;
   return (
     ["succeeded", "paid"].includes(payment.status) &&
     !Number(payment.refunded_amount || 0) &&
@@ -181,6 +192,6 @@ export function paymentMatches(order, payment, accountId) {
     payment.metadata?.order_id === order.id &&
     (!checkout || checkout === order.checkoutId) &&
     payment.currency?.toLowerCase() === order.currency &&
-    Number(amount) >= order.price
+    Math.round(Number(amount) * 100) >= Math.round((order.price - discount) * 100)
   );
 }

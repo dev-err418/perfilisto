@@ -140,6 +140,23 @@ test("Payment validation rejects mismatched orders, currency, amount, account an
   ])
     assert.equal(paymentMatches(o, payment(o, bad), "biz_test"), false);
 });
+test("Verified Whop discounts are accepted without accepting unexplained underpayments", async () => {
+  const s = setup();
+  const o = await create(s);
+  const promo_code = { id: "promo_new10", code: "NEW10", amount_off: 0.1, promo_type: "percentage", base_currency: "eur" };
+  assert.equal(paymentMatches(o, payment(o, { promo_code, subtotal: 26.1, total: 26.1 }), "biz_test"), true);
+  assert.equal(paymentMatches(o, payment(o, { promo_code, subtotal: 26.1, total: 31.32, tax_amount: 5.22 }), "biz_test"), true);
+  for (const overrides of [
+    { subtotal: 26.1, total: 26.1 },
+    { promo_code, subtotal: 25 },
+    { promo_code: { ...promo_code, amount_off: 101 }, subtotal: 0 },
+    { promo_code: { ...promo_code, amount_off: -10 } },
+    { promo_code: { ...promo_code, id: undefined } },
+    { promo_code: { ...promo_code, promo_type: "flat_amount", base_currency: "usd" } },
+    { subtotal: "NaN" },
+  ]) assert.equal(paymentMatches(o, payment(o, overrides), "biz_test"), false);
+  assert.equal(paymentMatches(o, payment(o, { promo_code: { ...promo_code, amount_off: 10, promo_type: "flat_amount" }, subtotal: 19, total: 19 }), "biz_test"), true);
+});
 test("Repeated checkout and confirmation reuse the same order; six accepted photos and consent are required", async (t) => {
   const s = setup();
   await create(s);

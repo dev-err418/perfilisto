@@ -5,7 +5,8 @@ import { Spinner } from "@/components/ui/spinner";
 import { checkoutAttribution } from "@/lib/analytics/client";
 import { useRef, useState } from "react";
 import Link from "next/link";
-import { WhopCheckoutEmbed, useCheckoutEmbedControls } from "@whop/checkout/react";
+import { WhopCheckoutEmbed, useCheckoutEmbedControls, type WhopCheckoutPromoCode } from "@whop/checkout/react";
+import { discountAmount } from "@/lib/orders/discount.mjs";
 import { IconLock } from "@tabler/icons-react";
 import { getMessages } from "@/i18n";
 import type { Order } from "@/lib/orders/types";
@@ -24,11 +25,15 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
   const [state, setState] = useState<"loading" | "ready" | "disabled">("loading");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const [discounted, setDiscounted] = useState(false);
+  const [promo, setPromo] = useState<WhopCheckoutPromoCode | null>(null);
   const submitLock = useRef(false);
-  const amount = new Intl.NumberFormat("en-IE", {
+  const formatter = new Intl.NumberFormat("en-IE", {
     style: "currency", currency: order.currency,
-  }).format(order.price);
+  });
+  const amount = formatter.format(order.price);
+  const discount = discountAmount(order.price, order.currency, promo);
+  const discounted = !!promo;
+  const subtotal = discount === null ? null : formatter.format(order.price - discount);
   const processing = submitting || waitingPayment;
 
   async function pay() {
@@ -69,7 +74,7 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
             hideTermsAndConditions
             themeOptions={{ accentColor: "#ff7416", borderRadius: 12 }}
             onStateChange={setState}
-            onPromoCodeChanged={(promo) => setDiscounted(!!promo)}
+            onPromoCodeChanged={setPromo}
             onPaymentError={(failure) => {
               setError(failure.message || "Your payment could not be completed. Please try again.");
               submitLock.current = false;
@@ -104,16 +109,17 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
       <aside className="min-w-0 border-t border-black/[0.06] bg-[#fafafa] px-7 py-9 sm:px-10 lg:border-t-0 lg:border-l lg:py-12">
         <h2 className="text-2xl font-semibold tracking-tight">Price breakdown</h2>
         <p className="mt-7 text-sm text-neutral-500">One-time payment</p>
-        <p className="mt-2 text-4xl font-semibold tracking-tight">{amount}</p>
+        <p className="mt-2 text-4xl font-semibold tracking-tight" aria-live="polite">{subtotal ?? "See payment form"}</p>
         <div className="mt-8 flex items-start justify-between gap-4 border-b border-black/10 pb-6 text-sm">
           <div><p className="font-medium">{order.name} headshots</p><p className="mt-2 text-neutral-500">{order.photoCount} personalized headshots · Qty: 1</p></div>
           <span>{amount}</span>
         </div>
         <dl className="space-y-4 border-b border-black/10 py-6 text-sm">
           <div className="flex justify-between gap-4"><dt>Package price</dt><dd>{amount}</dd></div>
+          {promo && <div className="flex justify-between gap-4 text-primary"><dt>Discount · {promo.code}</dt><dd>{discount === null ? "Applied in payment form" : `−${formatter.format(discount)}`}</dd></div>}
           <div className="flex justify-between gap-4"><dt>Delivery</dt><dd>Within {order.deliveryTime || plans.find(p => p.id === order.planId)?.deliveryTime}</dd></div>
         </dl>
-        <div className="mt-6 flex justify-between gap-4 font-semibold"><span>{discounted ? "Before discount" : "Total due today"}</span><span>{amount}</span></div>
+        <div className="mt-6 flex justify-between gap-4 font-semibold" aria-live="polite"><span>{discounted ? "Subtotal after discount" : "Subtotal"}</span><span>{subtotal ?? "See payment form"}</span></div>
         <p className="mt-3 text-xs leading-relaxed text-neutral-500">The payment form shows the final total, including any applicable taxes or discounts, before you pay.</p>
         <div className="mt-10 border-t border-black/10 pt-7">
           <h3 className="text-lg font-semibold">A first impression you’ll love</h3>
