@@ -1,3 +1,5 @@
+export { AnalyticsDelivery } from "./analytics-delivery.js";
+import { handleAnalyticsContext, handleAnalyticsEvent } from "./analytics.js";
 export { EmailDelivery } from "./email-delivery.js";
 import { handleAuth, hasSession, safeRedirect } from "../src/lib/auth/server.mjs";
 import { getRequestPolicy } from "../src/lib/auth/request-policy.mjs";
@@ -12,6 +14,8 @@ export { HeadshotOrder } from "./headshot-order.js";
 const worker = {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === "/api/analytics/events") return handleAnalyticsEvent(request, env);
+    if (url.pathname === "/api/analytics/context") return handleAnalyticsContext(request, env);
     const authenticated = await hasSession(request, env);
     const policy = getRequestPolicy(request.url, authenticated);
     if (policy.redirect) {

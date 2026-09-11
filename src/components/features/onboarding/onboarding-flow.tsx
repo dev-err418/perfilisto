@@ -1,5 +1,7 @@
 "use client";
 
+import { useFunnelStage } from "@/components/analytics/whop-pixel";
+import { ANALYTICS_READY, trackFunnel } from "@/lib/analytics/client";
 import { useEffect, useRef, useState } from "react";
 
 import { getMessages } from "@/i18n";
@@ -95,6 +97,7 @@ const messages = getMessages();
 
 export const OnboardingFlow = () => {
   const [step, setStep] = useState<Step>("welcome");
+  useFunnelStage(step === "purchase" ? "packages" : step.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`));
   const advanceTimer = useRef<number>(0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
 
@@ -114,6 +117,13 @@ export const OnboardingFlow = () => {
     useState<BackgroundOption[]>(ALL_BACKGROUNDS);
   const [photos, setPhotos] = useState<UploadedPhoto[]>([]);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const readyPhotos = photos.filter(photo => !photo.preparing).length;
+  useEffect(() => {
+    const record = () => { if (readyPhotos >= UPLOAD_MIN) trackFunnel("uploads_ready", { photo_count: readyPhotos }, "uploads_ready"); };
+    record();
+    window.addEventListener(ANALYTICS_READY, record);
+    return () => window.removeEventListener(ANALYTICS_READY, record);
+  }, [readyPhotos]);
 
   const goNext = (from: Step) => {
     const next = NEXT_STEP[from];

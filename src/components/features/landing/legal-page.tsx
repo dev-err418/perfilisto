@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import type { Messages } from "@/i18n";
 
 import { LandingFooter } from "./footer";
@@ -8,11 +9,13 @@ export const LegalPage = ({
   title,
   updated,
   body,
+  children,
 }: {
   messages: Messages;
   title: string;
   updated: string;
   body: readonly string[];
+  children?: ReactNode;
 }) => (
   <main className="homepage-static theme-light flex min-h-screen flex-col overflow-x-clip bg-white font-[family-name:var(--font-saans)] text-black [color-scheme:light]">
     <LandingNavbar theme="light" />
@@ -26,6 +29,7 @@ export const LegalPage = ({
           <p key={paragraph}>{paragraph}</p>
         ))}
       </div>
+      {children}
     </article>
     <LandingFooter messages={messages} theme="light" />
   </main>

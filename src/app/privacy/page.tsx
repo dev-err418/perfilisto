@@ -1,3 +1,4 @@
+import { TrackingPreferences } from "@/components/analytics/whop-pixel";
 import type { Metadata } from "next";
 
 import { LegalPage } from "@/components/features/landing/legal-page";
@@ -17,6 +18,8 @@ export default function PrivacyPage() {
       title={messages.legal.privacy.title}
       updated={messages.legal.privacy.updated}
       body={messages.legal.privacy.body}
-    />
+    >
+      <TrackingPreferences />
+    </LegalPage>
   );
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics/client";
 import { Spinner } from "@/components/ui/spinner";
 
 import {
@@ -250,6 +251,7 @@ export function PostUploadFlow({
     try {
       await fn();
     } catch (e) {
+      if (label === "Saving your photos…") trackFunnel("order_preparation_failed");
       setError(e instanceof Error ? e.message : "Please try again.");
     } finally {
       lock.current = false;
@@ -362,6 +364,7 @@ export function PostUploadFlow({
         });
         remember(next);
       }
+      trackFunnel("add_to_cart", { plan_id: next.planId, value: next.price, currency: next.currency }, `order:${next.id}:cart`);
       if (!next.photos.length) {
         next = await api(
           next.id,
@@ -371,6 +374,7 @@ export function PostUploadFlow({
         );
         remember(next);
       }
+      trackFunnel("photos_saved", { photo_count: next.photos.length }, `order:${next.id}:photos`);
       next = await api(next.id, "checkout", {});
       remember(next);
     });
@@ -828,7 +832,10 @@ export function PostUploadFlow({
                     role="radio"
                     aria-checked={(order?.planId || selected) === p.id}
                     onClick={() => {
-                      if (!order) setSelected(p.id);
+                      if (!order) {
+                        setSelected(p.id);
+                        trackFunnel("package_selected", { plan_id: p.id });
+                      }
                     }}
                     disabled={!!order || !!busy}
                     className={cn(

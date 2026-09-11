@@ -75,11 +75,9 @@ export default function RootLayout({
         geistMono.variable,
       )}
     >
-      <head>
-        <WhopPixel />
-      </head>
       <body className="flex min-h-full flex-col bg-background text-foreground">
         {children}
+        <WhopPixel />
       </body>
     </html>
   );

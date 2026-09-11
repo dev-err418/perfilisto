@@ -1,5 +1,6 @@
 "use client";
 
+import { trackFunnel } from "@/lib/analytics/client";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { getMessages } from "@/i18n";
@@ -20,6 +21,7 @@ export function LoginActions() {
         if (!response.ok) throw new Error();
         setProviders(await response.json());
         if (new URLSearchParams(window.location.search).has("error")) {
+          trackFunnel("sign_in_failed", {}, "sign_in_return_error");
           setError("Sign-in could not be completed. Please try again.");
         }
       })
@@ -31,6 +33,7 @@ export function LoginActions() {
   }, []);
 
   async function signIn(provider: Provider) {
+    trackFunnel("sign_in_started", { provider });
     setPending(provider);
     setError("");
     try {
@@ -49,6 +52,7 @@ export function LoginActions() {
       if (typeof url !== "string") throw new Error();
       window.location.assign(url);
     } catch {
+      trackFunnel("sign_in_failed", { provider });
       setError("Sign-in could not be started. Please try again.");
       setPending(null);
     }

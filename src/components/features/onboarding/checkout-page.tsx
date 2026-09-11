@@ -2,6 +2,7 @@
 
 import { Spinner } from "@/components/ui/spinner";
 
+import { checkoutAttribution } from "@/lib/analytics/client";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { WhopCheckoutEmbed, useCheckoutEmbedControls } from "@whop/checkout/react";
@@ -18,6 +19,8 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
   onComplete: (receipt?: string) => void;
 }) {
   const controls = useCheckoutEmbedControls();
+  // Whop snapshots initial props. Keep campaign tags on the first mount and never reset entered card details.
+  const [attribution] = useState(checkoutAttribution);
   const [state, setState] = useState<"loading" | "ready" | "disabled">("loading");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -53,6 +56,7 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
         <div className="mt-7 min-h-80">
           {state === "loading" && <p role="status" className="flex items-center gap-2 px-4 py-4 text-sm text-neutral-500"><Spinner aria-hidden="true" />Loading secure payment form…</p>}
           <WhopCheckoutEmbed
+            {...attribution}
             ref={controls}
             sessionId={order.checkoutId!}
             returnUrl={`${typeof window !== "undefined" ? window.location.origin : "https://perfilisto.com"}/onboarding?order=${order.id}`}
