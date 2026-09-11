@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
+import { IconX } from "@tabler/icons-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { getMessages } from "@/i18n";
 
@@ -13,47 +14,50 @@ import { ConsentCheckbox } from "./consent-checkbox";
 
 const messages = getMessages();
 
-export const OnboardingWelcomeScreen = ({
+export const OnboardingWelcomeModal = ({
   onContinue,
   onSkipToUpload,
 }: {
   onContinue?: () => void;
   onSkipToUpload?: () => void;
 }) => {
+  const router = useRouter();
   const copy = messages.onboarding.welcome;
   const [age, setAge] = useState(false);
   const [terms, setTerms] = useState(false);
   const [consent, setConsent] = useState(false);
   const canContinue = age && terms && consent;
+  const dialogRef = useRef<HTMLDialogElement>(null);
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    dialog?.showModal();
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      dialog?.close();
+      document.body.style.overflow = overflow;
+    };
+  }, []);
 
   return (
-    <main className="theme-light relative min-h-dvh overflow-hidden bg-black text-black [color-scheme:light]">
-      <Image
-        src="/onboarding/welcome-bg.jpg"
-        alt=""
-        fill
-        priority
-        unoptimized
-        className="object-cover object-[20%_center]"
-      />
-      <div className="absolute inset-0 bg-black/25" />
-
-      <div className="relative z-10 flex min-h-dvh flex-col px-5 py-5 sm:px-8 sm:py-7">
-        <Link
-          href="/"
-          aria-label={messages.brand.homeAriaLabel}
-          className="flex w-fit items-center gap-2.5"
-        >
-          <LogoMark className="size-8 rounded-[8px]" />
-          <BrandWord className="text-lg font-semibold tracking-tight text-white drop-shadow-sm" />
-        </Link>
-
-        <div className="flex flex-1 items-center justify-center py-8 lg:justify-end lg:pr-[min(8vw,96px)]">
-          <div className="w-full max-w-[520px] rounded-[28px] bg-white p-7 shadow-[0_24px_80px_rgba(0,0,0,0.28)] sm:p-9">
-            <h1 className="text-[2rem] leading-tight font-semibold tracking-tight text-[#141414] sm:text-[2.35rem]">
+    <dialog
+      ref={dialogRef}
+      aria-labelledby="onboarding-welcome-title"
+      aria-describedby="onboarding-welcome-description"
+      onCancel={(event) => { event.preventDefault(); router.push("/"); }}
+      className="theme-light fixed inset-0 m-auto max-h-[90dvh] w-[calc(100%-2rem)] max-w-[520px] overflow-y-auto rounded-[28px] bg-white p-7 text-black shadow-2xl backdrop:bg-black/45 backdrop:backdrop-blur-sm [color-scheme:light] sm:p-9"
+    >
+      <Link href="/" aria-label="Close onboarding" className="absolute top-4 right-4 grid size-10 place-items-center rounded-full hover:bg-black/5">
+        <IconX className="size-5" />
+      </Link>
+      <div className="mb-6 flex items-center gap-2.5">
+        <LogoMark className="size-8 rounded-[8px]" />
+        <BrandWord className="text-lg font-semibold tracking-tight" />
+      </div>
+            <h2 id="onboarding-welcome-title" className="text-[2rem] leading-tight font-semibold tracking-tight text-[#141414] sm:text-[2.35rem]">
               {copy.title}
-            </h1>
-            <p className="mt-3 text-[17px] leading-7 text-muted-foreground">
+            </h2>
+            <p id="onboarding-welcome-description" className="mt-3 text-[17px] leading-7 text-muted-foreground">
               {copy.subtitle}
             </p>
 
@@ -129,9 +133,6 @@ export const OnboardingWelcomeScreen = ({
                 ) : null}
               </div>
             ) : null}
-          </div>
-        </div>
-      </div>
-    </main>
+    </dialog>
   );
 };

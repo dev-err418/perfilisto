@@ -240,7 +240,7 @@ export function PostUploadFlow({
   const [waitingPayment, setWaitingPayment] = useState(false);
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" });
-  }, [order?.status, editing, finishing]);
+  }, [order?.status, finishing]);
   const pendingId = useRef<string | null>(null);
   const plan = plans.find((p) => p.id === selected)!;
   const lock = useRef(false);
@@ -374,38 +374,60 @@ export function PostUploadFlow({
       next = await api(next.id, "checkout", {});
       remember(next);
     });
-  const verify = () => {
+  const verify = (savedOrder?: Order) => {
     setModal(null);
     return run("Checking your photos…", async () => {
-      if (!order) return;
-      const next = demo
-        ? {
-            ...order,
-            review: {
-              photos: order.photos.map((p, index) => ({
-                id: p.id,
-                index,
-                accepted: true,
-                reason: "",
-                framing: "close_up",
-              })),
-              summary: "Your photos are clear and well lit.",
-              needsMidRange: true,
+      const current = savedOrder || order;
+      if (!current) return;
+      const toastId = toast.add({ title: "Checking your photos…", type: "loading", timeout: 0 });
+      try {
+        const next = demo
+          ? {
+              ...current,
+              review: {
+                photos: current.photos.map((p, index) => ({
+                  id: p.id,
+                  index,
+                  accepted: true,
+                  reason: "",
+                  framing: "close_up",
+                })),
+                summary: "Your photos are clear and well lit.",
+                needsMidRange: true,
+              },
+            }
+          : await api(current.id, "verify", {});
+        setOrder(next);
+        const acceptedCount = next.review?.photos.filter((photo) => photo.accepted).length ?? 0;
+        const ready = acceptedCount >= 6;
+        const needsMidRange = next.review?.needsMidRange;
+        toast.update(toastId, {
+          title: ready ? "Your photos look good!" : "Some photos need replacing",
+          description: !ready
+            ? `${acceptedCount} photos accepted. Add ${6 - acceptedCount} more clear photos with your face visible to continue.`
+            : needsMidRange
+              ? "You have enough accepted photos. A mid-range shot showing your shoulders and upper body would help."
+              : `${acceptedCount} photos accepted. You’re ready to continue.`,
+          type: ready ? "success" : "warning",
+          timeout: ready && !needsMidRange ? 6000 : 0,
+          actionProps: {
+            children: ready ? "Continue" : "Replace photos",
+            onClick: () => {
+              toast.close(toastId);
+              if (ready) setModal(needsMidRange ? "framing" : "confirm");
+              else {
+                setEditPhotos(next.photos);
+                setEditing(true);
+                setOwnPhotos(false);
+                setAcceptedFraming(false);
+              }
             },
-          }
-        : await api(order.id, "verify", {});
-      setOrder(next);
-      const ready = (next.review?.photos.filter((photo) => photo.accepted).length ?? 0) >= 6;
-      toast.add({
-        title: ready ? "Your photo check is complete!" : "Photo check complete. Some photos need replacing.",
-        type: ready ? "success" : "warning",
-        timeout: 5000,
-      });
-      if (
-        next.review?.needsMidRange &&
-        next.review.photos.filter((p) => p.accepted).length >= 6
-      )
-        setModal("framing");
+          },
+        });
+      } catch (error) {
+        toast.update(toastId, { title: "We couldn’t check your photos", description: "Please try again. Your photos and payment are saved.", type: "error", timeout: 6000 });
+        throw error;
+      }
     });
   };
   const changeUploads = () => {
@@ -424,20 +446,18 @@ export function PostUploadFlow({
     setOwnPhotos(false);
     setAcceptedFraming(false);
   };
-  const saveUploads = () =>
-    run("Saving your new photos…", async () => {
+  const saveUploads = async () => {
+    let saved: Order | undefined;
+    await run("Saving your photos…", async () => {
       if (!order) return;
-      const next = demo
+      saved = demo
         ? { ...order, photos: editPhotos, review: undefined }
-        : await api(
-            order.id,
-            "photos",
-            { photos: await encodePhotos(editPhotos) },
-            "PUT",
-          );
-      setOrder(next);
+        : await api(order.id, "photos", { photos: await encodePhotos(editPhotos) }, "PUT");
+      setOrder(saved);
       setEditing(false);
     });
+    if (saved) await verify(saved);
+  };
   const generate = () =>
     run("Starting your headshots…", async () => {
       if (!order) return;
@@ -539,7 +559,7 @@ export function PostUploadFlow({
           finishing !== "photos" && !editing
             ? finishing
             : editing
-              ? "edit-photos"
+              ? "verification"
               : inGeneration
                 ? "generation"
                 : reviewStage
@@ -592,9 +612,9 @@ export function PostUploadFlow({
         continueLabel={
           busy ||
           (editing
-            ? "Save photos"
+            ? "Check my photos"
             : needsPhotoCheck
-              ? "Check photos"
+              ? "Check my photos"
             : needsReplacementPhotos
               ? "Replace photos"
             : reviewStage
@@ -603,7 +623,7 @@ export function PostUploadFlow({
                 : "Continue"
               : `Continue with ${order?.name || plan.name}`)
         }
-        onContinue={editing ? saveUploads : needsPhotoCheck ? verify : needsReplacementPhotos ? changeUploads : reviewStage ? advance : checkout}
+        onContinue={editing ? saveUploads : needsPhotoCheck ? () => verify() : needsReplacementPhotos ? changeUploads : reviewStage ? advance : checkout}
         onClose={onClose}
         footerContent={
           finishing === "details" && !editing ? (
@@ -646,12 +666,19 @@ export function PostUploadFlow({
             <Spinner className="size-8 text-primary" />
             Restoring your order…
           </div>
-        ) : editing ? (
-          <UploadStep
-            photos={editPhotos}
-            onChange={setEditPhotos}
-            onBack={() => setEditing(false)}
-          />
+        ) : (editing || (reviewStage && finishing === "photos")) && order ? (
+          <fieldset disabled={!!busy || !!modal} className="min-w-0 border-0 p-0" aria-busy={!!busy}>
+            <UploadStep
+              photos={editing ? editPhotos : order.photos}
+              disabled={!!busy || !!modal}
+              onChange={(next) => {
+                setEditPhotos(next);
+                setEditing(true);
+                setOwnPhotos(false);
+                setAcceptedFraming(false);
+              }}
+            />
+          </fieldset>
         ) : reviewStage && finishing !== "photos" ? (
           <FinishingSteps
             step={finishing}
@@ -661,142 +688,6 @@ export function PostUploadFlow({
               setDetailsConsent(false);
             }}
           />
-        ) : reviewStage ? (
-          <div className="mx-auto grid w-full max-w-6xl gap-10 py-5 lg:grid-cols-[230px_1fr]">
-            <aside>
-              <h1 className="text-3xl font-semibold tracking-tight">
-                Verify photos
-              </h1>
-              <p className="mt-4 leading-relaxed text-neutral-500">
-                Let’s double-check your photos for the best results. You’ll need
-                at least 6 accepted photos to continue.
-              </p>
-              <button
-                className={`${secondary} mt-6 w-full`}
-                onClick={changeUploads}
-                disabled={!!busy}
-              >
-                Change uploads
-              </button>
-              <p className="mt-4 text-sm text-neutral-500">
-                Your payment is saved. Replacing photos won’t charge you again.
-              </p>
-            </aside>
-            <div>
-              <div className="mb-7">
-                <div className="mb-3 flex justify-between text-sm font-semibold">
-                  <span>
-                    {order.review
-                      ? `Accepted ${accepted} of ${order.photos.length}`
-                      : `Uploaded ${order.photos.length} of 10`}
-                  </span>
-                  <span className="text-green-700">
-                    {accepted >= 6
-                      ? "✓ Minimum met"
-                      : "6 accepted photos required"}
-                  </span>
-                </div>
-                <div className="h-2 rounded-full bg-black/10">
-                  <div
-                    className="h-2 rounded-full bg-green-600 transition-[width]"
-                    style={{
-                      width: `${(order.review ? accepted : order.photos.length) * 10}%`,
-                    }}
-                  />
-                </div>
-              </div>
-              <section
-                className={cn(
-                  "rounded-3xl border p-5 sm:p-6",
-                  order.review
-                    ? "border-green-700/10 bg-[#f3faf5]"
-                    : "border-black/5 bg-[#f7f7f7]",
-                )}
-              >
-                <h2 className="flex items-center gap-2 text-xl font-semibold">
-                  {busy && <Spinner className="size-5 text-primary" aria-hidden="true" />}
-                  {busy
-                    ? "Hang tight — we’re checking your photos"
-                    : order.review
-                      ? "Your photo review"
-                      : "Ready to check your photos"}
-                </h2>
-                <p className="mt-2 text-sm text-neutral-500">
-                  {order.review?.summary ||
-                    "We check clarity, lighting, framing, and whether your face is visible."}
-                </p>
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
-                  {order.photos.map((p) => {
-                    const assessment = order.review?.photos.find(
-                      (v) => v.id === p.id,
-                    );
-                    return (
-                      <div key={p.id}>
-                        <div className="relative overflow-hidden rounded-xl">
-                          <Image
-                            src={p.url}
-                            alt={p.name}
-                            width={200}
-                            height={250}
-                            unoptimized
-                            className={cn(
-                              "aspect-[4/5] w-full object-cover",
-                              busy && "blur-sm",
-                            )}
-                          />
-                          {busy ? (
-                            <div className="absolute inset-0 grid place-items-center bg-white/30">
-                              <Spinner className="size-7 text-primary" />
-                            </div>
-                          ) : (
-                            assessment && (
-                              <span
-                                className={cn(
-                                  "absolute right-2 bottom-2 grid size-7 place-items-center rounded-full text-white",
-                                  assessment.accepted
-                                    ? "bg-green-600"
-                                    : "bg-red-500",
-                                )}
-                              >
-                                {assessment.accepted ? (
-                                  <IconCheck className="size-4" />
-                                ) : (
-                                  <IconX className="size-4" />
-                                )}
-                              </span>
-                            )
-                          )}
-                        </div>
-                        {assessment && (
-                          <p
-                            className={cn(
-                              "mt-2 text-xs",
-                              assessment.accepted
-                                ? "text-green-800"
-                                : "text-red-700",
-                            )}
-                          >
-                            {assessment.accepted
-                              ? "Accepted"
-                              : assessment.reason}
-                          </p>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                {order.review && accepted < 6 && (
-                  <p className="mt-5 text-sm font-medium text-red-700">
-                    Please replace the rejected photos. You need {6 - accepted}{" "}
-                    more accepted photos.
-                  </p>
-                )}
-              </section>
-              <div className="mt-6">
-                <Requirements />
-              </div>
-            </div>
-          </div>
         ) : checkoutStage ? (
           <CheckoutPage
             key={order.checkoutId}
@@ -945,8 +836,8 @@ export function PostUploadFlow({
               Let’s check your photos and confirm the details before creating
               your headshots.
             </p>
-            <button className={`${primary} mt-8`} onClick={verify}>
-              Verify my photos
+            <button className={`${primary} mt-8`} onClick={() => verify()}>
+              Check my photos
               <IconArrowRight className="size-4" />
             </button>
           </div>

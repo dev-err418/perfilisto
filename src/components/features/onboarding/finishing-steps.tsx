@@ -2,7 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import { Select } from "@base-ui/react/select";
+import { HairSwatch, hairSwatches, type HairOption } from "./hair-step";
 import {
+  IconPhoto,
+  IconCalendar,
+  IconUserScan,
   IconCheck,
   IconChevronDown,
   IconEyeglass,
@@ -40,15 +45,57 @@ const labels: Record<string, string> = {
 };
 export const labelFor = (value: string) =>
   labels[value] ||
-  value.replaceAll("-", " ").replace(/^./, (c) => c.toUpperCase());
+  (/^\d+-\d+$/.test(value)
+    ? value.replace("-", "–")
+    : value.replaceAll("-", " ").replace(/^./, (c) => c.toUpperCase()));
 const fieldClass =
-  "flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white px-4 text-left text-[15px] font-semibold text-[#141414] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+  "flex min-h-12 w-full items-center justify-between gap-3 rounded-2xl border border-black/10 bg-white py-2 pl-3 pr-5 text-left text-[15px] font-semibold text-[#141414] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary";
+function ChoicePreview({ field, choice, gender }: { field: string; choice: string; gender: string }) {
+  const folder = ({ hairType: "hair-type", hairLength: "hair-length", bodyType: "body-type", backgrounds: "backgrounds", attire: "attire" } as Record<string, string>)[field];
+  let src = folder && choice ? `/onboarding/${folder}/${gender}-${choice}.jpg` : null;
+  if (field === "poses" && choice) src = `/onboarding/attire/${gender}-${choice === "relaxed" ? "smart-casual" : "professional"}.jpg`;
+  if (field === "hair" && choice && choice !== "bald") return <span className="grid size-8 shrink-0 place-items-center"><HairSwatch tone={hairSwatches[choice as HairOption]} /></span>;
+  if (choice === "bald") src = `/onboarding/hair-length/${gender}-bald.jpg`;
+  if (src) return <Image src={src} alt="" width={32} height={36} unoptimized className="h-9 w-8 shrink-0 rounded-md object-cover object-top" />;
+  const Icon = field === "glasses" ? choice === "all" ? IconEyeglass : choice === "mixed" ? IconAdjustmentsHorizontal : IconEyeglassOff : field === "age" ? IconCalendar : field === "headwear" && choice === "none" ? IconUserScan : IconPhoto;
+  return <span className="grid size-8 shrink-0 place-items-center text-primary" aria-hidden="true"><Icon className="size-5" stroke={1.7} /></span>;
+}
+const choiceLabel = (field: string, choice: string) => !choice ? "As in my photos" : field === "headwear" && choice === "none" ? "No headwear" : labelFor(choice);
+
+function SingleChoice({ field, value, gender, onChange }: { field: keyof Preferences; value: string; gender: string; onChange: (value: string | null) => void }) {
+  const choices = [...(!["glasses", "headwear"].includes(field) ? [""] : []), ...options[field as keyof typeof options]];
+  return <div>
+    <label id={`detail-label-${field}`} className="mb-2 block text-sm text-muted-foreground">{labelFor(field)}</label>
+    <Select.Root value={value} onValueChange={onChange}>
+      <Select.Trigger aria-labelledby={`detail-label-${field}`} className={fieldClass}>
+        <span className="flex min-w-0 items-center gap-2.5"><ChoicePreview field={field} choice={value} gender={gender} /><span className="truncate">{choiceLabel(field, value)}</span></span>
+        <Select.Icon><IconChevronDown className="size-4 shrink-0 text-black/35" /></Select.Icon>
+      </Select.Trigger>
+      <Select.Portal>
+        <Select.Positioner sideOffset={6} alignItemWithTrigger={false} className="z-[80] outline-none">
+          <Select.Popup className="max-h-[min(var(--available-height),20rem)] w-[var(--anchor-width)] overflow-y-auto rounded-2xl border border-black/10 bg-white p-1.5 text-[#141414] shadow-lg [color-scheme:light]">
+            {choices.map(choice => <Select.Item key={choice} value={choice} className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl py-2 pr-3 pl-2 outline-none data-highlighted:bg-[#fff4ea]">
+              <ChoicePreview field={field} choice={choice} gender={gender} />
+              <Select.ItemText className="flex-1 text-sm font-medium">{choiceLabel(field, choice)}</Select.ItemText>
+              <Select.ItemIndicator><IconCheck className="size-4 text-primary" /></Select.ItemIndicator>
+            </Select.Item>)}
+          </Select.Popup>
+        </Select.Positioner>
+      </Select.Portal>
+    </Select.Root>
+  </div>;
+}
+
 function MultiChoice({
+  field,
+  gender,
   title,
   values,
   choices,
   onToggle,
 }: {
+  field: string;
+  gender: string;
   title: string;
   values: string[];
   choices: string[];
@@ -85,8 +132,9 @@ function MultiChoice({
         aria-expanded={open}
         onClick={() => setOpen(!open)}
       >
-        <span className="truncate">
-          {values.map(labelFor).join(", ") || "Choose at least one"}
+        <span className="flex min-w-0 items-center gap-2.5">
+          <span className="flex shrink-0 -space-x-2" aria-hidden="true">{values.slice(0, 2).map(choice => <span key={choice} className="rounded-md ring-2 ring-white"><ChoicePreview field={field} choice={choice} gender={gender} /></span>)}</span>
+          <span className="truncate">{values.map(labelFor).join(", ") || "Choose at least one"}</span>
         </span>
         <IconChevronDown className="size-4 shrink-0 text-black/35" />
       </button>
@@ -103,7 +151,7 @@ function MultiChoice({
               checked={values.includes(choice)}
               onChange={() => onToggle(choice)}
             >
-              {labelFor(choice)}
+              <span className="flex items-center gap-2.5"><ChoicePreview field={field} choice={choice} gender={gender} />{labelFor(choice)}</span>
             </ConsentCheckbox>
           ))}
         </div>
@@ -313,6 +361,8 @@ export function FinishingSteps({
             ["backgrounds", "attire", "poses"].includes(key) ? (
               <MultiChoice
                 key={key}
+                field={key}
+                gender={gender}
                 title={labelFor(key)}
                 values={(value[key] || []) as string[]}
                 choices={options[key]}
@@ -321,27 +371,7 @@ export function FinishingSteps({
                 }
               />
             ) : (
-              <label key={key} className="block text-sm text-muted-foreground">
-                {labelFor(key)}
-                <select
-                  className={`${fieldClass} mt-2`}
-                  value={String(value[key] || "")}
-                  onChange={(e) =>
-                    onChange({ ...value, [key]: e.target.value || null })
-                  }
-                >
-                  {!["glasses", "headwear"].includes(key) && (
-                    <option value="">As in my photos</option>
-                  )}
-                  {options[key].map((choice) => (
-                    <option key={choice} value={choice}>
-                      {key === "headwear" && choice === "none"
-                        ? "No headwear"
-                        : labelFor(choice)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <SingleChoice key={key} field={key} value={String(value[key] || "")} gender={gender} onChange={(choice) => onChange({ ...value, [key]: choice || null })} />
             ),
           )}
         </div>

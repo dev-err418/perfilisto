@@ -71,10 +71,12 @@ export const UploadStep = ({
   photos,
   onChange,
   onBack,
+  disabled = false,
 }: {
+  disabled?: boolean;
   photos: UploadedPhoto[];
   onChange: (photos: UploadedPhoto[]) => void;
-  onBack: () => void;
+  onBack?: () => void;
 }) => {
   const copy = messages.onboarding.upload;
   const shared = messages.onboarding.shared;
@@ -94,6 +96,8 @@ export const UploadStep = ({
   const [sessionError, setSessionError] = useState("");
   const [sessionRetry, setSessionRetry] = useState(0);
   const [syncNotice, setSyncNotice] = useState("");
+  const disabledRef = useRef(disabled);
+  useEffect(() => { disabledRef.current = disabled; }, [disabled]);
   const photosRef = useRef(photos);
   const importedIds = useRef(new Set(photos.filter((photo) => photo.url.startsWith("data:")).map((photo) => photo.id)));
   // Uploads and polling update this ref together with onChange; a delayed render
@@ -138,7 +142,7 @@ export const UploadStep = ({
     async function poll() {
       try {
         const remote = await getRemoteSessionSnapshot(sessionId!, [...importedIds.current]);
-        if (cancelled) return;
+        if (cancelled || disabledRef.current) return;
         if (!remote) {
           setSessionId(null);
           setMobileUrl("");
@@ -149,7 +153,7 @@ export const UploadStep = ({
         }
         const remoteIds = new Set(remote.ids);
         const current = photosRef.current.filter((photo) => !importedIds.current.has(photo.id) || remoteIds.has(photo.id));
-        const fresh = remote.photos.filter((photo) => !importedIds.current.has(photo.id));
+        const fresh = remote.photos.filter((photo) => !importedIds.current.has(photo.id) && !photosRef.current.some((current) => current.id === photo.id));
         const accepted = fresh.slice(0, Math.max(0, MAX_PHOTOS - current.length));
         for (const photo of accepted) importedIds.current.add(photo.id);
         if (accepted.length || current.length !== photosRef.current.length) {
@@ -178,6 +182,7 @@ export const UploadStep = ({
   }, [qrOpen]);
 
   const addFiles = useCallback((fileList: FileList | File[]) => {
+    if (disabledRef.current) return;
     const files = Array.from(fileList);
     if (!files.length) return;
     const { accepted, rejected } = selectUploadFiles(files, MAX_PHOTOS - photosRef.current.length);
@@ -227,13 +232,13 @@ export const UploadStep = ({
       if (!containsFiles(event)) return;
       event.preventDefault();
       dragDepth += 1;
-      setDragging(true);
+      if (!disabledRef.current) setDragging(true);
     };
     const onOver = (event: DragEvent) => {
       if (!containsFiles(event)) return;
       event.preventDefault();
       if (event.dataTransfer) {
-        event.dataTransfer.dropEffect = photosRef.current.length < MAX_PHOTOS ? "copy" : "none";
+        event.dataTransfer.dropEffect = !disabledRef.current && photosRef.current.length < MAX_PHOTOS ? "copy" : "none";
       }
     };
     const onLeave = (event: DragEvent) => {
@@ -270,6 +275,7 @@ export const UploadStep = ({
   }, [addFiles]);
 
   const removePhoto = (id: string) => {
+    if (disabledRef.current) return;
     const match = photosRef.current.find((photo) => photo.id === id);
     if (match?.url) URL.revokeObjectURL(match.url);
     if (sessionId && importedIds.current.has(id)) {
@@ -289,14 +295,14 @@ export const UploadStep = ({
   return (
     <div className="mx-auto grid w-full max-w-6xl gap-10 lg:grid-cols-[16.5rem_minmax(0,1fr)]">
       <aside className="lg:pt-1">
-        <button
+        {onBack && <button
           type="button"
           disabled={photos.some((photo) => photo.preparing)}
           onClick={onBack}
           className="mb-6 inline-flex h-9 items-center gap-1.5 rounded-full border border-black/10 bg-white px-3.5 text-sm font-semibold text-[#141414]"
         >
           ← {shared.back}
-        </button>
+        </button>}
         <h1 className="text-[1.75rem] font-semibold tracking-tight text-[#141414]">
           {copy.title}
         </h1>

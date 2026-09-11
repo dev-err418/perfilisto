@@ -99,3 +99,5 @@ export const HairStep = ({
     </div>
   );
 };
+
+export { Swatch as HairSwatch, swatches as hairSwatches };

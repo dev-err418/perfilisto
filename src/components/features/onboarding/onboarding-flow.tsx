@@ -18,10 +18,9 @@ import { BodyTypeStep, type BodyTypeOption } from "./body-type-step";
 import { HairTypeStep, type HairTypeOption } from "./hair-type-step";
 import { LeaveModal } from "./leave-modal";
 import { OnboardingStepShell } from "./step-shell";
-import { OnboardingWelcomeScreen } from "./welcome-screen";
+import { OnboardingWelcomeModal } from "./welcome-screen";
 
 type Step =
-  | "welcome"
   | "gender"
   | "age"
   | "hair"
@@ -33,7 +32,7 @@ type Step =
   | "upload"
   | "purchase";
 
-const STEP_PROGRESS: Record<Exclude<Step, "welcome">, number> = {
+const STEP_PROGRESS: Record<Step, number> = {
   gender: 2 / 14,
   age: 3 / 14,
   hair: 4 / 14,
@@ -46,8 +45,8 @@ const STEP_PROGRESS: Record<Exclude<Step, "welcome">, number> = {
   purchase: 11 / 14,
 };
 
-const previousStep: Record<Exclude<Step, "welcome">, Step> = {
-  gender: "welcome",
+const previousStep: Record<Step, Step> = {
+  gender: "gender",
   age: "gender",
   hair: "age",
   hairLength: "hair",
@@ -96,15 +95,16 @@ const NEXT_STEP: Partial<Record<Step, Step>> = {
 const messages = getMessages();
 
 export const OnboardingFlow = () => {
-  const [step, setStep] = useState<Step>("welcome");
-  useFunnelStage(step === "purchase" ? "packages" : step.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`));
+  const [step, setStep] = useState<Step>("gender");
+  const [welcomeOpen, setWelcomeOpen] = useState(true);
+  useFunnelStage(welcomeOpen ? "welcome" : step === "purchase" ? "packages" : step.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`));
   const advanceTimer = useRef<number>(0);
   const [direction, setDirection] = useState<"forward" | "back">("forward");
 
   useEffect(() => () => window.clearTimeout(advanceTimer.current), []);
   useEffect(() => {
     const id = new URLSearchParams(window.location.search).get("order");
-    if (id) queueMicrotask(() => setStep("purchase"));
+    if (id) queueMicrotask(() => { setWelcomeOpen(false); setStep("purchase"); });
   }, []);
   const [gender, setGender] = useState<GenderOption | null>(null);
   const [age, setAge] = useState<AgeOption | null>(null);
@@ -157,23 +157,6 @@ export const OnboardingFlow = () => {
       </>
     );
 
-  if (step === "welcome") {
-    return (
-      <OnboardingWelcomeScreen
-        onContinue={() => {
-          setDirection("forward");
-          setStep("gender");
-        }}
-        onSkipToUpload={() => {
-          if (process.env.NODE_ENV !== "development") return;
-          window.clearTimeout(advanceTimer.current);
-          setDirection("forward");
-          setStep("upload");
-        }}
-      />
-    );
-  }
-
   const continueDisabled =
     (step === "attire" && attire.length === 0) ||
     (step === "backgrounds" && backgrounds.length === 0) ||
@@ -200,7 +183,7 @@ export const OnboardingFlow = () => {
           setDirection("back");
           setStep(previousStep[step]);
         }}
-        hideBack={step === "upload"}
+        hideBack={step === "upload" || step === "gender"}
         hideContinue={hideContinue}
         continueDisabled={continueDisabled}
         continueLabel={continueLabel}
@@ -276,6 +259,16 @@ export const OnboardingFlow = () => {
           />
         ) : null}
       </OnboardingStepShell>
+      {welcomeOpen && <OnboardingWelcomeModal
+        onContinue={() => setWelcomeOpen(false)}
+        onSkipToUpload={() => {
+          if (process.env.NODE_ENV !== "development") return;
+          window.clearTimeout(advanceTimer.current);
+          setWelcomeOpen(false);
+          setDirection("forward");
+          setStep("upload");
+        }}
+      />}
       {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}
     </>
   );
