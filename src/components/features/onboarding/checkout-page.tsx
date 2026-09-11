@@ -6,7 +6,7 @@ import { checkoutAttribution } from "@/lib/analytics/client";
 import { useRef, useState } from "react";
 import Link from "next/link";
 import { WhopCheckoutEmbed, useCheckoutEmbedControls } from "@whop/checkout/react";
-import { IconLock, IconShieldCheck } from "@tabler/icons-react";
+import { IconLock } from "@tabler/icons-react";
 import { getMessages } from "@/i18n";
 import type { Order } from "@/lib/orders/types";
 import plans from "@/lib/orders/plans.json";
@@ -87,8 +87,11 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
             aria-busy={processing}
             className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex min-h-14 w-full items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold disabled:pointer-events-none disabled:opacity-40`}
           >
-            {state === "loading" && !processing ? <><Spinner className="size-5" aria-hidden="true" />Loading checkout…</> : processing ? <><Spinner className="size-5" />{waitingPayment ? "Confirming payment…" : "Processing payment…"}</> : <><IconLock className="size-4" />{discounted ? "Pay securely" : `Pay ${amount}`}</>}
+            {state === "loading" && !processing ? <><Spinner className="size-5" aria-hidden="true" />Loading checkout…</> : processing ? <><Spinner className="size-5" />{waitingPayment ? "Confirming payment…" : "Processing payment…"}</> : discounted ? "Pay securely" : `Pay ${amount}`}
           </button>
+          <p className="mt-3 text-center text-xs text-neutral-500">
+            Made in <span aria-hidden="true">🇪🇸</span> Spain
+          </p>
           <p role="status" className="mt-3 flex items-center justify-center gap-2 text-center text-xs text-neutral-500">
             {waitingPayment && <Spinner aria-hidden="true" />}
             {waitingPayment ? "Waiting for secure payment confirmation…" : "Your payment details are encrypted and securely processed by Whop."}
@@ -115,7 +118,7 @@ export function CheckoutPage({ order, waitingPayment, onComplete }: {
         <div className="mt-10 border-t border-black/10 pt-7">
           <h3 className="text-lg font-semibold">A first impression you’ll love</h3>
           <TrustRating messages={getMessages()} className="mt-5 flex-wrap" />
-          <p className="mt-6 flex items-start gap-3 text-sm leading-relaxed text-neutral-500"><IconShieldCheck className="mt-0.5 size-5 shrink-0 text-primary" />Your photos stay private. We use them to create your headshots.</p>
+          <p className="mt-6 flex items-start gap-3 text-sm leading-relaxed text-neutral-500"><IconLock className="mt-0.5 size-5 shrink-0 text-primary" />Your photos stay private. We use them to create your headshots.</p>
         </div>
       </aside>
     </div>
