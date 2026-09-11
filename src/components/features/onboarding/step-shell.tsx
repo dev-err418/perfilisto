@@ -1,3 +1,4 @@
+import { Spinner } from "@/components/ui/spinner";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
@@ -17,6 +18,7 @@ export const OnboardingStepShell = ({
   progress,
   onBack,
   continueDisabled,
+  continueLoading,
   continueLabel,
   hideBack,
   hideContinue,
@@ -30,6 +32,7 @@ export const OnboardingStepShell = ({
   progress: number;
   onBack?: () => void;
   continueDisabled?: boolean;
+  continueLoading?: boolean;
   continueLabel?: string;
   hideBack?: boolean;
   hideContinue?: boolean;
@@ -107,13 +110,15 @@ export const OnboardingStepShell = ({
           {footerContent && <div className="w-full max-w-5xl">{footerContent}</div>}
           <button
             type="button"
-            disabled={continueDisabled}
+            disabled={continueDisabled || continueLoading}
+            aria-busy={continueLoading}
             onClick={onContinue}
             className={cn(
               PRIMARY_TINT_BUTTON_CLASS,
-              "inline-flex h-12 w-full max-w-sm items-center justify-center rounded-full px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
+              "inline-flex h-12 w-full max-w-sm items-center justify-center gap-2 rounded-full px-5 text-base font-semibold tracking-[0.2px] disabled:pointer-events-none disabled:opacity-40",
             )}
           >
+            {continueLoading && <Spinner className="size-5" aria-hidden="true" />}
             {continueLabel ?? copy.continue}
           </button>
         </div>

@@ -1,12 +1,13 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
+
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   IconBulb,
   IconChevronDown,
-  IconLoader2,
   IconTrash,
   IconUpload,
 } from "@tabler/icons-react";
@@ -172,7 +173,8 @@ export const MobileUploadPage = () => {
       {!sessionId || sessionState === "expired" ? (
         <p className="mt-6 text-sm text-muted-foreground">{copy.sessionMissing}</p>
       ) : sessionState !== "ready" ? (
-        <p role="status" className="mt-6 text-sm text-muted-foreground">
+        <p role="status" className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
+          {sessionState === "checking" && <Spinner aria-hidden="true" />}
           {sessionState === "checking" ? "Connecting to your computer…" : "Could not connect. Refresh this page to try again."}
         </p>
       ) : (
@@ -195,7 +197,7 @@ export const MobileUploadPage = () => {
             onClick={() => inputRef.current?.click()}
             className="mt-5 flex h-14 w-full items-center justify-center gap-2 rounded-full border border-black/10 bg-white text-[17px] font-semibold text-[#141414] shadow-sm disabled:opacity-50"
           >
-            <IconUpload className="size-5 text-[var(--primary)]" stroke={1.8} />
+            {encoding || sending ? <Spinner className="size-5 text-primary" aria-hidden="true" /> : <IconUpload className="size-5 text-[var(--primary)]" stroke={1.8} />}
             {copy.mobileUploadCta}
           </button>
 
@@ -209,6 +211,7 @@ export const MobileUploadPage = () => {
                 <span className="flex items-center gap-2 text-[17px] font-semibold text-[#141414]">
                   {encoding ? (
                     <>
+                      <Spinner className="size-5 text-primary" aria-hidden="true" />
                       {formatCount(
                         photos.length === 1
                           ? copy.uploadingTitle
@@ -253,14 +256,14 @@ export const MobileUploadPage = () => {
                         />
                       ) : (
                         <span role="status" aria-label={`Preparing ${photo.name}`} className="grid size-16 place-items-center rounded-xl bg-[#fff4ea] text-[var(--primary)]">
-                          <IconLoader2 className="size-6 animate-spin motion-reduce:animate-none" />
+                          <Spinner className="size-6" />
                         </span>
                       )}
                       <p className="min-w-0 flex-1 truncate text-[15px] font-medium text-[#141414]">
                         {photo.name}
                       </p>
                       {encoding && !photo.dataUrl ? (
-                        <span className="size-5 animate-spin rounded-full border-2 border-[var(--primary)] border-t-transparent" />
+                        <Spinner className="size-5 text-primary" aria-hidden="true" />
                       ) : (
                         <button
                           type="button"
@@ -281,8 +284,9 @@ export const MobileUploadPage = () => {
                   type="button"
                   disabled={sending || sent}
                   onClick={() => void sendToComputer()}
-                  className={`${PRIMARY_TINT_BUTTON_CLASS} mt-1 inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-base font-semibold disabled:opacity-50`}
+                  className={`${PRIMARY_TINT_BUTTON_CLASS} mt-1 inline-flex h-12 w-full items-center justify-center gap-2 rounded-full px-4 text-base font-semibold disabled:opacity-50`}
                 >
+                  {sending && <Spinner className="size-5" aria-hidden="true" />}
                   {sending ? copy.sending : sent ? copy.sent : copy.sendToComputer}
                 </button>
               ) : null}

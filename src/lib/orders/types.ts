@@ -40,6 +40,7 @@ export type Order = {
     | "failed";
   photos: { id: string; name: string; url: string }[];
   checkoutId?: string;
+  checkoutEmail?: string;
   whopPlanId: string;
   payment?: { amount: number; currency: string };
   review?: Review;

@@ -1,5 +1,7 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
+
 import {
   useCallback,
   useEffect,
@@ -13,12 +15,10 @@ import { FinishingSteps, type FinishingStep } from "./finishing-steps";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { AlbumPage, GenerationSubmitted } from "./album-page";
 import { ResultImageScroll } from "./result-image-scroll";
-import { WhopCheckoutEmbed } from "@whop/checkout/react";
+import { CheckoutPage } from "./checkout-page";
 import {
   IconCheck,
-  IconShieldCheck,
   IconLock,
-  IconLoader2,
   IconX,
   IconPhoto,
   IconClock,
@@ -578,6 +578,7 @@ export function PostUploadFlow({
                 (finishing === "details" && !detailsConsent)
               : false)
         }
+        continueLoading={!!busy}
         continueLabel={
           busy ||
           (editing
@@ -628,7 +629,7 @@ export function PostUploadFlow({
         )}
         {restoring ? (
           <div className="grid min-h-[50vh] place-content-center justify-items-center gap-4">
-            <IconLoader2 className="size-8 animate-spin text-primary" />
+            <Spinner className="size-8 text-primary" />
             Restoring your order…
           </div>
         ) : editing ? (
@@ -698,7 +699,8 @@ export function PostUploadFlow({
                     : "border-black/5 bg-[#f7f7f7]",
                 )}
               >
-                <h2 className="text-xl font-semibold">
+                <h2 className="flex items-center gap-2 text-xl font-semibold">
+                  {busy && <Spinner className="size-5 text-primary" aria-hidden="true" />}
                   {busy
                     ? "Hang tight — we’re checking your photos"
                     : order.review
@@ -730,7 +732,7 @@ export function PostUploadFlow({
                           />
                           {busy ? (
                             <div className="absolute inset-0 grid place-items-center bg-white/30">
-                              <IconLoader2 className="size-7 animate-spin text-primary" />
+                              <Spinner className="size-7 text-primary" />
                             </div>
                           ) : (
                             assessment && (
@@ -787,77 +789,23 @@ export function PostUploadFlow({
             </div>
           </div>
         ) : checkoutStage ? (
-          <div className="mx-auto grid w-full max-w-6xl gap-10 py-8 lg:grid-cols-[1.4fr_1fr]">
-            <div>
-              <span className="inline-flex items-center gap-2 text-sm font-semibold text-primary">
-                <IconLock className="size-4" />
-                Secure checkout
-              </span>
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight">
-                One step closer to your new headshots
-              </h1>
-              <div className="mt-7 min-h-96">
-                <WhopCheckoutEmbed
-                  sessionId={order.checkoutId!}
-                  returnUrl={`${typeof window !== "undefined" ? window.location.origin : "https://perfilisto.com"}/onboarding?order=${order.id}`}
-                  theme="light"
-                  adaptivePricing={false}
-                  themeOptions={{
-                    accentColor: "#ff7416",
-                    borderRadius: 24,
-                    buttonText: "Pay securely",
-                  }}
-                  onComplete={(_plan, receipt) => {
-                    setWaitingPayment(true);
-                    if (receipt)
-                      void run("Confirming your payment…", async () => {
-                        const next = await api(order.id, "confirm", {
-                          paymentId: receipt,
-                        });
-                        setOrder(next);
-                        if (next.payment) {
-                          setWaitingPayment(false);
-                          setModal("payment");
-                        }
-                      });
-                  }}
-                />
-              </div>
-              {waitingPayment && (
-                <p
-                  role="status"
-                  className="mt-4 flex items-center gap-2 text-sm"
-                >
-                  <IconLoader2 className="size-4 animate-spin text-primary" />
-                  Waiting for secure payment confirmation…
-                </p>
-              )}
-            </div>
-            <aside className="h-fit rounded-[28px] bg-[#f8f8f8] p-7 sm:p-9">
-              <h2 className="text-2xl font-semibold">Your order</h2>
-              <p className="mt-7 text-neutral-500">One-time payment</p>
-              <p className="mt-2 text-5xl font-semibold tracking-tight">
-                {money(order.price)}
-              </p>
-              <div className="mt-8 flex justify-between border-b border-black/10 pb-5">
-                <span>{order.name} headshots</span>
-                <span>{money(order.price)}</span>
-              </div>
-              <ul className="my-6 space-y-3 text-sm">
-                <li>{order.photoCount} personalized headshots</li>
-                <li>Unique outfits and backgrounds</li>
-                <li>Delivery within {order.deliveryTime || plans.find((p) => p.id === order.planId)?.deliveryTime}</li>
-              </ul>
-              <p className="text-sm text-neutral-500">
-                Any applicable tax and the final total are shown in the secure
-                payment form before you pay.
-              </p>
-              <div className="mt-7 flex items-center gap-3 text-sm">
-                <IconShieldCheck className="size-6 text-primary" />
-                Payment securely processed by Whop.
-              </div>
-            </aside>
-          </div>
+          <CheckoutPage
+            key={order.checkoutId}
+            order={order}
+            waitingPayment={waitingPayment}
+            onComplete={(receipt) => {
+              setWaitingPayment(true);
+              if (receipt)
+                void run("Confirming your payment…", async () => {
+                  const next = await api(order.id, "confirm", { paymentId: receipt });
+                  setOrder(next);
+                  if (next.payment) {
+                    setWaitingPayment(false);
+                    setModal("payment");
+                  }
+                });
+            }}
+          />
         ) : (
           <div className="mx-auto grid w-full max-w-7xl gap-12 py-4 lg:grid-cols-[1fr_220px]">
             <div>
@@ -1095,6 +1043,7 @@ export function PostUploadFlow({
               disabled={!!busy || !detailsConsent || !ownPhotos || !finishValid}
               onClick={generate}
             >
+              {busy && <Spinner className="size-5" aria-hidden="true" />}
               {busy || "Confirm and submit"}
             </button>
           </div>
@@ -1144,6 +1093,7 @@ export function PostUploadFlow({
               }}
               disabled={!ownPhotos || !!busy}
             >
+              {busy && <Spinner className="size-5" aria-hidden="true" />}
               {busy || "Continue to poses"}
             </button>
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Spinner } from "@/components/ui/spinner";
 import { getMessages } from "@/i18n";
 
 const copy = getMessages().login;
@@ -63,7 +64,7 @@ export function LoginActions() {
           onClick={() => void signIn(provider)}
           className="relative flex h-12 w-full items-center justify-center gap-3 rounded-full border border-black/15 bg-white px-4 text-sm font-semibold shadow-xs transition-colors hover:bg-black/[0.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {provider === "google" ? <GoogleIcon /> : <FacebookIcon />}
+          {loading || pending === provider ? <Spinner className="size-5" aria-hidden="true" /> : provider === "google" ? <GoogleIcon /> : <FacebookIcon />}
           {pending === provider ? "Connecting…" : copy[provider]}
         </button>
       ))}

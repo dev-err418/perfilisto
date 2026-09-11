@@ -536,3 +536,21 @@ test('New orders use the purchased plan quantity for every generation request', 
     assert.equal(generationRequests(order, ['file_reference']).length, count);
   }
 });
+
+
+test("Checkout email comes from the stored signed-in customer and is only returned to the unpaid order owner", async () => {
+  const s = setup();
+  const o = await create(s);
+  o.customer = { email: "owner@example.com", name: "Owner" };
+  assert.equal(s.order.public(o).checkoutEmail, undefined);
+  o.checkoutId = "ch_email";
+  await s.order.save(o);
+  const response = await s.req("", undefined, "GET");
+  assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+  const dto = await response.json();
+  assert.equal(dto.checkoutEmail, "owner@example.com");
+  assert.equal(dto.customer, undefined);
+  assert.equal((await s.req("", undefined, "GET", "other:user")).status, 404);
+  o.payment = { amount: o.price, currency: o.currency };
+  assert.equal(s.order.public(o).checkoutEmail, undefined);
+});

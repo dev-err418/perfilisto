@@ -387,6 +387,9 @@ export class HeadshotOrder {
     void batchSubmitting;
     return {
       ...safe,
+      checkoutEmail: order.checkoutId && !order.payment && validEmail(order.customer?.email)
+        ? order.customer.email
+        : undefined,
       emailNotificationsEnabled: Boolean(
         order.customer?.email && this.env.EMAIL_DELIVERIES,
       ),

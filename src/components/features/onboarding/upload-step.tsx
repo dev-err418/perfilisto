@@ -1,5 +1,7 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import QRCode from "qrcode";
@@ -11,7 +13,6 @@ import {
   IconCopy,
   IconDeviceMobile,
   IconLock,
-  IconLoader2,
   IconPhoto,
   IconShieldLock,
   IconSun,
@@ -341,7 +342,7 @@ export const UploadStep = ({
             onClick={() => inputRef.current?.click()}
             className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-10 items-center gap-1.5 rounded-lg px-4 text-sm font-semibold`}
           >
-            <IconUpload className="size-4" stroke={2} />
+            {pendingBatches > 0 ? <Spinner aria-hidden="true" /> : <IconUpload className="size-4" stroke={2} />}
             {copy.uploadFiles}
           </button>
           <span className="mt-3 text-xs leading-5 text-muted-foreground">
@@ -351,7 +352,7 @@ export const UploadStep = ({
             {copy.formats}
           </span>
         </div>
-        {pendingBatches > 0 ? <p role="status" className="mt-3 text-sm text-primary">{copy.preparingPhotos}</p> : null}
+        {pendingBatches > 0 ? <p role="status" className="mt-3 flex items-center gap-2 text-sm text-primary"><Spinner aria-hidden="true" />{copy.preparingPhotos}</p> : null}
         {uploadError ? <p role="alert" className="mt-3 text-xs leading-5 text-red-700">{uploadError}</p> : null}
 
         <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-[#141414]">
@@ -371,7 +372,7 @@ export const UploadStep = ({
               dangerouslySetInnerHTML={{ __html: qrSvg }}
             />
           ) : (
-            <span role="status" className="mt-3 text-sm text-muted-foreground">{sessionError || "Connecting…"}</span>
+            <span role="status" className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">{!sessionError && <Spinner aria-hidden="true" />}{sessionError || "Connecting…"}</span>
           )}
           <span className="mt-3 text-xs font-medium text-muted-foreground underline underline-offset-2">
             {copy.howToPhone}
@@ -382,7 +383,7 @@ export const UploadStep = ({
             Create a new QR code
           </button>
         ) : null}
-        {syncNotice ? <p role="status" className="mt-3 text-xs text-primary">{syncNotice}</p> : null}
+        {syncNotice ? <p role="status" className="mt-3 flex items-center gap-2 text-xs text-primary">{syncNotice.includes("Retrying") && <Spinner aria-hidden="true" />}{syncNotice}</p> : null}
       </aside>
 
       <div className="min-w-0">
@@ -429,7 +430,7 @@ export const UploadStep = ({
                       aria-label={`${copy.preparingPhotos} ${photo.name}`}
                       className="flex aspect-square w-full flex-col items-center justify-center gap-3 border border-orange-100 bg-[#fff4ea] px-3 text-primary"
                     >
-                      <IconLoader2 className="size-7 animate-spin motion-reduce:animate-none" stroke={1.8} aria-hidden="true" />
+                      <Spinner className="size-7" aria-hidden="true" />
                       <span className="w-full truncate text-center text-xs">{photo.name}</span>
                     </span>
                   ) : (
@@ -546,7 +547,7 @@ export const UploadStep = ({
           <div className="absolute inset-4 rounded-[28px] border-2 border-dashed border-primary" />
           <div className="relative flex max-w-md flex-col items-center text-center">
             <span className="mb-5 grid size-20 place-items-center rounded-full bg-primary/10">
-              <IconUpload className="size-10" stroke={1.8} aria-hidden="true" />
+              <IconUpload className="size-10" aria-hidden="true" />
             </span>
             <p className="text-3xl font-semibold tracking-tight">
               {photos.length < MAX_PHOTOS ? copy.dropAnywhere : copy.uploadLimitReached}
@@ -595,7 +596,7 @@ export const UploadStep = ({
                   dangerouslySetInnerHTML={{ __html: qrSvg }}
                 />
               ) : (
-                <span role="status" className="text-sm text-muted-foreground">{sessionError || "Connecting…"}</span>
+                <span role="status" className="inline-flex items-center gap-2 text-sm text-muted-foreground">{!sessionError && <Spinner aria-hidden="true" />}{sessionError || "Connecting…"}</span>
               )}
               <ol className="space-y-2 text-[15px] leading-6 text-[#141414]">
                 {copy.qrSteps.map((step, index) => (

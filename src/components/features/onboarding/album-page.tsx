@@ -1,11 +1,12 @@
 "use client";
 
+import { Spinner } from "@/components/ui/spinner";
+
 import { useEffect, useState, type CSSProperties } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import {
   IconCheck,
-  IconLoader2,
   IconPhoto,
   IconHome,
   IconDownload,
@@ -77,7 +78,7 @@ export function GenerationSubmitted({
           Continue <IconArrowRight className="size-5" />
         </button>
         <p className="mt-4 text-sm text-neutral-500" role="status">
-          Redirecting in {seconds}s…
+          <Spinner className="mr-2 inline-block align-middle" aria-hidden="true" />Redirecting in {seconds}s…
         </p>
       </div>
     </main>
@@ -200,9 +201,9 @@ export function AlbumPage({
         {!order ? (
           <div className="grid min-h-[60vh] place-content-center">
             {!error && (
-              <IconLoader2
+              <Spinner
                 aria-label="Loading album"
-                className="size-9 animate-spin text-primary"
+                className="size-9 text-primary"
               />
             )}
           </div>
@@ -310,7 +311,7 @@ export function AlbumPage({
                     {i < stage || complete ? (
                       <IconCheck className="size-5 text-green-600" />
                     ) : i === stage && !ended ? (
-                      <IconLoader2 className="size-5 animate-spin text-primary motion-reduce:animate-none" />
+                      <Spinner className="size-5 text-primary" />
                     ) : (
                       <span className="grid size-5 place-items-center rounded-full border text-xs">
                         {i + 1}
