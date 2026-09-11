@@ -106,11 +106,20 @@ test("Server owns package price, enforces photo count, saves sources, and isolat
   assert.equal(r.photos.length, 6);
   assert.ok(r.photos[0].url.includes("/images/source-"));
 });
-test("Missing AI configuration blocks charging; unpaid orders cannot verify or generate", async () => {
+test("Checkout opens without AI configuration; unpaid orders cannot verify or generate", async (t) => {
   const s = setup();
   await create(s);
   delete s.env.OPENAI_API_KEY;
-  assert.equal((await s.req("checkout")).status, 503);
+  t.mock.method(globalThis, "fetch", async (url, options) => {
+    assert.ok(String(url).includes("/checkout_configurations"));
+    assert.deepEqual(JSON.parse(options.body).payment_method_configuration, {
+      enabled: ["card"], disabled: [], include_platform_defaults: false,
+    });
+    return Response.json({ id: "ch_without_ai" });
+  });
+  const response = await s.req("checkout");
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).checkoutId, "ch_without_ai");
   assert.equal((await s.req("verify")).status, 402);
   assert.equal((await s.req("generate")).status, 402);
 });
@@ -516,4 +525,14 @@ test('Gateway takes notification identity from the signed session, ignoring forg
   const response = await handleOrders(new Request(`https://perfilisto.com/api/orders/${id}`, {headers:{Cookie:`${salt}=${token}`,'X-Order-Customer':encodeURIComponent(JSON.stringify({email:'forged@example.com'}))}}), s.env);
   assert.equal(response.status, 200);
   assert.deepEqual(JSON.parse(decodeURIComponent(forwarded.headers.get('X-Order-Customer'))), {email:'owner@example.com',name:'Owner'});
+});
+
+test('New orders use the purchased plan quantity for every generation request', async () => {
+  for (const [planId, count] of [['basic', 10], ['professional', 50], ['executive', 100]]) {
+    const s = setup();
+    await s.req('', {planId, photoCount:999, preferences:{attire:['professional'],backgrounds:['studio']}});
+    const order = s.data.get('order');
+    assert.equal(order.photoCount, count);
+    assert.equal(generationRequests(order, ['file_reference']).length, count);
+  }
 });

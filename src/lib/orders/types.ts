@@ -29,6 +29,7 @@ export type Order = {
   price: number;
   currency: string;
   photoCount: number;
+  deliveryTime?: string;
   status:
     | "draft"
     | "checkout"

@@ -5,25 +5,28 @@
     "price": 29,
     "currency": "eur",
     "photoCount": 10,
-    "whopPlanId": "plan_6Oir8EpB4hfpC",
-    "featured": false
+    "whopPlanId": "plan_a1voNXqHTGoLD",
+    "featured": false,
+    "deliveryTime": "1 hour"
   },
   {
     "id": "professional",
     "name": "Professional",
     "price": 39,
     "currency": "eur",
-    "photoCount": 100,
-    "whopPlanId": "plan_uJW4EHUYtCvwn",
-    "featured": true
+    "photoCount": 50,
+    "whopPlanId": "plan_xmtGW4l2sMSE4",
+    "featured": true,
+    "deliveryTime": "30 minutes"
   },
   {
     "id": "executive",
     "name": "Executive",
     "price": 59,
     "currency": "eur",
-    "photoCount": 200,
-    "whopPlanId": "plan_Ulyuz0zta4wxK",
-    "featured": false
+    "photoCount": 100,
+    "whopPlanId": "plan_85sKlBCc0LGp2",
+    "featured": false,
+    "deliveryTime": "15 minutes"
   }
 ]

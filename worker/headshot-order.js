@@ -210,7 +210,7 @@ export class HeadshotOrder {
           { error: "Your account did not provide an email address. Please sign in with Google or allow Facebook to share your email before checking out." },
           400,
         );
-      if (!this.env.WHOP_API_KEY || !this.env.OPENAI_API_KEY)
+      if (!this.env.WHOP_API_KEY)
         return json(
           { error: "Checkout is not available yet. Please come back soon." },
           503,
@@ -226,6 +226,7 @@ export class HeadshotOrder {
             plan_id: order.whopPlanId,
             payment_method_configuration: {
               enabled: ["card"],
+              disabled: [],
               include_platform_defaults: false,
             },
             metadata: { order_id: id },

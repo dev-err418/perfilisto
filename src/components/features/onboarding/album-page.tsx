@@ -67,7 +67,7 @@ export function GenerationSubmitted({
           <BrandWord /> is working on your photos!
         </h1>
         <p className="mt-5 text-lg text-neutral-500">
-          Your headshots are queued and will be ready within 24 hours. You can
+          Your headshots are queued. You can
           follow their progress in your album.
         </p>
         <button
@@ -294,7 +294,7 @@ export function AlbumPage({
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-neutral-500">
                 {ended
                   ? `${order.results.length} of ${order.photoCount} photos are ready to download.`
-                  : `Sit back while we create your ${order.photoCount} headshots. Your batch can take up to 24 hours.`}
+                  : `Sit back while we create your ${order.photoCount} headshots. We’ll update this page as your photos are ready.`}
               </p>
               <ol className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-4 text-sm">
                 {[

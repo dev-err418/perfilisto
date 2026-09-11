@@ -1,6 +1,6 @@
 # Checkout and headshot generation
 
-After uploading 6–10 images, customers choose Basic (€29/10 photos), Professional (€39/100), or Executive (€59/200). The shared catalog is `src/lib/orders/plans.json`; the landing page uses the same prices. Delivery is within 24 hours because OpenAI Batch uses a 24-hour completion window.
+After uploading 6–10 images, customers choose Basic (€29/10 photos), Professional (€39/50), or Executive (€59/100). The shared catalog is `src/lib/orders/plans.json`; the landing page uses the same prices. The displayed delivery targets are Basic within 1 hour, Professional within 30 minutes, and Executive within 15 minutes. The current OpenAI Batch integration still uses a 24-hour completion window and cannot enforce those shorter targets. Faster generation processing must be validated before enabling checkout.
 
 Whop collects card details in its own iframe. The app never receives card numbers. Orders are associated with the authenticated Google/Facebook subject. Prices and quantities come from the server catalog. Browser success callbacks alone cannot mark an order paid: the server verifies the payment or a signed Whop webhook. Whop must report the matching account, plan, order metadata, currency and amount.
 
@@ -13,7 +13,7 @@ Secrets in `.env.local` for development and Cloudflare Worker secrets for produc
 - `AUTH_SECRET`: existing sign-in secret, shared by localhost and production.
 - `WHOP_API_KEY`: server-side integration key.
 - `WHOP_WEBHOOK_SECRET`: signing secret for `https://perfilisto.com/api/webhooks/whop`.
-- `OPENAI_API_KEY`: not configured yet. Checkout is blocked while missing, to avoid taking payment for unavailable generation.
+- `OPENAI_API_KEY`: not configured yet. Whop checkout can open without it; photo verification and generation require it.
 
 Worker variables:
 
@@ -74,3 +74,5 @@ Message bodies and recipient data are removed from the delivery record after ack
 Tests: `node --test worker/email-delivery.test.mjs worker/headshot-order.test.mjs`. For local sending tests, use a separate localhost-only Worker with a remote EMAIL binding and clearly labelled preview subjects; do not fake production payments or generation completion.
 
 Validated on September 11, 2026: both marked template previews reached the Gmail inbox. Gmail reported SPF, DKIM (including `perfilisto.com`) and DMARC passing. Desktop (800 px) and mobile (390 px) renders had no overflow or broken assets.
+
+Whop package revision (September 11, 2026): the catalog points to new hidden one-time plans with 10/50/100 headshots and 1 hour/30 minutes/15 minutes descriptions. Older plan IDs remain available for existing order snapshots.

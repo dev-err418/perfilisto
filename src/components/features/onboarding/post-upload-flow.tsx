@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { FinishingSteps, type FinishingStep } from "./finishing-steps";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { AlbumPage, GenerationSubmitted } from "./album-page";
+import { ResultImageScroll } from "./result-image-scroll";
 import { WhopCheckoutEmbed } from "@whop/checkout/react";
 import {
   IconCheck,
@@ -29,6 +30,7 @@ import type { Order, Preferences } from "@/lib/orders/types";
 import { getMessages } from "@/i18n";
 import { fileToJpegDataUrl } from "@/lib/upload-session-client";
 import { cn } from "@/lib/utils";
+import { TrustRating } from "../landing/trust-rating";
 import { LogoMark } from "../landing/logo-mark";
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
 import { OnboardingStepShell } from "./step-shell";
@@ -844,7 +846,7 @@ export function PostUploadFlow({
               <ul className="my-6 space-y-3 text-sm">
                 <li>{order.photoCount} personalized headshots</li>
                 <li>Unique outfits and backgrounds</li>
-                <li>Delivery within 24 hours</li>
+                <li>Delivery within {order.deliveryTime || plans.find((p) => p.id === order.planId)?.deliveryTime}</li>
               </ul>
               <p className="text-sm text-neutral-500">
                 Any applicable tax and the final total are shown in the secure
@@ -859,25 +861,14 @@ export function PostUploadFlow({
         ) : (
           <div className="mx-auto grid w-full max-w-7xl gap-12 py-4 lg:grid-cols-[1fr_220px]">
             <div>
-              <span className="text-xs font-bold tracking-[.16em] text-primary uppercase">
-                Your next chapter starts here
-              </span>
-              <h1 className="mt-4 max-w-3xl text-4xl leading-tight font-semibold tracking-[-.045em] sm:text-5xl">
+              <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-[-.045em] sm:text-5xl">
                 Great headshots.
                 <br />A lasting first impression.
               </h1>
               <p className="mt-4 text-lg text-neutral-500">
                 Choose your package. Pay once, with no subscription.
               </p>
-              <div className="mt-6 flex flex-wrap items-center gap-5 text-sm">
-                <span className="flex items-center gap-2">
-                  <IconShieldCheck className="size-5 text-green-600" />
-                  Money-back guarantee on Professional
-                </span>
-                <span className="font-semibold">
-                  4.8/5 <span className="ml-1 text-primary">★★★★★</span>
-                </span>
-              </div>
+              <TrustRating messages={getMessages()} className="mt-6" />
               <div
                 className="mt-9 grid items-stretch gap-4 md:grid-cols-3"
                 role="radiogroup"
@@ -920,7 +911,7 @@ export function PostUploadFlow({
                       </span>
                       <span className="flex gap-2">
                         <IconClock className="size-5 text-primary" />
-                        Within 24 hours
+                        Within {p.deliveryTime}
                       </span>
                       <span className="flex gap-2">
                         <IconCheck className="size-5 text-primary" />
@@ -974,25 +965,7 @@ export function PostUploadFlow({
                 </button>
               )}
             </div>
-            <div
-              className="hidden max-h-[820px] space-y-3 overflow-hidden lg:block"
-              aria-hidden="true"
-            >
-              {examples.map((src, i) => (
-                <Image
-                  key={src}
-                  src={src}
-                  alt=""
-                  width={240}
-                  height={290}
-                  unoptimized
-                  className={cn(
-                    "aspect-[4/5] w-full rounded-3xl object-cover",
-                    i % 2 && "translate-x-3",
-                  )}
-                />
-              ))}
-            </div>
+            <ResultImageScroll />
           </div>
         )}
       </OnboardingStepShell>

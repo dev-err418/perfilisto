@@ -7,32 +7,7 @@ import { cn } from "@/lib/utils";
 
 import { LogoMark } from "./logo-mark";
 
-const portraits = [
-  ["woman_10", "nature"],
-  ["man_02", "office"],
-  ["woman_06", "city"],
-  ["man_10", "studio"],
-  ["woman_01", "office"],
-  ["man_04", "nature"],
-  ["woman_07", "studio"],
-  ["man_06", "city"],
-  ["woman_04", "nature"],
-  ["man_01", "studio"],
-  ["woman_02", "city"],
-  ["man_07", "office"],
-  ["woman_03", "studio"],
-  ["man_08", "nature"],
-  ["woman_05", "office"],
-  ["man_03", "city"],
-  ["woman_08", "nature"],
-  ["man_05", "studio"],
-  ["woman_09", "office"],
-  ["man_09", "city"],
-].map(([id, background]) => ({
-  id,
-  casual: `/headshots/${id}_casual.webp`,
-  professional: `/headshots/${id}_professional_${background}.webp`,
-}));
+import { headshotPortraits as portraits } from "@/lib/headshot-portraits";
 
 const GeneratedBadge = ({ label }: { label: string }) => (
   <p className="hero-badge flex w-fit max-w-full items-center gap-1 rounded-full px-2 py-1 text-[10px] leading-none font-semibold tracking-[0.1px]">

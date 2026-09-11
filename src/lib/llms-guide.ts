@@ -22,9 +22,9 @@ Perfilisto lets one person upload six clear photos, choose professional outfits 
 
 ## Plans and delivery
 
-- **Basic:** 29 EUR one-time for 10 headshots, delivered within 3 hours.
-- **Professional:** 39 EUR one-time for 100 headshots, delivered within 2 hours. This plan includes a 100% money-back guarantee.
-- **Executive:** 59 EUR one-time for 200 headshots, delivered within 1 hour.
+- **Basic:** 29 EUR one-time for 10 headshots, delivered within 1 hour.
+- **Professional:** 39 EUR one-time for 50 headshots, delivered within 30 minutes. This plan includes a 100% money-back guarantee.
+- **Executive:** 59 EUR one-time for 100 headshots, delivered within 15 minutes.
 - Every plan includes multiple professional outfits and backgrounds.
 - Perfilisto is not a subscription and does not currently offer a free plan.
 

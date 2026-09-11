@@ -1,0 +1,34 @@
+.viewport {
+  height: clamp(480px, calc(100svh - 200px), 820px);
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, transparent, black 28px, black calc(100% - 28px), transparent);
+}
+
+.track {
+  animation: result-scroll 140s linear infinite;
+  will-change: transform;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 12px;
+}
+
+.viewport:hover .track {
+  animation-play-state: paused;
+}
+
+@keyframes result-scroll {
+  to {
+    transform: translateY(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    animation: none;
+    will-change: auto;
+  }
+}

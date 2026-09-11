@@ -19,3 +19,9 @@ export function selectUploadFiles(files, availableSlots) {
   }
   return { accepted, rejected };
 }
+// Prepared photos retain their original filename, but their Blob has a new MIME type.
+export function needsHeicConversion(file) {
+  const type = (file.type || "").split(";")[0].toLowerCase();
+  if (/^image\/(jpeg|png|webp|gif|avif|bmp)$/.test(type)) return false;
+  return /^image\/hei[cf](?:-sequence)?$/.test(type) || /\.(heic|heif)$/i.test(file.name);
+}

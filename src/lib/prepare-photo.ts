@@ -1,10 +1,16 @@
+import { needsHeicConversion } from "./photo-upload.mjs";
+
 /** Convert HEIC and validate image decoding before marking a photo ready. */
 export const preparePhoto = async (file: File): Promise<Blob> => {
   let blob: Blob = file;
-  if (/\.(heic|heif)$/i.test(file.name) || /^image\/hei[cf](?:-sequence)?$/i.test(file.type)) {
+  if (needsHeicConversion(file)) {
     // Decode locally; the image is sent only when the user submits their photos.
     const { heicTo } = await import("heic-to/csp");
-    blob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+    try {
+      blob = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 });
+    } catch {
+      throw new Error("Could not convert this photo. Please upload it as JPG or PNG.");
+    }
   }
   const url = URL.createObjectURL(blob);
   try {
