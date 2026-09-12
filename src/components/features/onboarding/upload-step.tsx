@@ -46,6 +46,36 @@ type UploadedPhoto = {
   preparing?: boolean;
 };
 
+const UploadPhotoPreview = ({ photo }: { photo: UploadedPhoto }) => {
+  const [loadedUrl, setLoadedUrl] = useState("");
+  useEffect(() => {
+    let cancelled = false;
+    const image = new window.Image();
+    image.src = photo.url;
+    void image.decode().then(() => {
+      if (!cancelled) setLoadedUrl(photo.url);
+    }).catch(() => { /* Keep the last readable preview while HEIC conversion runs. */ });
+    return () => { cancelled = true; };
+  }, [photo.url]);
+  const loading = photo.preparing || loadedUrl !== photo.url;
+
+  return <div className="relative aspect-square w-full bg-neutral-100" aria-busy={loading}>
+    {/* eslint-disable-next-line @next/next/no-img-element */}
+    {loadedUrl && <img
+      src={loadedUrl}
+      alt=""
+      className={cn("aspect-square w-full object-cover motion-reduce:transition-none", loading ? "opacity-20" : "opacity-100 transition-opacity duration-300")}
+    />}
+    {loading && <span
+      role="status"
+      aria-label={`${messages.onboarding.upload.preparingPhotos} ${photo.name}`}
+      className="absolute inset-0 flex items-center justify-center text-primary"
+    >
+      <Spinner className="size-7" aria-hidden="true" />
+    </span>}
+  </div>;
+};
+
 const formatCount = (template: string, values: Record<string, number | string>) =>
   Object.entries(values).reduce(
     (text, [key, value]) => text.replace(`{${key}}`, String(value)),
@@ -95,6 +125,7 @@ export const UploadStep = ({
   const [uploadError, setUploadError] = useState("");
   const [pendingBatches, setPendingBatches] = useState(0);
   const uploadQueue = useRef(Promise.resolve());
+  const temporaryPreviews = useRef(new Set<string>());
   const mounted = useRef(true);
   const [requirementsOpen, setRequirementsOpen] = useState(true);
   const [restrictionsOpen, setRestrictionsOpen] = useState(true);
@@ -114,8 +145,23 @@ export const UploadStep = ({
   // must not overwrite newer async results with an older photo list.
   useEffect(() => {
     mounted.current = true;
-    return () => { mounted.current = false; };
+    const previews = temporaryPreviews.current;
+    return () => {
+      mounted.current = false;
+      for (const url of previews) URL.revokeObjectURL(url);
+      previews.clear();
+    };
   }, []);
+
+  useEffect(() => {
+    const currentUrls = new Set(photos.map(photo => photo.url));
+    for (const url of temporaryPreviews.current) {
+      if (!currentUrls.has(url)) {
+        URL.revokeObjectURL(url);
+        temporaryPreviews.current.delete(url);
+      }
+    }
+  }, [photos]);
 
   useEffect(() => {
     let cancelled = false;
@@ -196,8 +242,12 @@ export const UploadStep = ({
     const files = Array.from(fileList);
     if (!files.length) return;
     const { accepted, rejected } = selectUploadFiles(files, MAX_PHOTOS - photosRef.current.length);
-    const entries = (accepted as File[]).map((file) => ({ file, id: crypto.randomUUID() }));
-    const placeholders = entries.map(({ file, id }) => ({ id, name: file.name, url: "", preparing: true }));
+    const entries = (accepted as File[]).map((file) => {
+      const preview = URL.createObjectURL(file);
+      temporaryPreviews.current.add(preview);
+      return { file, id: crypto.randomUUID(), preview };
+    });
+    const placeholders = entries.map(({ file, id, preview }) => ({ id, name: file.name, url: preview, preparing: true }));
     photosRef.current = [...photosRef.current, ...placeholders];
     onChange(photosRef.current);
     setUploadError(rejected.join(" "));
@@ -205,14 +255,34 @@ export const UploadStep = ({
     setPendingBatches((count) => count + 1);
     // Reserve slots immediately, then replace each placeholder in selection order.
     uploadQueue.current = uploadQueue.current.then(async () => {
-      for (const { file, id } of entries) {
+      for (const { file, id, preview } of entries) {
         if (!mounted.current) return;
         if (!photosRef.current.some((photo) => photo.id === id)) continue;
         try {
-          const blob = await preparePhoto(file);
+          const blob = await preparePhoto(file, async (thumbnail) => {
+            if (!mounted.current || !photosRef.current.some(photo => photo.id === id)) return;
+            const url = URL.createObjectURL(thumbnail);
+            const image = new window.Image();
+            image.src = url;
+            try { await image.decode(); } catch { URL.revokeObjectURL(url); return; }
+            if (!mounted.current || !photosRef.current.some(photo => photo.id === id)) {
+              URL.revokeObjectURL(url);
+              return;
+            }
+            temporaryPreviews.current.add(url);
+            const next = photosRef.current.map(photo => photo.id === id ? { ...photo, url } : photo);
+            photosRef.current = next;
+            onChange(next);
+            // Give React and the browser a paint before full-resolution encoding starts.
+            if (document.visibilityState === "visible") {
+              await new Promise<void>(resolve => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+            }
+          });
           if (!mounted.current) return;
           if (!photosRef.current.some((photo) => photo.id === id)) continue;
-          const ready = { id, name: file.name, url: URL.createObjectURL(blob) };
+          const ready = { id, name: file.name, url: blob === file ? preview : URL.createObjectURL(blob) };
+          // The completed photo now owns this URL; only temporary previews are cleaned up here.
+          if (blob === file) temporaryPreviews.current.delete(preview);
           const next = photosRef.current.map((photo) => photo.id === id ? ready : photo);
           photosRef.current = next;
           onChange(next);
@@ -447,25 +517,7 @@ export const UploadStep = ({
                 const assessment = !checking && !reviewPending && review?.photos.find((item) => item.id === photo.id);
                 return <div key={photo.id}>
                 <div className="relative overflow-hidden rounded-xl">
-                  {photo.preparing ? (
-                    <span
-                      role="status"
-                      aria-label={`${copy.preparingPhotos} ${photo.name}`}
-                      className="flex aspect-square w-full flex-col items-center justify-center gap-3 border border-orange-100 bg-[#fff4ea] px-3 text-primary"
-                    >
-                      <Spinner className="size-7" aria-hidden="true" />
-                      <span className="w-full truncate text-center text-xs">{photo.name}</span>
-                    </span>
-                  ) : (
-                    <>
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={photo.url}
-                        alt=""
-                        className="aspect-square w-full object-cover"
-                      />
-                    </>
-                  )}
+                  <UploadPhotoPreview photo={photo} />
                   {assessment && <span className={cn("absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold text-white", assessment.accepted ? "bg-green-600" : "bg-red-600")}>
                     {assessment.accepted ? <IconCheck className="size-3" /> : <IconX className="size-3" />}
                     {assessment.accepted ? "Accepted" : "Replace"}

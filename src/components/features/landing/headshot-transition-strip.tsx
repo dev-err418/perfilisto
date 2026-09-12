@@ -96,6 +96,7 @@ export const HeadshotTransitionStrip = ({
         "headshot-transition-showcase relative mt-10 h-[clamp(220px,32vh,360px)] w-full min-w-full shrink-0 self-stretch overflow-visible sm:mt-12",
         hoveredIndex !== null && "is-paused",
       )}
+      data-navbar-cta-trigger="headshot-strip"
       aria-label={`${beforeLabel} to ${afterLabel}`}
       onMouseLeave={() => setHoveredIndex(null)}
     >

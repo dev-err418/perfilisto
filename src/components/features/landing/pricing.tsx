@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { IconCheck } from "@tabler/icons-react";
 
 import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import { PRIMARY_TINT_BUTTON_CLASS } from "./button-styles";
+import { PlanFeatureList } from "./plan-feature-list";
 
 const planCtaClassName = (featured: boolean) =>
   cn(
@@ -86,21 +86,7 @@ export const Pricing = ({ messages }: { messages: Messages }) => {
                 {plan.note}
               </p>
 
-              <ul className="mt-8 space-y-2">
-                {plan.features.map((feature) => (
-                  <li
-                    key={feature}
-                    className="flex items-start gap-2.5 text-[15px] leading-6 text-black"
-                  >
-                    <IconCheck
-                      aria-hidden="true"
-                      className="mt-1 size-4 shrink-0 text-muted-foreground"
-                      stroke={2}
-                    />
-                    {feature}
-                  </li>
-                ))}
-              </ul>
+              <PlanFeatureList className="mt-8" features={plan.features} />
             </article>
           ))}
         </div>

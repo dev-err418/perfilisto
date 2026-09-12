@@ -1,5 +1,7 @@
 import options from "./preference-options.json" with { type: "json" };
-export function sanitizePreferences(input = {}) {
+import { applyPlanLimits } from "./plan-limits.mjs";
+
+export function sanitizePreferences(input = {}, planId) {
   const result = {};
   for (const [key, allowed] of Object.entries(options)) {
     if (["attire", "backgrounds", "poses"].includes(key)) {
@@ -8,5 +10,5 @@ export function sanitizePreferences(input = {}) {
         : [];
     } else if (allowed.includes(input?.[key])) result[key] = input[key];
   }
-  return result;
+  return applyPlanLimits(result, planId);
 }

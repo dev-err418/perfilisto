@@ -5,6 +5,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 export type LandingNavbarCtaRevealTrigger =
+  | "headshot-strip"
   | "homepage-preview"
   | "article-image";
 
@@ -31,7 +32,7 @@ export function LandingGlassNavbar({
     const targetSelector =
       ctaRevealTrigger === "homepage-preview"
         ? "#interactive-dashboard-preview"
-        : "[data-navbar-cta-trigger='article-image']";
+        : `[data-navbar-cta-trigger="${ctaRevealTrigger}"]`;
     const target = document.querySelector(targetSelector);
 
     if (!target) {
@@ -76,13 +77,14 @@ export function LandingGlassNavbar({
       <div className="relative z-10 shrink-0">{logo}</div>
 
       <div className="relative z-10 ml-auto flex min-w-0 items-center gap-3 sm:gap-6">
-        <div className="hidden items-center gap-6 text-base font-semibold tracking-[0.2px] sm:flex">
+        <div className="hidden items-center gap-6 text-base font-semibold tracking-[0.2px] md:flex">
           {links}
         </div>
-        {accountAction}
+        <div className={cn(showCta && "hidden sm:block")}>{accountAction}</div>
         <div
           className={cn("landing-nav-cta", showCta && "is-visible")}
           aria-hidden={!showCta}
+          inert={!showCta}
         >
           <div className="landing-nav-cta-inner">{ctaAction}</div>
         </div>

@@ -1,44 +1,45 @@
+import Image from "next/image";
 import type { Messages } from "@/i18n";
 
-const PLACEHOLDER_COUNT = 3;
-
-const PortraitSlot = ({
-  label,
-  variant,
+const ClientCompare = ({
+  beforeLabel,
+  afterLabel,
+  index,
 }: {
-  label: string;
-  variant: "before" | "after";
+  beforeLabel: string;
+  afterLabel: string;
+  index: number;
 }) => (
-  <figure className="min-w-0 flex-1">
-    <div
-      className={
-        variant === "after"
-          ? "aspect-[4/5] rounded-[18px] bg-[var(--primary)]"
-          : "aspect-[4/5] rounded-[18px] bg-[#d8d8d8]"
-      }
+  <figure
+    className={`client-compare client-compare-${index} relative aspect-[4/5] overflow-hidden rounded-[18px] bg-[#d8d8d8]`}
+    aria-label={`${beforeLabel}, ${afterLabel}`}
+  >
+    <Image
+      src={`/clients/client-${index + 1}-after.webp`}
+      alt={afterLabel}
+      width={480}
+      height={600}
+      unoptimized
+      draggable={false}
+      className="h-full w-full object-cover"
     />
-    <figcaption className="mt-2 text-center text-xs font-semibold tracking-tight text-muted-foreground">
-      {label}
-    </figcaption>
-  </figure>
-);
-
-const QuotePlaceholder = () => (
-  <div className="mt-6 space-y-2" aria-hidden="true">
-    <div className="h-3 w-full rounded-full bg-black/[0.06]" />
-    <div className="h-3 w-[92%] rounded-full bg-black/[0.06]" />
-    <div className="h-3 w-[78%] rounded-full bg-black/[0.06]" />
-  </div>
-);
-
-const AttributionPlaceholder = () => (
-  <div className="mt-5 flex items-center gap-3" aria-hidden="true">
-    <span className="size-10 shrink-0 rounded-full bg-black/[0.08]" />
-    <div className="min-w-0 flex-1 space-y-1.5">
-      <div className="h-2.5 w-28 rounded-full bg-black/[0.08]" />
-      <div className="h-2.5 w-20 rounded-full bg-black/[0.05]" />
+    <div className="client-compare-before">
+      <Image
+        src={`/clients/client-${index + 1}-before.webp`}
+        alt=""
+        width={480}
+        height={600}
+        unoptimized
+        draggable={false}
+        className="h-full w-full object-cover"
+      />
     </div>
-  </div>
+    <div className="client-compare-divider" />
+    <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-between text-[10px] font-semibold text-white">
+      <span className="rounded-full bg-black/45 px-2 py-1">{beforeLabel}</span>
+      <span className="rounded-full bg-black/45 px-2 py-1">{afterLabel}</span>
+    </div>
+  </figure>
 );
 
 export const Clients = ({ messages }: { messages: Messages }) => {
@@ -64,27 +65,35 @@ export const Clients = ({ messages }: { messages: Messages }) => {
         </div>
 
         <div className="mt-14 grid gap-6 md:grid-cols-3">
-          {Array.from({ length: PLACEHOLDER_COUNT }, (_, index) => (
+          {copy.reviews.map((review, index) => (
             <article
-              key={index}
+              key={review.name}
               className="rounded-[28px] border border-black/[0.06] bg-white p-5 sm:p-6"
             >
-              <div className="flex gap-3">
-                <PortraitSlot label={copy.before} variant="before" />
-                <PortraitSlot label={copy.after} variant="after" />
-              </div>
+              <ClientCompare
+                beforeLabel={copy.before}
+                afterLabel={copy.after}
+                index={index}
+              />
               <div
-                className="mt-5 flex gap-0.5 text-[var(--primary)]"
-                aria-hidden="true"
+                className="mt-5 flex gap-0.5"
+                aria-label={`Rated ${review.rating} out of 5`}
               >
                 {Array.from({ length: 5 }, (_, star) => (
-                  <span key={star} className="text-base leading-none">
+                  <span
+                    key={star}
+                    className={`text-[17px] leading-none ${star < review.rating ? "text-[var(--primary)]" : "text-black/15"}`}
+                  >
                     ★
                   </span>
                 ))}
               </div>
-              <QuotePlaceholder />
-              <AttributionPlaceholder />
+              <blockquote className="mt-3 text-[15px] leading-6 text-[#5c5c5c] sm:text-base">
+                {review.quote}
+              </blockquote>
+              <p className="mt-5 text-right text-sm font-semibold text-[#141414]">
+                {review.name}
+              </p>
             </article>
           ))}
         </div>

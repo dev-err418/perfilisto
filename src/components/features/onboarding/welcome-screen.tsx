@@ -16,9 +16,11 @@ const messages = getMessages();
 export const OnboardingWelcomeModal = ({
   onContinue,
   onOpenDashboard,
+  onSkipToUpload,
 }: {
   onContinue?: () => void;
   onOpenDashboard?: () => void;
+  onSkipToUpload?: () => void;
 }) => {
   const router = useRouter();
   const copy = messages.onboarding.welcome;
@@ -105,6 +107,14 @@ export const OnboardingWelcomeModal = ({
             </button>
             {process.env.NODE_ENV === "development" && onContinue ? (
               <div className="mt-4 flex flex-wrap justify-center gap-3">
+                {onSkipToUpload && <button
+                  type="button"
+                  onClick={onSkipToUpload}
+                  className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
+                >
+                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide">DEBUG</span>
+                  Skip to upload →
+                </button>}
                 {onOpenDashboard && <button
                   type="button"
                   onClick={onOpenDashboard}

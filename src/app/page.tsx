@@ -41,7 +41,7 @@ export default function HomePage() {
     <main className="homepage-static theme-light flex min-h-screen flex-col overflow-x-clip bg-white font-[family-name:var(--font-saans)] text-black [color-scheme:light]">
       <JsonLdScript data={softwareApplicationJsonLd} />
       <JsonLdScript data={faqPageJsonLd} />
-      <LandingNavbar theme="light" />
+      <LandingNavbar theme="light" ctaRevealTrigger="headshot-strip" />
       <Hero messages={messages} />
       <HowItWorks messages={messages} />
       <Clients messages={messages} />

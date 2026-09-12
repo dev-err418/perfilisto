@@ -30,7 +30,7 @@ const LandingLogo = ({
     <BrandWord
       className={
         light
-          ? "text-lg font-semibold tracking-tight text-black"
+          ? "landing-nav-brand text-lg font-semibold tracking-tight text-black"
           : "text-lg font-semibold tracking-tight text-white"
       }
     />
@@ -69,6 +69,10 @@ export const LandingNavbar = ({
 }) => {
   const messages = getMessages();
   const actions = getLandingNavbarActions(false, messages);
+  if (ctaRevealTrigger) actions.push({
+    label: messages.hero.cta, href: "/onboarding", style: "tint",
+    showArrow: true, forceVisible: true, revealAsCta: true,
+  });
   const actionButtons = (
     <div className="flex items-center gap-2">
       {actions.map((action) => (
@@ -123,7 +127,7 @@ export const LandingNavbar = ({
             ctaAction ? (
               <Link
                 href={ctaAction.href}
-                className={GET_STARTED_NAV_BUTTON_CLASS}
+                className={`${GET_STARTED_NAV_BUTTON_CLASS} !inline-flex max-sm:gap-1 max-sm:px-3 max-sm:text-xs`}
               >
                 {ctaAction.label}
                 {ctaAction.showArrow && (

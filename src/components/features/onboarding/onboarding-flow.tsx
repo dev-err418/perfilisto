@@ -148,6 +148,22 @@ export const OnboardingFlow = () => {
     return () => window.removeEventListener(ANALYTICS_READY, record);
   }, [readyPhotos]);
 
+  const skipToUpload = () => {
+    if (process.env.NODE_ENV !== "development") return;
+    window.clearTimeout(advanceTimer.current);
+    setGender("man");
+    setAge("25-29");
+    setHair("brown");
+    setHairLength("short");
+    setHairType("wavy");
+    setBodyType("regular");
+    setAttire(ALL_ATTIRE);
+    setBackgrounds(ALL_BACKGROUNDS);
+    setDirection("forward");
+    setWelcomeOpen(false);
+    setStep("upload");
+  };
+
   const openDashboardPreview = () => {
     if (process.env.NODE_ENV !== "development") return;
     const plan = plans[0];
@@ -298,6 +314,7 @@ export const OnboardingFlow = () => {
       {welcomeOpen && <OnboardingWelcomeModal
         onContinue={() => setWelcomeOpen(false)}
         onOpenDashboard={openDashboardPreview}
+          onSkipToUpload={skipToUpload}
       />}
       {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}
     </>

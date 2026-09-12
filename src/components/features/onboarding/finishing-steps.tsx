@@ -15,6 +15,7 @@ import {
 } from "@tabler/icons-react";
 import type { Preferences } from "@/lib/orders/types";
 import options from "@/lib/orders/preference-options.json";
+import { PLAN_LIMITS } from "@/lib/orders/plan-limits.mjs";
 import { cn } from "@/lib/utils";
 import {
   imageChoiceCardClass,
@@ -159,18 +160,33 @@ export function FinishingSteps({
   step,
   value,
   onChange,
+  planId,
 }: {
   step: FinishingStep;
   value: Preferences;
   onChange: (next: Preferences) => void;
+  planId?: string;
 }) {
+  const limits = PLAN_LIMITS[planId as keyof typeof PLAN_LIMITS];
   const toggle = (key: "poses" | "attire" | "backgrounds", item: string) => {
     const current = value[key] || [];
+    if (current.includes(item)) {
+      onChange({
+        ...value,
+        [key]: current.filter((v) => v !== item),
+      });
+      return;
+    }
+    const max =
+      key === "attire"
+        ? limits?.attire
+        : key === "backgrounds"
+          ? limits?.backgrounds
+          : undefined;
+    if (max && current.length >= max) return;
     onChange({
       ...value,
-      [key]: current.includes(item)
-        ? current.filter((v) => v !== item)
-        : [...current, item],
+      [key]: [...current, item],
     });
   };
   const gender = value.gender === "woman" ? "woman" : "man";

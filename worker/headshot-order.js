@@ -167,7 +167,7 @@ export class HeadshotOrder {
     if (!order && request.method === "POST" && !action) {
       const plan = plans.find((p) => p.id === body.planId);
       if (!plan) return json({ error: "Choose a package" }, 400);
-      const preferences = sanitizePreferences(body.preferences);
+      const preferences = sanitizePreferences(body.preferences, plan.id);
       order = {
         ...plan,
         planId: plan.id,
@@ -314,7 +314,7 @@ export class HeadshotOrder {
       if (!order.payment) return json({ error: "Payment required" }, 402);
       if (order.batchId || order.batchSubmitting || order.inputFileId)
         return json({ error: "Generation has already started" }, 409);
-      const next = sanitizePreferences(body.preferences);
+      const next = sanitizePreferences(body.preferences, order.planId);
       if (
         !next.poses?.length ||
         !next.glasses ||
@@ -349,7 +349,7 @@ export class HeadshotOrder {
               { error: "Your batch is being submitted. Please wait." },
               409,
             );
-          const next = sanitizePreferences(body.preferences);
+          const next = sanitizePreferences(body.preferences, order.planId);
           if (
             !next.poses?.length ||
             !next.glasses ||

@@ -1,83 +1,194 @@
-import { IconCheck } from "@tabler/icons-react";
+import Image from "next/image";
+import { IconCheck, IconPhoto } from "@tabler/icons-react";
+import { Download, Heart } from "lucide-react";
 
+import { Spinner } from "@/components/ui/spinner";
 import type { Messages } from "@/i18n";
-import { cn } from "@/lib/utils";
 
-const PortraitTile = ({
-  className,
-  tinted,
-}: {
-  className?: string;
-  tinted?: boolean;
-}) => (
-  <div
-    className={cn(
-      "overflow-hidden rounded-[10px]",
-      tinted ? "bg-[var(--primary)]" : "bg-[#d8d8d8]",
-      className,
-    )}
-  />
+const ATTIRE_PHOTOS = [
+  "/onboarding/attire/woman-professional.jpg",
+  "/onboarding/attire/woman-business-casual.jpg",
+  "/onboarding/attire/woman-smart-casual.jpg",
+] as const;
+
+const UPLOAD_PHOTOS = [
+  "/headshots/woman_01_casual.webp",
+  "/headshots/woman_02_casual.webp",
+  "/headshots/woman_03_casual.webp",
+  "/headshots/man_01_casual.webp",
+  "/headshots/man_02_casual.webp",
+  "/headshots/woman_04_casual.webp",
+] as const;
+
+const DemoCursor = ({ className }: { className: string }) => (
+  <svg className={className} viewBox="0 0 32 32" aria-hidden="true">
+    <path
+      d="M5 3.6 28.6 16 14.8 17.6 11.6 28.4Z"
+      fill="#f97316"
+      stroke="#fff"
+      strokeWidth="2.4"
+      strokeLinejoin="round"
+      strokeLinecap="round"
+    />
+  </svg>
 );
 
 const AttirePreview = ({ labels }: { labels: readonly string[] }) => (
-  <div className="flex h-full items-end justify-center gap-2 px-2 pb-4 pt-6">
-    {labels.map((label, index) => (
-      <div key={label} className="flex min-w-0 flex-1 flex-col items-center">
-        <PortraitTile
-          tinted={index === 0}
-          className="aspect-[4/5] w-full max-w-[92px]"
-        />
-        <p className="mt-2 flex items-center gap-0.5 text-[10px] font-semibold tracking-tight text-[#141414]">
-          <span className="truncate">{label}</span>
-          <IconCheck
-            aria-hidden="true"
-            className="size-3 shrink-0 text-[var(--primary)]"
-            stroke={2.4}
-          />
-        </p>
-      </div>
-    ))}
+  <div className="attire-select-demo" aria-hidden="true">
+    <div className="attire-select-demo-row">
+      {labels.map((label, index) => (
+        <article
+          key={label}
+          className={`attire-select-demo-card attire-select-demo-card-${index}`}
+        >
+          <span className="attire-select-demo-photo">
+            <Image
+              src={ATTIRE_PHOTOS[index] ?? ATTIRE_PHOTOS[0]}
+              alt=""
+              fill
+              unoptimized
+              sizes="140px"
+              className="object-cover object-top"
+            />
+            <span className="attire-select-demo-check">
+              <IconCheck className="size-[9px]" stroke={3} />
+            </span>
+          </span>
+          <span className="attire-select-demo-footer">
+            <span className="attire-select-demo-label">{label}</span>
+          </span>
+        </article>
+      ))}
+      <DemoCursor className="attire-select-demo-cursor" />
+    </div>
   </div>
 );
 
-const UploadPreview = ({ label }: { label: string }) => (
-  <div className="flex h-full flex-col px-4 py-4">
-    <div className="flex flex-1 items-center justify-center rounded-[22px] border border-dashed border-black/15 bg-white/70 px-3 py-3">
-      <div className="grid w-full grid-cols-3 gap-2">
-        {Array.from({ length: 6 }, (_, index) => (
-          <PortraitTile
-            key={index}
-            tinted={index % 3 === 1}
-            className="aspect-square"
-          />
+const UploadPreview = ({ prompt }: { prompt: string }) => (
+  <div className="upload-demo" aria-hidden="true">
+    <div className="upload-demo-zone">
+      <div className="upload-demo-empty">
+        <IconPhoto className="size-7" stroke={1.4} />
+        <span>{prompt}</span>
+      </div>
+      <div className="upload-demo-grid">
+        {UPLOAD_PHOTOS.map((src, index) => (
+          <span key={src} className={`upload-demo-tile upload-demo-tile-${index}`}>
+            <Image
+              src={src}
+              alt=""
+              fill
+              unoptimized
+              sizes="80px"
+              className="upload-demo-photo object-cover"
+            />
+            <span className="upload-demo-preparing">
+              <Spinner className="upload-demo-spinner size-5" aria-hidden="true" />
+            </span>
+          </span>
         ))}
       </div>
+      <div className="upload-demo-stack">
+        {UPLOAD_PHOTOS.slice(0, 4).map((src, index) => (
+          <span key={src} className={`upload-demo-stack-card upload-demo-stack-card-${index}`}>
+            <Image
+              src={src}
+              alt=""
+              fill
+              unoptimized
+              sizes="72px"
+              className="object-cover"
+            />
+          </span>
+        ))}
+      </div>
+      <DemoCursor className="upload-demo-cursor" />
     </div>
-    <p className="mt-3 text-center text-[11px] font-medium text-muted-foreground">
-      {label}
-    </p>
   </div>
 );
+
+const GENERATE_PHOTO = "/headshots/woman_01_professional_office.webp";
+const GENERATE_PIXELS = [8, 14, 22, 36, 56] as const;
 
 const GeneratePreview = () => (
-  <div className="flex h-full items-center justify-center p-5">
-    <div className="relative aspect-square w-[72%] overflow-hidden rounded-[18px] bg-[#ececec] p-2">
-      <PortraitTile tinted className="h-full w-full rounded-[14px]" />
-    </div>
-  </div>
-);
-
-const GalleryPreview = () => (
-  <div className="h-full overflow-hidden px-4 pt-5">
-    <div className="grid grid-cols-3 gap-2">
-      {Array.from({ length: 9 }, (_, index) => (
-        <PortraitTile
-          key={index}
-          tinted={index === 0 || index === 4}
-          className="aspect-square"
+  <div className="generate-demo" aria-hidden="true">
+    <div className="generate-demo-frame">
+      <Image
+        src={GENERATE_PHOTO}
+        alt=""
+        fill
+        unoptimized
+        sizes="160px"
+        className="generate-demo-sharp object-cover object-top"
+      />
+      {GENERATE_PIXELS.map((size) => (
+        <Image
+          key={size}
+          src={`/onboarding/generate/pixel-${size}.webp`}
+          alt=""
+          fill
+          unoptimized
+          sizes="160px"
+          className={`generate-demo-mosaic generate-demo-mosaic-${size}`}
         />
       ))}
     </div>
+  </div>
+);
+
+const GALLERY_PHOTOS = [
+  "/headshots/woman_10_professional_nature.webp",
+  "/headshots/woman_06_professional_city.webp",
+  "/headshots/woman_01_professional_office.webp",
+  "/headshots/woman_07_professional_studio.webp",
+  "/headshots/woman_04_professional_nature.webp",
+  "/headshots/woman_02_professional_city.webp",
+  "/headshots/woman_03_professional_studio.webp",
+  "/headshots/woman_05_professional_office.webp",
+  "/headshots/woman_08_professional_nature.webp",
+] as const;
+
+const GalleryPreview = () => (
+  <div className="gallery-demo" aria-hidden="true">
+    <div className="gallery-demo-grid">
+      {GALLERY_PHOTOS.map((src, index) => (
+        <article
+          key={src}
+          className={index === 4 ? "gallery-demo-card gallery-demo-card-active" : "gallery-demo-card"}
+        >
+          <Image
+            src={src}
+            alt=""
+            fill
+            unoptimized
+            sizes="90px"
+            className="object-cover object-top"
+          />
+          {index === 4 ? (
+            <span className="gallery-demo-overlay">
+              <span className="gallery-demo-heart">
+                <Heart className="gallery-demo-heart-icon" />
+              </span>
+              <span className="gallery-demo-download">
+                <Download className="gallery-demo-download-icon" aria-hidden="true" />
+                Download
+              </span>
+            </span>
+          ) : null}
+        </article>
+      ))}
+    </div>
+    <div className="gallery-demo-saved">
+      <Image
+        src={GALLERY_PHOTOS[4]}
+        alt=""
+        fill
+        unoptimized
+        sizes="90px"
+        className="object-cover object-top"
+      />
+    </div>
+    <DemoCursor className="gallery-demo-cursor" />
   </div>
 );
 
@@ -86,7 +197,7 @@ const stepPreview = (
   copy: Messages["howItWorks"],
 ) => {
   if (index === 0) return <AttirePreview labels={copy.outfits} />;
-  if (index === 1) return <UploadPreview label={copy.uploaded} />;
+  if (index === 1) return <UploadPreview prompt={copy.uploadPrompt} />;
   if (index === 2) return <GeneratePreview />;
   return <GalleryPreview />;
 };

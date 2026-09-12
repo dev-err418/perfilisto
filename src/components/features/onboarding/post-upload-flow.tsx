@@ -22,8 +22,6 @@ import {
   IconCheck,
   IconLock,
   IconX,
-  IconPhoto,
-  IconClock,
   IconArrowRight,
 } from "@tabler/icons-react";
 import plans from "@/lib/orders/plans.json";
@@ -32,6 +30,7 @@ import { getMessages } from "@/i18n";
 import { fileToJpegDataUrl } from "@/lib/upload-session-client";
 import { cn } from "@/lib/utils";
 import { TrustRating } from "../landing/trust-rating";
+import { PlanFeatureList } from "../landing/plan-feature-list";
 import { LogoMark } from "../landing/logo-mark";
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
 import { OnboardingStepShell } from "./step-shell";
@@ -159,6 +158,7 @@ export function PostUploadFlow({
   }, [order?.status, finishing]);
   const pendingId = useRef<string | null>(null);
   const plan = plans.find((p) => p.id === selected)!;
+  const pricingPlans = getMessages().pricing.plans;
   const lock = useRef(false);
   const run = async (label: string, fn: () => Promise<void>) => {
     if (lock.current) return;
@@ -518,6 +518,7 @@ export function PostUploadFlow({
           <FinishingSteps
             step={finishing}
             value={details}
+            planId={order?.planId}
             onChange={(next) => {
               setDetails(next);
               setDetailsConsent(false);
@@ -557,7 +558,10 @@ export function PostUploadFlow({
                 role="radiogroup"
                 aria-label="Headshot package"
               >
-                {plans.map((p) => (
+                {plans.map((p) => {
+                  const copy = pricingPlans.find((plan) => plan.name === p.name);
+
+                  return (
                   <button
                     key={p.id}
                     role="radio"
@@ -590,24 +594,12 @@ export function PostUploadFlow({
                     <span className="mt-2 text-xs text-neutral-500">
                       one-time payment
                     </span>
-                    <span className="mt-8 space-y-4 text-sm">
-                      <span className="flex gap-2">
-                        <IconPhoto className="size-5 text-primary" />
-                        <strong>{p.photoCount} headshots</strong>
-                      </span>
-                      <span className="flex gap-2">
-                        <IconClock className="size-5 text-primary" />
-                        Within {p.deliveryTime}
-                      </span>
-                      <span className="flex gap-2">
-                        <IconCheck className="size-5 text-primary" />
-                        Unique outfits
-                      </span>
-                      <span className="flex gap-2">
-                        <IconCheck className="size-5 text-primary" />
-                        Multiple backgrounds
-                      </span>
-                    </span>
+                    {copy ? (
+                      <PlanFeatureList
+                        className="mt-8 text-sm"
+                        features={copy.features}
+                      />
+                    ) : null}
                     <span
                       className={cn(
                         "mt-8 grid size-6 place-items-center self-end rounded-full border",
@@ -621,7 +613,8 @@ export function PostUploadFlow({
                       )}
                     </span>
                   </button>
-                ))}
+                  );
+                })}
               </div>
               <div className="mt-7 flex items-center gap-3 rounded-2xl bg-[#fff4ea] p-4 text-sm">
                 <IconLock className="size-5 shrink-0 text-primary" />

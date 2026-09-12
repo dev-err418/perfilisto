@@ -106,6 +106,39 @@ test("Server owns package price, enforces photo count, saves sources, and isolat
   assert.equal(r.photos.length, 6);
   assert.ok(r.photos[0].url.includes("/images/source-"));
 });
+test("Basic keeps one outfit and one background; paid plans keep the selected looks", async () => {
+  const s = setup();
+  await s.req("", {
+    planId: "basic",
+    preferences: {
+      attire: ["professional", "business-casual", "smart-casual"],
+      backgrounds: ["city", "office", "studio", "nature"],
+    },
+  });
+  const basic = s.data.get("order");
+  assert.deepEqual(basic.preferences.attire, ["professional"]);
+  assert.deepEqual(basic.preferences.backgrounds, ["city"]);
+  assert.equal(
+    generationRequests(basic, ["file_reference"])[0].body.quality,
+    "medium",
+  );
+
+  const paid = setup();
+  await paid.req("", {
+    planId: "professional",
+    preferences: {
+      attire: ["professional", "business-casual", "smart-casual"],
+      backgrounds: ["city", "office", "studio", "nature"],
+    },
+  });
+  const professional = paid.data.get("order");
+  assert.equal(professional.preferences.attire.length, 3);
+  assert.equal(professional.preferences.backgrounds.length, 4);
+  assert.equal(
+    generationRequests(professional, ["file_reference"])[0].body.quality,
+    "high",
+  );
+});
 test("Checkout opens without AI configuration; unpaid orders cannot verify or generate", async (t) => {
   const s = setup();
   await create(s);
