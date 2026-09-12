@@ -79,6 +79,10 @@ html {
   transform: translateY(0);
 }
 
+.primary-tint-button.primary-nav-button {
+  box-shadow: none;
+}
+
 .primary-tint-button:focus-visible {
   outline: 2px solid var(--primary-tint-ring);
   outline-offset: 2px;
