@@ -275,7 +275,6 @@ export const en = {
     shared: {
       back: "Back",
       continue: "Continue",
-      skip: "Skip",
       close: "Close",
       subtitle: "Help us generate photos that match your preferences.",
     },

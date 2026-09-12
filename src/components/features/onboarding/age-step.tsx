@@ -15,7 +15,7 @@ export const AgeStep = ({
   const copy = messages.onboarding.age;
 
   return (
-    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center pt-6 sm:pt-10">
+    <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col items-center justify-center">
       <h1 className="text-center text-[2rem] leading-tight font-semibold tracking-tight text-[#141414] sm:text-4xl">
         {copy.title}
       </h1>

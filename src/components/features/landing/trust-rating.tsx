@@ -2,10 +2,10 @@ import Image from "next/image";
 import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-export function TrustRating({ messages, className }: { messages: Messages; className?: string }) {
+export function TrustRating({ messages, className, showAvatars = true }: { messages: Messages; className?: string; showAvatars?: boolean }) {
   return (
 <div className={cn("flex w-fit max-w-full items-center gap-3 text-left sm:gap-5", className)}>
-        <div className="flex -space-x-2.5 sm:-space-x-3" aria-hidden="true">
+        {showAvatars && <div className="flex -space-x-2.5 sm:-space-x-3" aria-hidden="true">
           {Array.from({ length: 5 }, (_, index) => (
             <Image
               key={index}
@@ -18,7 +18,7 @@ export function TrustRating({ messages, className }: { messages: Messages; class
               className="size-9 shrink-0 rounded-full border-2 border-white bg-[#f2f2f2] object-cover shadow-sm sm:size-11"
             />
           ))}
-        </div>
+        </div>}
         <div className="text-left">
           <div
             className="flex items-center gap-1.5 sm:gap-2"

@@ -148,22 +148,6 @@ export const OnboardingFlow = () => {
     return () => window.removeEventListener(ANALYTICS_READY, record);
   }, [readyPhotos]);
 
-  const skipWithExampleDetails = (target: "gender" | "upload") => {
-    if (process.env.NODE_ENV !== "development") return;
-    window.clearTimeout(advanceTimer.current);
-    setGender("man");
-    setAge("25-29");
-    setHair("brown");
-    setHairLength("short");
-    setHairType("wavy");
-    setBodyType("regular");
-    setAttire([...ALL_ATTIRE]);
-    setBackgrounds([...ALL_BACKGROUNDS]);
-    setWelcomeOpen(false);
-    setDirection("forward");
-    setStep(target);
-  };
-
   const openDashboardPreview = () => {
     if (process.env.NODE_ENV !== "development") return;
     const plan = plans[0];
@@ -221,14 +205,8 @@ export const OnboardingFlow = () => {
     (step === "upload" &&
       (photos.length < UPLOAD_MIN || photos.some((photo) => photo.preparing)));
 
-  const hideContinue =
-    SINGLE_CHOICE_STEPS.includes(step) &&
-    !(step === "hairLength" && !hairLength);
-
-  const continueLabel =
-    step === "hairLength" && !hairLength
-      ? messages.onboarding.shared.skip
-      : messages.onboarding.shared.continue;
+  const hideContinue = SINGLE_CHOICE_STEPS.includes(step);
+  const continueLabel = messages.onboarding.shared.continue;
 
   return (
     <>
@@ -319,8 +297,6 @@ export const OnboardingFlow = () => {
       </OnboardingStepShell>
       {welcomeOpen && <OnboardingWelcomeModal
         onContinue={() => setWelcomeOpen(false)}
-        onSkipWelcome={() => skipWithExampleDetails("gender")}
-        onSkipToUpload={() => skipWithExampleDetails("upload")}
         onOpenDashboard={openDashboardPreview}
       />}
       {leaveOpen ? <LeaveModal onStay={() => setLeaveOpen(false)} /> : null}

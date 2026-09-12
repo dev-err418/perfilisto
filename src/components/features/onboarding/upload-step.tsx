@@ -3,7 +3,7 @@
 import type { Review } from "@/lib/orders/types";
 import { Spinner } from "@/components/ui/spinner";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type RefObject } from "react";
 import { createPortal } from "react-dom";
 import QRCode from "qrcode";
 import Image from "next/image";
@@ -75,17 +75,22 @@ export const UploadStep = ({
   disabled = false,
   review,
   reviewPending = false,
+  checking = false,
+  fileInputRef,
 }: {
+  fileInputRef?: RefObject<HTMLInputElement | null>;
   disabled?: boolean;
   review?: Review;
   reviewPending?: boolean;
+  checking?: boolean;
   photos: UploadedPhoto[];
   onChange: (photos: UploadedPhoto[]) => void;
   onBack?: () => void;
 }) => {
   const copy = messages.onboarding.upload;
   const shared = messages.onboarding.shared;
-  const inputRef = useRef<HTMLInputElement>(null);
+  const localInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = fileInputRef ?? localInputRef;
   const [dragging, setDragging] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [pendingBatches, setPendingBatches] = useState(0);
@@ -383,7 +388,9 @@ export const UploadStep = ({
               dangerouslySetInnerHTML={{ __html: qrSvg }}
             />
           ) : (
-            <span role="status" className="mt-3 inline-flex items-center gap-2 text-sm text-muted-foreground">{!sessionError && <Spinner aria-hidden="true" />}{sessionError || "Connecting…"}</span>
+            <span role="status" aria-label={sessionError || "Loading QR code"} className="mt-3 flex size-24 shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 p-2 text-center text-xs text-muted-foreground">
+              {sessionError || <Spinner className="size-6" aria-hidden="true" />}
+            </span>
           )}
           <span className="mt-3 text-xs font-medium text-muted-foreground underline underline-offset-2">
             {copy.howToPhone}
@@ -432,9 +439,12 @@ export const UploadStep = ({
 
         {photos.length > 0 ? (
           <div className="mt-6 rounded-2xl border border-black/[0.08] bg-white p-4 shadow-sm sm:p-5">
+            {checking && <p role="status" className="mb-4 flex items-center gap-2 text-sm font-semibold">
+              <Spinner aria-hidden="true" />Checking your photos…
+            </p>}
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
               {photos.map((photo) => {
-                const assessment = review?.photos.find((item) => item.id === photo.id);
+                const assessment = !checking && !reviewPending && review?.photos.find((item) => item.id === photo.id);
                 return <div key={photo.id}>
                 <div className="relative overflow-hidden rounded-xl">
                   {photo.preparing ? (
@@ -473,7 +483,7 @@ export const UploadStep = ({
                 </div>;
               })}
             </div>
-            {review && <p role="status" className="mt-4 text-sm text-neutral-600">
+            {review && !checking && <p role="status" className="mt-4 text-sm text-neutral-600">
               {reviewPending ? "Check your updated photos when you’re ready." : review.photos.filter((photo) => photo.accepted).length < MIN_PHOTOS
                 ? `Upload ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length} more clear ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length === 1 ? "photo" : "photos"} to continue.`
                 : review.needsMidRange ? "Optional: add a mid-range photo showing your shoulders and upper body for better results. You can also continue with these photos." : "Your photos are ready. Continue to review your details."}
@@ -620,7 +630,9 @@ export const UploadStep = ({
                   dangerouslySetInnerHTML={{ __html: qrSvg }}
                 />
               ) : (
-                <span role="status" className="inline-flex items-center gap-2 text-sm text-muted-foreground">{!sessionError && <Spinner aria-hidden="true" />}{sessionError || "Connecting…"}</span>
+                <span role="status" aria-label={sessionError || "Loading QR code"} className="flex size-32 shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 p-3 text-center text-sm text-muted-foreground sm:size-36">
+                  {sessionError || <Spinner className="size-7" aria-hidden="true" />}
+                </span>
               )}
               <ol className="space-y-2 text-[15px] leading-6 text-[#141414]">
                 {copy.qrSteps.map((step, index) => (

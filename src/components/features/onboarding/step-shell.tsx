@@ -1,7 +1,7 @@
 "use client";
 
 import { Spinner } from "@/components/ui/spinner";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import Link from "next/link";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
 
@@ -43,10 +43,22 @@ export const OnboardingStepShell = ({
   children: ReactNode;
   footerContent?: ReactNode;
 }) => {
+  const shellRef = useRef<HTMLDivElement>(null);
+  const actionBarRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const bar = actionBarRef.current;
+    const update = () => shellRef.current?.style.setProperty("--action-bar-height", `${bar?.getBoundingClientRect().height ?? 0}px`);
+    update();
+    if (!bar) return;
+    const observer = new ResizeObserver(update);
+    observer.observe(bar);
+    return () => observer.disconnect();
+  }, [hideContinue]);
   const copy = messages.onboarding.shared;
+  const isQuestion = ["gender", "age", "hair", "hairLength", "hairType", "bodyType", "attire", "backgrounds", "poses", "glasses", "details"].includes(stepKey);
 
   return (
-    <div className="theme-light flex min-h-dvh flex-col bg-white text-black [color-scheme:light]">
+    <div ref={shellRef} className="theme-light flex min-h-dvh flex-col bg-white text-black [color-scheme:light]">
       <header className="sticky top-0 z-20 bg-white grid h-16 shrink-0 grid-cols-[1fr_minmax(0,16rem)_1fr] items-center gap-4 px-4 sm:px-6">
         <Link
           href="/"
@@ -92,8 +104,9 @@ export const OnboardingStepShell = ({
 
         <div
           className={cn(
-            "t-page-slide flex min-h-0 flex-1 flex-col pb-8",
-            hideBack ? "px-5 pt-4 sm:px-8" : "px-5 pt-16 sm:px-8",
+            "t-page-slide flex min-h-0 flex-1 flex-col",
+            !isQuestion && "pb-8",
+            isQuestion ? "px-5 pb-16 pt-[var(--action-bar-height,0px)] sm:px-8" : hideBack ? "px-5 pt-4 sm:px-8" : "px-5 pt-16 sm:px-8",
           )}
           data-page={direction === "back" ? "1" : "2"}
         >
@@ -108,7 +121,7 @@ export const OnboardingStepShell = ({
       </div>
 
       {hideContinue ? null : (
-        <div data-slot="onboarding-action-bar" className="sticky bottom-0 z-10 flex shrink-0 flex-col items-center justify-center gap-4 border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
+        <div ref={actionBarRef} data-slot="onboarding-action-bar" className="sticky bottom-0 z-10 flex shrink-0 flex-col items-center justify-center gap-4 border-t border-black/[0.04] bg-white px-5 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:pt-5 sm:pb-[max(1.25rem,env(safe-area-inset-bottom))]">
           {footerContent && <div className="w-full max-w-5xl">{footerContent}</div>}
           <button
             type="button"

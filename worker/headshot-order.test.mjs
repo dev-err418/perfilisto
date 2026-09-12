@@ -665,3 +665,25 @@ test('Background alarm retries an email enqueue outage without an account visit'
   await s.order.alarm();
   assert.equal(calls, 2);
 });
+
+
+test("Photo reads remain available during queued AI work and retain access checks", async () => {
+  const s = setup();
+  const order = await create(s);
+  let release;
+  s.order.queue = new Promise(resolve => { release = resolve; });
+  let timer;
+  try {
+    const response = await Promise.race([
+      s.req(`images/${order.photos[0].id}`, {}, "GET"),
+      new Promise((_, reject) => { timer = setTimeout(() => reject(new Error("Photo read blocked behind AI work")), 1000); }),
+    ]);
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Cache-Control"), "private, no-store");
+    assert.equal((await s.req(`images/${order.photos[0].id}`, {}, "GET", "another:user")).status, 404);
+    assert.equal((await s.req("images/missing", {}, "GET")).status, 404);
+  } finally {
+    clearTimeout(timer);
+    release();
+  }
+});

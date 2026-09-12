@@ -16,10 +16,6 @@
   padding-bottom: 12px;
 }
 
-.viewport:hover .track {
-  animation-play-state: paused;
-}
-
 @keyframes result-scroll {
   to {
     transform: translateY(-50%);
@@ -31,4 +27,58 @@
     animation: none;
     will-change: auto;
   }
+}
+
+.cardViewport {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  padding: 12px;
+  mask-image: none;
+}
+
+.columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 12px;
+}
+
+.downward {
+  animation-direction: reverse;
+}
+
+.before {
+  position: absolute;
+  inset: 0;
+  clip-path: inset(0 50% 0 0);
+  animation: comparison-reveal 9s linear infinite;
+  animation-delay: var(--comparison-delay, 0s);
+}
+
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  background: white;
+  box-shadow: 0 0 10px rgb(255 116 22 / 26%);
+  transform: translateX(-50%);
+  animation: comparison-cursor 9s linear infinite;
+  animation-delay: var(--comparison-delay, 0s);
+}
+
+@keyframes comparison-reveal {
+  0%, 100% { clip-path: inset(0 0 0 0); }
+  50% { clip-path: inset(0 100% 0 0); }
+}
+
+@keyframes comparison-cursor {
+  0%, 100% { left: 100%; }
+  50% { left: 0%; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .before, .divider { animation: none; }
 }

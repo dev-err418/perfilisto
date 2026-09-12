@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import Image from "next/image";
+import { ResultImageScroll } from "@/components/features/onboarding/result-image-scroll";
 import Link from "next/link";
 
-import { LandingNavbar } from "@/components/features/landing/navbar";
 import { LogoMark } from "@/components/features/landing/logo-mark";
 import { LoginActions } from "@/components/features/auth/login-actions";
 import { getMessages } from "@/i18n";
@@ -19,8 +18,7 @@ export default function LoginPage() {
 
   return (
     <div className="theme-light flex min-h-svh flex-col overflow-x-clip bg-white text-black [color-scheme:light]">
-      <LandingNavbar theme="light" />
-      <main className="mx-auto grid w-full max-w-7xl flex-1 items-stretch gap-8 px-6 pb-6 lg:grid-cols-2 lg:gap-16 lg:px-10 lg:pb-10">
+      <main className="mx-auto grid w-full max-w-7xl flex-1 items-stretch gap-8 p-6 lg:grid-cols-2 lg:gap-16 lg:p-10">
         <section className="flex items-center justify-center py-16 sm:py-24" aria-labelledby="login-title">
           <div className="w-full max-w-[360px]">
             <div className="flex flex-col items-center text-center">
@@ -45,17 +43,9 @@ export default function LoginPage() {
         </section>
 
         <aside className="relative hidden min-h-[620px] overflow-hidden rounded-[32px] bg-[#f5f3ef] lg:block" aria-label={messages.previewDescription}>
-          <Image
-            src="/onboarding/welcome-bg.jpg"
-            alt=""
-            fill
-            priority
-            unoptimized
-            sizes="(min-width: 1024px) 50vw, 0px"
-            className="object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 p-10 text-white">
+          <ResultImageScroll variant="card" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 p-10 text-white">
             <p className="max-w-sm text-4xl leading-tight font-semibold tracking-tight">{messages.previewTitle}</p>
             <p className="mt-4 text-base text-white/80">{messages.previewDescription}</p>
           </div>

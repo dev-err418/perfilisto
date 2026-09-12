@@ -7,6 +7,8 @@ import { IconX } from "@tabler/icons-react";
 
 import { getMessages } from "@/i18n";
 
+import { TrustRating } from "../landing/trust-rating";
+
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
 
 const messages = getMessages();
@@ -46,20 +48,8 @@ export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
         className="grid w-full max-w-3xl overflow-hidden rounded-[28px] bg-white shadow-[0_24px_80px_rgba(0,0,0,0.28)] md:grid-cols-2"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="bg-[#171717] p-6 text-white sm:p-7">
-          <div className="flex flex-wrap items-center gap-3 text-primary" aria-label={messages.hero.ratingLabel}>
-            <p className="text-4xl font-semibold tracking-tight sm:text-5xl">
-              {copy.stat}
-            </p>
-            <span className="flex gap-0.5" aria-hidden="true">
-              {Array.from({ length: 5 }, (_, index) => (
-                <span key={index} className="text-lg leading-none">★</span>
-              ))}
-            </span>
-          </div>
-          <p className="mt-2 text-lg leading-7 font-medium text-white/90">
-            {copy.statLabel}
-          </p>
+        <div className="p-6 text-[#141414] sm:p-7">
+          <TrustRating messages={messages} showAvatars={false} />
           <div className="mt-6 grid h-56 grid-cols-3 grid-rows-2 gap-2">
             {collage.map((photo) => (
               <div
@@ -78,7 +68,7 @@ export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
           </div>
         </div>
 
-        <div className="relative p-6 sm:p-8">
+        <div className="relative flex flex-col p-6 sm:p-8">
           <button
             type="button"
             onClick={onStay}
@@ -104,20 +94,22 @@ export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
             </span>{" "}
             {copy.bodyEnd}
           </p>
+          <div className="mt-auto flex flex-col gap-3 pt-6">
           <button
             type="button"
             onClick={() => router.push("/")}
-            className="mt-6 inline-flex h-12 w-full items-center justify-center rounded-full bg-black/[0.06] px-4 text-[15px] font-semibold text-[#141414] hover:bg-black/[0.09]"
+            className="inline-flex h-12 w-full items-center justify-center rounded-full bg-black/[0.06] px-4 text-[15px] font-semibold text-[#141414] hover:bg-black/[0.09]"
           >
             {copy.dashboard}
           </button>
           <button
             type="button"
             onClick={onStay}
-            className={`${PRIMARY_TINT_BUTTON_CLASS} mt-3 inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-[15px] font-semibold`}
+            className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-[15px] font-semibold`}
           >
             {copy.claim}
           </button>
+          </div>
         </div>
       </div>
     </div>

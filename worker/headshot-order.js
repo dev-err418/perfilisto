@@ -37,8 +37,11 @@ export class HeadshotOrder {
     this.queue = Promise.resolve();
   }
   fetch(request) {
-    const next = this.queue.then(() => this.handle(request));
-    this.queue = next.catch(() => {});
+    // Image reads must remain available while a serialized AI operation is pending.
+    // handle still validates ownership, expiry and membership before reading R2.
+    const imageRead = request.method === "GET" && new URL(request.url).pathname.split("/").filter(Boolean)[3] === "images";
+    const next = imageRead ? this.handle(request) : this.queue.then(() => this.handle(request));
+    if (!imageRead) this.queue = next.catch(() => {});
     return next.catch(() =>
       json(
         {
@@ -82,6 +85,29 @@ export class HeadshotOrder {
         },
         410,
       );
+    if (request.method === "GET" && action === "images" && !order) return json({ error: "Order not found" }, 404);
+    if (request.method === "GET" && action === "images") {
+      const image = [...order.photos, ...order.results].find(
+        (p) => p.id === parts[4],
+      );
+      if (!image) return json({ error: "Photo not found" }, 404);
+      const object = await this.env.ORDER_PHOTOS.get(`${id}/${image.id}`);
+      return object
+        ? new Response(object.body, {
+            headers: {
+              "Content-Type": "image/jpeg",
+              "Cache-Control": "private, no-store",
+              "X-Content-Type-Options": "nosniff",
+              ...(url.searchParams.has("download")
+                ? {
+                    "Content-Disposition":
+                      'attachment; filename="perfilisto-headshot.jpg"',
+                  }
+                : {}),
+            },
+          })
+        : json({ error: "Photo not found" }, 404);
+    }
     let customer;
     try {
       const candidate = JSON.parse(
@@ -159,28 +185,6 @@ export class HeadshotOrder {
       await this.ctx.storage.setAlarm(order.expiresAt);
     }
     if (!order) return json({ error: "Order not found" }, 404);
-    if (request.method === "GET" && action === "images") {
-      const image = [...order.photos, ...order.results].find(
-        (p) => p.id === parts[4],
-      );
-      if (!image) return json({ error: "Photo not found" }, 404);
-      const object = await this.env.ORDER_PHOTOS.get(`${id}/${image.id}`);
-      return object
-        ? new Response(object.body, {
-            headers: {
-              "Content-Type": "image/jpeg",
-              "Cache-Control": "private, no-store",
-              "X-Content-Type-Options": "nosniff",
-              ...(url.searchParams.has("download")
-                ? {
-                    "Content-Disposition":
-                      'attachment; filename="perfilisto-headshot.jpg"',
-                  }
-                : {}),
-            },
-          })
-        : json({ error: "Photo not found" }, 404);
-    }
     if (request.method === "PUT" && action === "photos") {
       if (order.batchId || order.batchSubmitting || order.inputFileId)
         return json({ error: "Generation has already started" }, 409);

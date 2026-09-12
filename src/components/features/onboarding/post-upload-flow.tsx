@@ -149,6 +149,7 @@ export function PostUploadFlow({
   const [modal, setModal] = useState<
     "payment" | null
   >(null);
+  const uploadInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState(false);
   const [editPhotos, setEditPhotos] = useState<UploadedPhoto[]>([]);
   const [demo, setDemo] = useState(false);
@@ -332,21 +333,6 @@ export function PostUploadFlow({
       }
     });
   };
-  const changeUploads = () => {
-    if (!order) return;
-    // Saved order references are independent of the previous phone session.
-    // A fresh QR prevents importing those same phone photos a second time.
-    try {
-      sessionStorage.removeItem("perfilisto-upload-session");
-    } catch {
-      /* Optional browser storage. */
-    }
-    setModal(null);
-    setDetailsConsent(false);
-    setEditPhotos(order.photos);
-    setEditing(true);
-    setFinishing("photos");
-  };
   const saveUploads = async () => {
     let saved: Order | undefined;
     await run("Saving your photos…", async () => {
@@ -474,7 +460,7 @@ export function PostUploadFlow({
                 : "Continue"
               : `Continue with ${order?.name || plan.name}`)
         }
-        onContinue={editing ? saveUploads : needsPhotoCheck ? () => verify() : needsReplacementPhotos ? changeUploads : reviewStage ? advance : checkout}
+        onContinue={editing ? saveUploads : needsPhotoCheck ? () => verify() : needsReplacementPhotos ? () => uploadInputRef.current?.click() : reviewStage ? advance : checkout}
         onClose={onClose}
         footerContent={
           finishing === "details" && !editing ? (
@@ -515,10 +501,12 @@ export function PostUploadFlow({
         ) : (editing || (reviewStage && finishing === "photos")) && order ? (
           <fieldset disabled={!!busy || !!modal} className="min-w-0 border-0 p-0" aria-busy={!!busy}>
             <UploadStep
+              fileInputRef={uploadInputRef}
               photos={editing ? editPhotos : order.photos}
               disabled={!!busy || !!modal}
               review={order.review}
               reviewPending={editing}
+              checking={busy === "Checking your photos…"}
               onChange={(next) => {
                 setDetailsConsent(false);
                 setEditPhotos(next);
