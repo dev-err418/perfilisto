@@ -1,9 +1,9 @@
+"use client";
+
 import { IconMars, IconVenus } from "@tabler/icons-react";
 
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
-
-const messages = getMessages();
 
 export type GenderOption = "man" | "woman" | "other";
 
@@ -23,6 +23,7 @@ export const GenderStep = ({
   value: GenderOption | null;
   onChange: (value: GenderOption) => void;
 }) => {
+  const messages = useMessages();
   const copy = messages.onboarding.gender;
 
   return (

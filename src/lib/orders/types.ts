@@ -22,6 +22,7 @@ export type Review = {
   needsMidRange: boolean;
 };
 export type Order = {
+  locale?: "en" | "es";
   id: string;
   planId: string;
   name: string;

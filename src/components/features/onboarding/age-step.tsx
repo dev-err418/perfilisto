@@ -1,9 +1,10 @@
-import { getMessages } from "@/i18n";
+"use client";
+
+import { useMessages } from "@/i18n/client";
+import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-const messages = getMessages();
-
-export type AgeOption = (typeof messages.onboarding.age.options)[number]["id"];
+export type AgeOption = Messages["onboarding"]["age"]["options"][number]["id"];
 
 export const AgeStep = ({
   value,
@@ -12,6 +13,7 @@ export const AgeStep = ({
   value: AgeOption | null;
   onChange: (value: AgeOption) => void;
 }) => {
+  const messages = useMessages();
   const copy = messages.onboarding.age;
 
   return (

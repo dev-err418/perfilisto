@@ -1,9 +1,11 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+
 import { Spinner } from "@/components/ui/spinner";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import {
   IconBulb,
@@ -12,7 +14,7 @@ import {
   IconUpload,
 } from "@tabler/icons-react";
 
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 import {
   fileToJpegDataUrl,
   deleteRemoteSessionPhoto,
@@ -27,7 +29,6 @@ import { BrandWord } from "../landing/brand-name";
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
 import { LogoMark } from "../landing/logo-mark";
 
-const messages = getMessages();
 const ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif,.jpg,.jpeg,.png,.webp,.heic,.heif";
 const MAX_PHOTOS = 10;
 
@@ -41,6 +42,8 @@ const formatCount = (template: string, count: number) =>
   template.replace("{count}", String(count));
 
 export const MobileUploadPage = () => {
+  const t = useT();
+  const messages = useMessages();
   const copy = messages.onboarding.upload;
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("s");
@@ -78,7 +81,7 @@ export const MobileUploadPage = () => {
   const addFiles = async (fileList: FileList) => {
     const { accepted: incoming, rejected } = selectUploadFiles(fileList, MAX_PHOTOS - photos.length);
     if (!incoming.length) {
-      setError(rejected.join(" ") || null);
+      setError(rejected.map(message => t(message)).join(" ") || null);
       return;
     }
     const placeholders: LocalPhoto[] = incoming.map((file: File) => ({
@@ -87,8 +90,8 @@ export const MobileUploadPage = () => {
     }));
     setPhotos((current) => [...current, ...placeholders]);
     setEncoding(true);
-    setError(rejected.join(" ") || null);
-    const errors = [...rejected];
+    setError(rejected.map(message => t(message)).join(" ") || null);
+    const errors = rejected.map(message => t(message));
     try {
       for (const [index, file] of incoming.entries()) {
         const id = placeholders[index].id;
@@ -99,7 +102,7 @@ export const MobileUploadPage = () => {
           ));
         } catch {
           setPhotos((current) => current.filter((photo) => photo.id !== id));
-          errors.push(`${file.name}: could not read this photo. Try another image.`);
+          errors.push(t("{v0}: could not read this photo. Try another image.", { v0: file.name }));
           setError(errors.join(" "));
         }
       }
@@ -125,7 +128,7 @@ export const MobileUploadPage = () => {
       setSentIds((current) => new Set([...current, ...payload.map((photo) => photo.id)]));
     } catch (error) {
       if (error instanceof UploadSessionError && error.status === 404) setSessionState("expired");
-      else setError(error instanceof UploadSessionError ? error.message : "Could not send photos. Keep the desktop page open and try again.");
+      else setError(error instanceof UploadSessionError ? error.message : t("Could not send photos. Keep the desktop page open and try again."));
     } finally {
       setSending(false);
     }
@@ -140,7 +143,7 @@ export const MobileUploadPage = () => {
       setPhotos((current) => current.filter((photo) => photo.id !== id));
     } catch (error) {
       if (error instanceof UploadSessionError && error.status === 404) setSessionState("expired");
-      else setError("Could not remove this photo. Please try again.");
+      else setError(t("Could not remove this photo. Please try again."));
     } finally {
       setSending(false);
     }
@@ -175,7 +178,7 @@ export const MobileUploadPage = () => {
       ) : sessionState !== "ready" ? (
         <p role="status" className="mt-6 flex items-center gap-2 text-sm text-muted-foreground">
           {sessionState === "checking" && <Spinner aria-hidden="true" />}
-          {sessionState === "checking" ? "Connecting to your computer…" : "Could not connect. Refresh this page to try again."}
+          {sessionState === "checking" ? t("Connecting to your computer…") : t("Could not connect. Refresh this page to try again.")}
         </p>
       ) : (
         <>
@@ -293,7 +296,7 @@ export const MobileUploadPage = () => {
             </section>
           ) : null}
           {error ? (
-            <p role="alert" className="mt-4 text-sm text-[#b42318]">{error}</p>
+            <p role="alert" className="mt-4 text-sm text-[#b42318]">{t(error)}</p>
           ) : null}
         </>
       )}

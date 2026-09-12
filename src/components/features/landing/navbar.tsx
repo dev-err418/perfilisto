@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import Link from "@/i18n/navigation";
 import { IconArrowRight } from "@tabler/icons-react";
 import {
   LandingGlassNavbar,
@@ -11,7 +13,7 @@ import {
   GET_STARTED_NAV_BUTTON_CLASS,
   PRIMARY_NAV_BUTTON_CLASS,
 } from "./button-styles";
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 import { LogoMark } from "./logo-mark";
 
 const LandingLogo = ({
@@ -67,7 +69,7 @@ export const LandingNavbar = ({
   theme?: "dark" | "light";
   ctaRevealTrigger?: LandingNavbarCtaRevealTrigger;
 }) => {
-  const messages = getMessages();
+  const messages = useMessages();
   const actions = getLandingNavbarActions(false, messages);
   if (ctaRevealTrigger) actions.push({
     label: messages.hero.cta, href: "/onboarding", style: "tint",

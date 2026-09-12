@@ -70,3 +70,15 @@ test('Suppressed recipients are not retried; expired records are deleted', async
   await s.delivery.alarm();
   assert.equal(s.data.size, 0);
 });
+
+test('Spanish transactional email keeps subjects, copy and deep links in Spanish', () => {
+  for (const kind of ['payment', 'ready']) {
+    const message = emailMessage(kind, { ...order, locale: 'es' });
+    assert.match(message.html, /lang="es"/);
+    assert.match(message.html, /https:\/\/perfilisto.com\/es\/(dashboard|onboarding)\?order=/);
+    assert.match(message.html, /Privacidad/);
+    assert.doesNotMatch(message.html, /Payment confirmed|Your headshots|View my|Privacy|Terms/);
+    assert.match(message.text, /El equipo de Perfilisto/);
+    assert.match(message.subject, /Tu pago|Tus fotos/);
+  }
+});

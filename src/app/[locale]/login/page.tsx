@@ -1,20 +1,25 @@
 import type { Metadata } from "next";
 import { ResultImageScroll } from "@/components/features/onboarding/result-image-scroll";
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 
 import { LogoMark } from "@/components/features/landing/logo-mark";
 import { LoginActions } from "@/components/features/auth/login-actions";
 import { getMessages } from "@/i18n";
 
-export const metadata: Metadata = {
-  title: "Login | Perfilisto",
-  description: "Sign in to your Perfilisto account to access your professional headshots.",
-  alternates: { canonical: "/login" },
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  const { locale } = await params;
+  const messages = getMessages(locale);
+  return {
+  title: `${messages.nav.login} | Perfilisto`,
+  description: messages.login.description,
+  alternates: { canonical: `/${locale}/login` },
   robots: { index: false, follow: false },
 };
-
-export default function LoginPage() {
-  const { login: messages } = getMessages();
+}
+export default async function LoginPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params;
+  const messages = getMessages(locale);
+  const login = messages.login;
 
   return (
     <div className="theme-light flex min-h-svh flex-col overflow-x-clip bg-white text-black [color-scheme:light]">
@@ -24,30 +29,30 @@ export default function LoginPage() {
             <div className="flex flex-col items-center text-center">
               <LogoMark className="mb-6 size-12" />
               <h1 id="login-title" className="text-[32px] leading-10 font-semibold tracking-tight text-[#141414] sm:text-4xl">
-                {messages.title}
+                {login.title}
               </h1>
               <p className="mt-3 text-base leading-6 text-muted-foreground">
-                {messages.description}
+                {login.description}
               </p>
             </div>
 
             <LoginActions />
 
             <p className="mx-auto mt-10 max-w-[300px] text-center text-xs leading-5 text-muted-foreground">
-              {messages.termsPrefix}{" "}
-              <Link href="/terms" className="text-black underline-offset-4 hover:underline">{messages.terms}</Link>{" "}
-              {messages.and}{" "}
-              <Link href="/privacy" className="text-black underline-offset-4 hover:underline">{messages.privacy}</Link>.
+              {login.termsPrefix}{" "}
+              <Link href="/terms" className="text-black underline-offset-4 hover:underline">{login.terms}</Link>{" "}
+              {login.and}{" "}
+              <Link href="/privacy" className="text-black underline-offset-4 hover:underline">{login.privacy}</Link>.
             </p>
           </div>
         </section>
 
-        <aside className="relative hidden min-h-[620px] overflow-hidden rounded-[32px] bg-[#f5f3ef] lg:block" aria-label={messages.previewDescription}>
+        <aside className="relative hidden min-h-[620px] overflow-hidden rounded-[32px] bg-[#f5f3ef] lg:block" aria-label={login.previewDescription}>
           <ResultImageScroll variant="card" />
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/80 via-black/5 to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 p-10 text-white">
-            <p className="max-w-sm text-4xl leading-tight font-semibold tracking-tight">{messages.previewTitle}</p>
-            <p className="mt-4 text-base text-white/80">{messages.previewDescription}</p>
+            <p className="max-w-sm text-4xl leading-tight font-semibold tracking-tight">{login.previewTitle}</p>
+            <p className="mt-4 text-base text-white/80">{login.previewDescription}</p>
           </div>
         </aside>
       </main>

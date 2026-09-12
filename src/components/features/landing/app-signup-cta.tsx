@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 import { IconArrowRight, IconLock } from "@tabler/icons-react";
 
 import { PRIMARY_CTA_BUTTON_CLASS } from "./button-styles";

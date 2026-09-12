@@ -1,0 +1,750 @@
+{
+  "meta": {
+    "title": "Generador de fotos profesionales con IA | Perfilisto",
+    "description": "Convierte tus selfis en fotos profesionales con IA desde 29 €, sin pagar una sesión de fotos de 300 €. Para LinkedIn, tu CV y perfiles de empresa.",
+    "siteName": "Perfilisto"
+  },
+  "brand": {
+    "name": "Perfilisto",
+    "homeAriaLabel": "Inicio de Perfilisto"
+  },
+  "nav": {
+    "howItWorks": "Cómo funciona",
+    "pricing": "Precios",
+    "login": "Iniciar sesión",
+    "getStarted": "Empezar",
+    "dashboard": "Mis fotos"
+  },
+  "login": {
+    "title": "Te damos la bienvenida de nuevo",
+    "description": "Tu próxima gran primera impresión te espera.",
+    "google": "Continuar con Google",
+    "facebook": "Continuar con Facebook",
+    "unavailable": "Pronto podrás iniciar sesión.",
+    "newHere": "¿Es tu primera vez en Perfilisto?",
+    "getStarted": "Crea tus fotos profesionales",
+    "termsPrefix": "Al continuar, aceptas nuestras",
+    "terms": "Condiciones del servicio",
+    "and": "y",
+    "privacy": "Política de privacidad",
+    "previewTitle": "La imagen de tu próxima oportunidad.",
+    "previewDescription": "Fotos profesionales creadas a partir de tus selfis."
+  },
+  "hero": {
+    "badge": "#1 🇪🇸 en fotos profesionales con IA en España",
+    "titleBefore": "Fotos ",
+    "titleTint": "profesionales",
+    "titleLine1": ".",
+    "titleLine2": "Una foto que te encante compartir.",
+    "description": "Ahorra una sesión de fotos de 300 €. Convierte tus fotos del día a día en retratos con IA para LinkedIn, tu CV y tu web.",
+    "cta": "Crear mis fotos profesionales",
+    "supportingText": "Tus fotos son privadas",
+    "rating": "4,8/5",
+    "ratingLabel": "Valoración de 4,8 sobre 5",
+    "trustText": "Más de 1.453 profesionales confían en nosotros",
+    "beforeLabel": "Tus selfis",
+    "afterLabel": "Fotos profesionales",
+    "generatedBadge": "Generado con IA por Perfilisto"
+  },
+  "howItWorks": {
+    "titleBefore": "Renueva tu perfil en tan solo",
+    "titleTint": "15 minutos",
+    "titleAfter": "",
+    "subtitle": "Elige tu estilo, sube tus fotos y sigue con tu día. Con Ejecutivo, las recibirás en 15 minutos tras enviar tus fotos y datos.",
+    "uploaded": "Subida completada",
+    "uploadPrompt": "Sube algunas fotos",
+    "outfits": [
+      "Profesional",
+      "De oficina",
+      "Elegante"
+    ],
+    "steps": [
+      {
+        "number": "1",
+        "title": "Encuentra un estilo que te represente",
+        "body": "Elige ropa y fondos que encajen con tu trabajo y personalidad. Consigue la imagen que buscas sin comprar ropa ni reservar un estudio."
+      },
+      {
+        "number": "2",
+        "title": "Ahorra la sesión de fotos",
+        "body": "Empieza con entre 6 y 10 fotos nítidas y recientes de tu móvil, incluidos selfis y fotos de medio cuerpo. Sin cámaras especiales, desplazamientos ni sesiones de posado."
+      },
+      {
+        "number": "3",
+        "title": "Más estilos entre los que elegir",
+        "body": "Elige tu plan y confirma tus datos. Crearemos una galería con distintos estilos y te avisaremos por correo cuando esté lista, para que puedas seguir con tu día."
+      },
+      {
+        "number": "4",
+        "title": "Comparte tu próxima primera impresión",
+        "body": "Encuentra fotos con las que te identifiques. Guarda y descarga tus favoritas para LinkedIn, tu CV y tu web."
+      }
+    ]
+  },
+  "clients": {
+    "titleBefore": "Siguen siendo ellos.",
+    "titleTint": "Con una foto mejor.",
+    "subtitle": "Todo empezó con una foto normal del móvil.",
+    "before": "Antes",
+    "after": "Después",
+    "reviews": [
+      {
+        "name": "Lucía Ferrer",
+        "rating": 5,
+        "quote": "¡Facilísimo! Subí unos selfis desde el móvil y conseguí fotos que de verdad puedo usar. Sin arreglarme ni desplazarme."
+      },
+      {
+        "name": "Javier",
+        "rating": 5,
+        "quote": "Al principio tenía dudas. La mayoría de las fotos con IA parecen falsas, como una versión de plástico de ti. En estas sigo siendo yo."
+      },
+      {
+        "name": "Ana Belmonte",
+        "rating": 5,
+        "quote": "Muy sencillo. Subí unas fotos que ya tenía y recibí un montón que puedo usar para el trabajo."
+      }
+    ]
+  },
+  "compare": {
+    "titleBefore": "Calidad de estudio.",
+    "titleTint": "Sin pagar un estudio.",
+    "subtitle": "Una sesión con un fotógrafo ronda los 300 € y suele ocupar media jornada. Consigue una galería completa desde casa, desde 29 €.",
+    "perfilisto": "Con Perfilisto",
+    "photographer": "Con un fotógrafo",
+    "rows": [
+      {
+        "label": "Precio",
+        "perfilisto": "Desde 29 €",
+        "photographer": "300 €"
+      },
+      {
+        "label": "Desde casa",
+        "perfilisto": "Sí",
+        "photographer": "No, sesión presencial"
+      },
+      {
+        "label": "Tiempo",
+        "perfilisto": "Desde 15 min",
+        "photographer": "2–3 días laborables"
+      },
+      {
+        "label": "Número de fotos",
+        "perfilisto": "Una galería completa",
+        "photographer": "5–10 por persona"
+      },
+      {
+        "label": "Conjuntos",
+        "perfilisto": "Varios estilos",
+        "photographer": "1–2 conjuntos"
+      },
+      {
+        "label": "Fondos",
+        "perfilisto": "Tú eliges",
+        "photographer": "1 fondo"
+      },
+      {
+        "label": "Coherencia visual",
+        "perfilisto": "Sí, el mismo estilo en todas las fotos",
+        "photographer": "Requiere retoques manuales"
+      }
+    ]
+  },
+  "pricing": {
+    "titleBefore": "Un solo pago.",
+    "titleTint": "Una imagen renovada en todas partes.",
+    "titleAfter": "",
+    "subtitle": "Una sesión de estudio suele rondar los 300 € por unas pocas fotos. Elige 10, 50 o 100 fotos desde 29 €. Un solo pago, sin suscripción.",
+    "guarantee": "Profesional y Ejecutivo incluyen una garantía de devolución del 100 %.",
+    "popular": "Más elegido",
+    "currency": "€",
+    "period": "pago único",
+    "plans": [
+      {
+        "name": "Básico",
+        "price": "29",
+        "description": "Empieza con 10 fotos. Suficientes para LinkedIn y para descubrir si el estilo encaja contigo.",
+        "cta": "Conseguir 10 fotos",
+        "note": "29 € hoy. Fotos en 1 hora.",
+        "featured": false,
+        "features": [
+          {
+            "icon": "headshots",
+            "label": "10 fotos profesionales"
+          },
+          {
+            "icon": "delivery",
+            "label": "1 hora"
+          },
+          {
+            "icon": "outfits",
+            "label": "1 conjunto"
+          },
+          {
+            "icon": "backgrounds",
+            "label": "1 fondo"
+          },
+          {
+            "icon": "resolution",
+            "label": "Resolución estándar"
+          }
+        ],
+        "id": "basic"
+      },
+      {
+        "name": "Profesional",
+        "price": "39",
+        "description": "Nuestro plan más elegido. 50 fotos, listas en 30 minutos.",
+        "cta": "Conseguir 50 fotos",
+        "note": "39 € hoy. Garantía de devolución del 100 %.",
+        "featured": true,
+        "features": [
+          {
+            "icon": "headshots",
+            "label": "50 fotos profesionales"
+          },
+          {
+            "icon": "delivery",
+            "label": "30 minutos"
+          },
+          {
+            "icon": "outfits",
+            "label": "3 conjuntos"
+          },
+          {
+            "icon": "backgrounds",
+            "label": "4 fondos"
+          },
+          {
+            "icon": "resolution",
+            "label": "Alta resolución"
+          },
+          {
+            "icon": "guarantee",
+            "label": "Garantía de devolución"
+          }
+        ],
+        "id": "professional"
+      },
+      {
+        "name": "Ejecutivo",
+        "price": "69",
+        "description": "Más estilos y la entrega más rápida. 100 fotos en 15 minutos.",
+        "cta": "Conseguir 100 fotos",
+        "note": "69 € hoy. Garantía de devolución del 100 %.",
+        "featured": false,
+        "features": [
+          {
+            "icon": "headshots",
+            "label": "100 fotos profesionales"
+          },
+          {
+            "icon": "delivery",
+            "label": "15 minutos"
+          },
+          {
+            "icon": "outfits",
+            "label": "3 conjuntos"
+          },
+          {
+            "icon": "backgrounds",
+            "label": "4 fondos"
+          },
+          {
+            "icon": "resolution",
+            "label": "Alta resolución"
+          },
+          {
+            "icon": "guarantee",
+            "label": "Garantía de devolución"
+          }
+        ],
+        "id": "executive"
+      }
+    ]
+  },
+  "faq": {
+    "title": "Resuelve tus dudas antes de empezar",
+    "subtitle": "¿Te preguntas si las fotos con IA son para ti? Te contamos cómo funciona, desde la primera subida hasta tu galería final.",
+    "items": [
+      {
+        "question": "¿Qué es un generador de fotos profesionales con IA?",
+        "answer": "Un generador de fotos profesionales con IA crea retratos a partir de tus selfis. Perfilisto utiliza las fotos que subes para crear una galería con iluminación de estudio, ropa profesional y fondos cuidados, sin hacer una sesión de fotos."
+      },
+      {
+        "question": "¿Qué fotos debo subir para obtener los mejores resultados?",
+        "answer": "Sube seis fotos nítidas que muestren tu cara desde distintos ángulos, con varias expresiones y fondos. Puedes usar selfis. Busca buena iluminación, evita filtros intensos, gafas de sol y fotos de grupo, y usa maquillaje y accesorios parecidos a los habituales."
+      },
+      {
+        "question": "¿Cuánto tarda en generar las fotos?",
+        "answer": "Subir tus fotos y elegir tus estilos lleva unos minutos. La entrega es en 1 hora con Básico, 30 minutos con Profesional y 15 minutos con Ejecutivo."
+      },
+      {
+        "question": "¿Cuántas fotos recibiré?",
+        "answer": "Básico incluye 10 fotos con 1 conjunto y 1 fondo. Profesional incluye 50 fotos con 3 conjuntos y 4 fondos. Ejecutivo incluye 100 fotos con 3 conjuntos y 4 fondos. Las fotos de Profesional y Ejecutivo se generan en alta resolución."
+      },
+      {
+        "question": "¿Son realistas las fotos profesionales generadas con IA?",
+        "answer": "Perfilisto busca crear retratos naturales y reconocibles con iluminación y fondos profesionales. A veces la IA puede generar una imagen extraña o pasar por alto algún detalle; por eso recibes una galería completa entre la que elegir. Las fotos nítidas y variadas ayudan a obtener resultados más realistas."
+      },
+      {
+        "question": "¿Puedo elegir la ropa y los fondos?",
+        "answer": "Sí. Antes de subir tus fotos, eliges entre una selección de ropa y fondos profesionales para que la galería final refleje la imagen que quieres transmitir."
+      },
+      {
+        "question": "¿Puedo usar las fotos en LinkedIn y en mi CV?",
+        "answer": "Sí. Puedes usar tus fotos de Perfilisto en LinkedIn, tu CV, tu perfil de empresa, tu portfolio, tu web, tu firma de correo y donde necesites una foto profesional."
+      },
+      {
+        "question": "¿Cuánto cuestan las fotos profesionales con IA?",
+        "answer": "Perfilisto es un pago único, con planes desde 29 € por 10 fotos. Profesional cuesta 39 € por 50 fotos y Ejecutivo, 69 € por 100 fotos. No hay suscripción. Una sesión con un fotógrafo suele rondar los 300 € por menos fotos y ocupa media jornada."
+      },
+      {
+        "question": "¿Puedo guardar y descargar mis favoritas?",
+        "answer": "Sí. Cuando tu galería esté lista, podrás ver los resultados, guardar tus favoritas con el botón del corazón y descargar las fotos que quieras usar."
+      },
+      {
+        "question": "¿Son privados mis selfis y mis fotos generadas?",
+        "answer": "Guardamos las fotos que subes y los resultados generados para crear y entregarte tu galería. No vendemos tus datos personales. Puedes pedirnos que eliminemos tu cuenta y tus fotos en cualquier momento escribiendo a hello@perfilisto.com."
+      },
+      {
+        "question": "¿Qué pasa si no me gustan los resultados?",
+        "answer": "Profesional y Ejecutivo incluyen una garantía de devolución del 100 %. Seguir las indicaciones al subir las fotos ayuda a que la IA trabaje con el mejor material y consiga mejores resultados."
+      },
+      {
+        "question": "¿Cómo puedo contactar con Perfilisto?",
+        "answer": "Escribe a hello@perfilisto.com si necesitas ayuda con un pedido, tus fotos o tu cuenta."
+      }
+    ]
+  },
+  "footer": {
+    "tagline": "Fotos con calidad de estudio a partir de tus selfis.",
+    "explore": "Explorar",
+    "company": "Empresa",
+    "howItWorks": "Cómo funciona",
+    "pricing": "Precios",
+    "faq": "Preguntas frecuentes",
+    "privacy": "Privacidad",
+    "terms": "Condiciones",
+    "copyright": "Perfilisto · TAP & SWIPE SAS",
+    "privacyPolicy": "Política de privacidad",
+    "dataDeletion": "Eliminación de datos"
+  },
+  "onboarding": {
+    "welcome": {
+      "title": "Te damos la bienvenida a Perfilisto",
+      "subtitle": "Confirma lo siguiente para empezar.",
+      "age": "Confirmo que soy mayor de edad y tengo al menos 18 años.",
+      "termsBefore": "He leído, comprendido y acepto las",
+      "termsOfService": "Condiciones del servicio",
+      "termsAnd": "y",
+      "privacyPolicy": "Política de privacidad",
+      "consent": "Al marcar esta casilla, autorizo a Perfilisto a tratar y conservar mis fotos para generar retratos con IA, tal como se describe en la Política de privacidad.",
+      "continue": "Continuar"
+    },
+    "shared": {
+      "back": "Atrás",
+      "continue": "Continuar",
+      "close": "Cerrar",
+      "subtitle": "Ayúdanos a generar fotos que se ajusten a tus preferencias."
+    },
+    "leave": {
+      "stat": "4,8/5",
+      "statLabel": "de más de 1.453 profesionales que usan Perfilisto",
+      "title": "¿Seguro que quieres salir?",
+      "bodyBefore": "Como oferta especial, queremos regalarte un",
+      "offer": "10 % de descuento",
+      "bodyAfter": "en tus fotos. Usa el código",
+      "code": "NEW10",
+      "bodyEnd": "al pagar.",
+      "dashboard": "Ir al inicio",
+      "claim": "Conseguir mi descuento"
+    },
+    "gender": {
+      "title": "¿Cuál es tu género?",
+      "man": "Hombre",
+      "woman": "Mujer",
+      "other": "Otro"
+    },
+    "age": {
+      "title": "¿Cuántos años tienes?",
+      "options": [
+        {
+          "id": "18-20",
+          "label": "18–20"
+        },
+        {
+          "id": "21-24",
+          "label": "21–24"
+        },
+        {
+          "id": "25-29",
+          "label": "25–29"
+        },
+        {
+          "id": "30-40",
+          "label": "30–40"
+        },
+        {
+          "id": "41-50",
+          "label": "41–50"
+        },
+        {
+          "id": "51-65",
+          "label": "51–65"
+        },
+        {
+          "id": "65+",
+          "label": "65+"
+        }
+      ]
+    },
+    "hair": {
+      "title": "¿De qué color tienes el pelo?",
+      "subtitle": "Si tu color de pelo no coincide exactamente con ninguna opción, elige la más parecida.",
+      "options": [
+        {
+          "id": "brown",
+          "label": "Castaño"
+        },
+        {
+          "id": "black",
+          "label": "Negro"
+        },
+        {
+          "id": "blonde",
+          "label": "Rubio"
+        },
+        {
+          "id": "gray",
+          "label": "Gris"
+        },
+        {
+          "id": "auburn",
+          "label": "Castaño rojizo"
+        },
+        {
+          "id": "red",
+          "label": "Pelirrojo"
+        },
+        {
+          "id": "white",
+          "label": "Blanco"
+        },
+        {
+          "id": "other",
+          "label": "Otro"
+        },
+        {
+          "id": "bald",
+          "label": "Sin pelo"
+        }
+      ]
+    },
+    "hairLength": {
+      "title": "¿Qué largo tiene tu pelo?",
+      "subtitle": "Si el largo de tu pelo está entre dos opciones, elige la más parecida.",
+      "options": [
+        {
+          "id": "bald",
+          "label": "Sin pelo"
+        },
+        {
+          "id": "buzz",
+          "label": "Rapado"
+        },
+        {
+          "id": "short",
+          "label": "Corto"
+        },
+        {
+          "id": "medium",
+          "label": "Media melena"
+        },
+        {
+          "id": "long",
+          "label": "Largo"
+        }
+      ]
+    },
+    "hairType": {
+      "title": "¿Qué tipo de pelo tienes?",
+      "subtitle": "Si tu tipo de pelo está entre dos opciones, elige la más parecida.",
+      "options": [
+        {
+          "id": "straight",
+          "label": "Liso"
+        },
+        {
+          "id": "wavy",
+          "label": "Ondulado"
+        },
+        {
+          "id": "curly",
+          "label": "Rizado"
+        },
+        {
+          "id": "dreadlocks",
+          "label": "Rastas"
+        }
+      ]
+    },
+    "bodyType": {
+      "title": "¿Cuál es tu tipo de cuerpo?",
+      "subtitle": "Si tu tipo de cuerpo está entre dos opciones, elige la más parecida.",
+      "options": [
+        {
+          "id": "slim",
+          "label": "Delgado"
+        },
+        {
+          "id": "regular",
+          "label": "Medio"
+        },
+        {
+          "id": "athletic",
+          "label": "Atlético"
+        },
+        {
+          "id": "medium-large",
+          "label": "Medio-grande"
+        },
+        {
+          "id": "large",
+          "label": "Grande"
+        },
+        {
+          "id": "plus-size",
+          "label": "Talla grande"
+        }
+      ]
+    },
+    "attire": {
+      "title": "Elige tu ropa",
+      "subtitle": "Elige los conjuntos que te gusten. Tu plan determina cuántos usaremos.",
+      "options": [
+        {
+          "id": "professional",
+          "label": "Profesional formal",
+          "description": "Camisas de vestir y trajes con corbatas a juego"
+        },
+        {
+          "id": "business-casual",
+          "label": "Informal de oficina",
+          "description": "Americanas, chaquetas y camisas de manga larga"
+        },
+        {
+          "id": "smart-casual",
+          "label": "Informal elegante",
+          "description": "Jerséis cómodos y camisas de manga corta o larga"
+        }
+      ]
+    },
+    "backgrounds": {
+      "title": "Elige tus fondos",
+      "subtitle": "Elige los fondos que te gusten. Tu plan determina cuántos usaremos.",
+      "options": [
+        {
+          "id": "city",
+          "label": "Ciudad",
+          "description": "Calles urbanas llenas de vida"
+        },
+        {
+          "id": "nature",
+          "label": "Naturaleza",
+          "description": "Parques o calles arboladas"
+        },
+        {
+          "id": "office",
+          "label": "Oficina",
+          "description": "Oficina luminosa y minimalista"
+        },
+        {
+          "id": "studio",
+          "label": "Estudio",
+          "description": "Estudio de fotografía profesional"
+        }
+      ]
+    },
+    "upload": {
+      "privacyNotice": "Como servicio de pago, valoramos tu privacidad y la transparencia.",
+      "dropAnywhere": "Suelta tus fotos en cualquier lugar",
+      "dropAnywhereHint": "Suéltalas para añadirlas. Puedes subir hasta 10 fotos.",
+      "uploadLimitReached": "Has añadido 10 fotos",
+      "removeBeforeUpload": "Elimina una foto antes de añadir más.",
+      "title": "Sube tus fotos",
+      "preparingPhotos": "Preparando tus fotos…",
+      "tips": [
+        "Sube entre 6 y 10 fotos",
+        "Combina selfis y fotos de medio cuerpo",
+        "Usa fotos con buena iluminación",
+        "Tus fotos son privadas"
+      ],
+      "computerTitle": "Sube fotos desde tu ordenador",
+      "uploadFiles": "Subir archivos",
+      "dropHint": "o arrastra y suelta tus fotos",
+      "formats": "PNG, JPG, HEIC, WEBP de hasta 120 MB",
+      "mobileTitle": "O sube fotos desde tu móvil",
+      "qrTitle": "Escanea el código QR",
+      "howToPhone": "¿Cómo subo fotos desde mi móvil?",
+      "qrModalTitle": "Escanea el código QR",
+      "qrModalBody": "Usa la cámara de tu móvil para escanear este código QR y subir fotos directamente desde él",
+      "qrSteps": [
+        "Abre la cámara de tu móvil",
+        "Apunta al código QR de arriba",
+        "Elige fotos de tu galería o haz otras nuevas",
+        "Las fotos aparecerán en tu sesión del ordenador"
+      ],
+      "mobileUrlLabel": "Enlace para subir desde el móvil:",
+      "copy": "Copiar",
+      "copied": "Copiado",
+      "closeModal": "Cerrar",
+      "keepDesktopOpen": "Mantén abierta la sesión del ordenador para terminar de subir tus fotos.",
+      "mobilePageTitle": "Subir fotos desde el móvil",
+      "mobilePageSubtitle": "Elige y sube fotos desde tu móvil para completar el proceso.",
+      "mobileUploadCta": "Subir fotos",
+      "uploadingTitle": "Subiendo {count} foto",
+      "uploadingTitlePlural": "Subiendo {count} fotos",
+      "uploadingHint": "La subida puede tardar hasta 1 minuto",
+      "readyTitle": "{count} foto lista para subir",
+      "readyTitlePlural": "{count} fotos listas para subir",
+      "readyHint": "Puedes eliminar fotos o añadir más",
+      "sendToComputer": "Enviar fotos al ordenador",
+      "sending": "Enviando…",
+      "sent": "Fotos enviadas a tu ordenador",
+      "sessionMissing": "Este enlace no existe o ha caducado. Vuelve a escanear el código QR de tu ordenador.",
+      "removePhoto": "Eliminar foto",
+      "count": "{count} de {max} fotos subidas",
+      "minimum": "Mínimo de {min} fotos",
+      "minimumReached": "Has alcanzado el mínimo de fotos",
+      "hoverHint": "Pasa el cursor por un ejemplo para ver más",
+      "requirementsTitle": "Requisitos de las fotos",
+      "restrictionsTitle": "Fotos que debes evitar",
+      "requirementGroups": [
+        {
+          "caption": "De frente, a la altura de los ojos",
+          "photos": [
+            {
+              "src": "/onboarding/hair-length/woman-short.jpg",
+              "label": "De frente"
+            },
+            {
+              "src": "/onboarding/body-type/man-regular.jpg",
+              "label": "A la altura de los ojos"
+            }
+          ]
+        },
+        {
+          "caption": "Combina primeros planos y medio cuerpo",
+          "photos": [
+            {
+              "src": "/onboarding/attire/woman-professional.jpg",
+              "label": "Selfi"
+            },
+            {
+              "src": "/onboarding/body-type/woman-regular.jpg",
+              "label": "De cintura para arriba"
+            }
+          ]
+        },
+        {
+          "caption": "Distinta ropa y fondos",
+          "photos": [
+            {
+              "src": "/onboarding/backgrounds/man-city.jpg",
+              "label": "Ciudad, jersey"
+            },
+            {
+              "src": "/onboarding/attire/man-smart-casual.jpg",
+              "label": "Casa, polo"
+            }
+          ]
+        },
+        {
+          "caption": "Recientes, con el mismo peinado",
+          "photos": [
+            {
+              "src": "/onboarding/attire/woman-professional.jpg",
+              "label": "Reciente"
+            },
+            {
+              "src": "/onboarding/hair-length/woman-medium.jpg",
+              "label": "Pelo arreglado"
+            }
+          ]
+        }
+      ],
+      "restrictionPhotos": [
+        {
+          "src": "/onboarding/upload/side-profile.jpg",
+          "label": "De perfil"
+        },
+        {
+          "src": "/onboarding/upload/from-below.jpg",
+          "label": "Desde abajo"
+        },
+        {
+          "src": "/onboarding/upload/low-lighting.jpg",
+          "label": "Poca luz"
+        },
+        {
+          "src": "/onboarding/upload/ai-generated.jpg",
+          "label": "Generado con IA"
+        },
+        {
+          "src": "/onboarding/upload/too-close.jpg",
+          "label": "Demasiado cerca"
+        },
+        {
+          "src": "/onboarding/upload/too-far.jpg",
+          "label": "Demasiado lejos"
+        },
+        {
+          "src": "/onboarding/upload/swimwear.jpg",
+          "label": "Ropa de baño"
+        },
+        {
+          "src": "/onboarding/upload/hat-glasses.jpg",
+          "label": "Gorro, gafas"
+        }
+      ]
+    }
+  },
+  "legal": {
+    "dataDeletion": {
+      "title": "Instrucciones para eliminar tus datos",
+      "updated": "Última actualización: 11 de septiembre de 2026",
+      "body": [
+        "Puedes solicitar la eliminación de los datos personales que has proporcionado a Perfilisto, un servicio de Tap & Swipe SAS, sin iniciar sesión.",
+        "1. Escribe a hello@perfilisto.com con el asunto «Solicitud de eliminación de datos de Perfilisto». Envía la solicitud desde el correo asociado a tu cuenta de Perfilisto, si tienes una.",
+        "2. Indica si quieres eliminar toda tu cuenta y los datos asociados, o solo determinadas fotos subidas o generadas. Si usaste Google o Facebook para iniciar sesión, menciona el proveedor y el correo asociado. No envíes contraseñas ni tokens de acceso.",
+        "3. Si ya no tienes acceso a ese correo, explícalo en tu solicitud para que podamos ayudarte a identificar tu cuenta. Es posible que necesitemos comprobar que la cuenta o los datos te pertenecen antes de eliminarlos.",
+        "Tu solicitud puede incluir la información de tu cuenta, las fotos subidas, las fotos generadas y los datos de perfil recibidos al iniciar sesión con Google o Facebook. Escribe a hello@perfilisto.com para consultar el estado de tu solicitud.",
+        "Eliminar Perfilisto de tus aplicaciones conectadas en Google o Facebook revoca la conexión, pero no solicita la eliminación de los datos que Perfilisto ya conserva. Sigue también las instrucciones de correo anteriores para solicitar su eliminación en Perfilisto."
+      ]
+    },
+    "privacy": {
+      "title": "Privacidad",
+      "updated": "Última actualización: 11 de septiembre de 2026",
+      "body": [
+        "Perfilisto es un servicio de fotos profesionales de Tap & Swipe SAS. Tratamos tus datos de inicio de sesión, fotos de referencia y datos de pedidos para prestar el servicio.",
+        "Las fotos de referencia y las galerías generadas se almacenan de forma privada en Cloudflare. Las sesiones de subida desde el móvil caducan a las dos horas. Los pedidos sin pagar caducan a las 24 horas. Las fotos de referencia y galerías de pedidos pagados se programan para su eliminación 30 días después del pago.",
+        "Google o Facebook proporciona tu identificador de inicio de sesión, nombre, correo y foto de perfil, cuando están disponibles. Usamos una cookie de sesión segura para mantener tu sesión iniciada y tu identificador para asociar los pedidos a tu cuenta.",
+        "Cuando solicitas el procesamiento de fotos, enviamos tus imágenes de referencia a OpenAI para comprobar su calidad y generar retratos. Whop procesa los pagos mediante su formulario seguro; Perfilisto no recibe tu número de tarjeta. No vendemos datos personales. Los resultados se identifican como generados con IA.",
+        "Las analíticas están activadas de forma predeterminada. Usamos las analíticas de Whop para medir visitas, pasos del proceso y rendimiento publicitario, y relacionarlos con las compras. Whop recibe tu dirección IP e información del navegador; Cloudflare proporciona ciudad, región, código postal y país aproximados cuando están disponibles. Tras iniciar sesión, también proporcionamos tu nombre, correo y un identificador de cuenta opaco para relacionar tu recorrido. No incluimos fotos de referencia, respuestas sobre apariencia ni datos de tarjeta en estos eventos.",
+        "Tu preferencia de analíticas se guarda durante seis meses. Los parámetros de campaña aceptados se conservan en el navegador hasta 30 días y un identificador del proceso en la pestaña hasta 24 horas. Whop usa identificadores del navegador y del dispositivo para relacionar eventos con el pago. Los eventos pendientes se reintentan en tu pestaña hasta diez minutos y en Cloudflare hasta 24 horas. Cloudflare elimina el contenido del evento tras la entrega y conserva un marcador de entrega no personal hasta 30 días. Puedes desactivar las analíticas en «Preferencias de seguimiento» en esta página; esto detiene nuestras analíticas opcionales, pero no elimina datos ya tratados ni desactiva el procesamiento esencial de pagos. Escribe a hello@perfilisto.com para solicitar la eliminación de datos. También respetamos las señales Global Privacy Control y Do Not Track del navegador.",
+        "Puedes pedirnos que eliminemos tu cuenta y tus fotos escribiendo a hello@perfilisto.com."
+      ]
+    },
+    "terms": {
+      "title": "Condiciones",
+      "updated": "Última actualización: 11 de septiembre de 2026",
+      "body": [
+        "Al usar Perfilisto, aceptas estas condiciones.",
+        "Eres responsable de las fotos que subes. Sube únicamente fotos tuyas que tengas derecho a utilizar.",
+        "Las fotos resultantes se generan con IA. Profesional y Ejecutivo incluyen una garantía de devolución del 100 %.",
+        "Podemos modificar el producto, los precios o estas condiciones. Si el cambio es sustancial, actualizaremos esta página.",
+        "El servicio lo presta Tap & Swipe SAS. Estas condiciones se rigen por la legislación francesa."
+      ]
+    }
+  }
+}

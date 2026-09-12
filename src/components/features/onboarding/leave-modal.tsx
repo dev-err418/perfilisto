@@ -2,16 +2,15 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { IconX } from "@tabler/icons-react";
 
-import { getMessages } from "@/i18n";
+import { useLocale } from "@/i18n/client";
+import { useMessages } from "@/i18n/client";
 
 import { TrustRating } from "../landing/trust-rating";
 
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
-
-const messages = getMessages();
 
 const collage = [
   {
@@ -25,6 +24,8 @@ const collage = [
 ];
 
 export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
+  const locale = useLocale();
+  const messages = useMessages();
   const copy = messages.onboarding.leave;
   const router = useRouter();
 
@@ -84,7 +85,7 @@ export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
             {copy.title}
           </h2>
           <p className="mt-3 text-[15px] leading-6 text-muted-foreground">
-            {copy.bodyBefore}{" "}
+            {locale === "es" && <>{copy.bodyBefore}{" "}
             <span className="font-semibold text-[var(--primary)]">
               {copy.offer}
             </span>{" "}
@@ -92,7 +93,8 @@ export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
             <span className="font-semibold text-[var(--primary)]">
               {copy.code}
             </span>{" "}
-            {copy.bodyEnd}
+            {copy.bodyEnd}</>}
+            {locale === "en" && "Stay to finish creating your headshots, or return to the homepage."}
           </p>
           <div className="mt-auto flex flex-col gap-3 pt-6">
           <button
@@ -107,7 +109,7 @@ export const LeaveModal = ({ onStay }: { onStay: () => void }) => {
             onClick={onStay}
             className={`${PRIMARY_TINT_BUTTON_CLASS} inline-flex h-12 w-full items-center justify-center rounded-full px-4 text-[15px] font-semibold`}
           >
-            {copy.claim}
+            {locale === "es" ? copy.claim : "Continue creating"}
           </button>
           </div>
         </div>

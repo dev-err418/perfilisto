@@ -1,7 +1,10 @@
 "use client";
 
+import { stripLocale } from "@/i18n/routing.mjs";
+import { useT } from "@/i18n/client";
+
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { ANALYTICS_READY, consentChoice, privacySignal, saveConsent, trackFunnel, trackPage } from "@/lib/analytics/client";
 
 /** The global pixel owner: one script and SPA page views, with saved opt-outs respected. */
@@ -13,7 +16,7 @@ export function WhopPixel() {
       const anchor = (event.target as Element)?.closest?.("a[href]");
       if (!anchor) return;
       const url = new URL(anchor.getAttribute("href")!, location.href);
-      if (url.origin !== location.origin || url.pathname !== "/onboarding") return;
+      if (url.origin !== location.origin || stripLocale(url.pathname) !== "/onboarding") return;
       trackFunnel("get_started", { placement: pathname === "/" ? "landing" : "navigation", plan_id: url.searchParams.get("plan") || undefined });
     };
     document.addEventListener("click", click, true);
@@ -40,20 +43,21 @@ export function useFunnelStage(step: string) {
 }
 
 export function TrackingPreferences() {
+  const t = useT();
   const [status, setStatus] = useState<string>("");
-  useEffect(() => { queueMicrotask(() => setStatus(privacySignal() ? "Your browser requests that optional tracking remain off." : consentChoice() === "yes" ? "Optional analytics are enabled." : "Optional analytics are off.")); }, []);
+  useEffect(() => { queueMicrotask(() => setStatus(privacySignal() ? t("Your browser requests that optional tracking remain off.") : consentChoice() === "yes" ? t("Optional analytics are enabled.") : t("Optional analytics are off."))); }, [t]);
   const choose = (choice: "yes" | "no") => {
     saveConsent(choice);
     // This control lives on /privacy, so reload can stop an already loaded SDK without losing uploads.
     window.location.reload();
   };
   return <section id="tracking-preferences" className="mx-auto mt-10 w-full max-w-3xl rounded-3xl border border-black/10 bg-white p-6 text-neutral-900">
-    <h2 className="text-xl font-semibold">Tracking preferences</h2>
+    <h2 className="text-xl font-semibold">{t("Tracking preferences")}</h2>
     <p role="status" className="mt-2 text-sm text-neutral-600">{status}</p>
-    <p className="mt-2 text-sm text-neutral-600">Changing this preference does not affect sign-in or payments. Whop still processes essential checkout and payment information.</p>
+    <p className="mt-2 text-sm text-neutral-600">{t("Changing this preference does not affect sign-in or payments. Whop still processes essential checkout and payment information.")}</p>
     <div className="mt-4 flex flex-wrap gap-3">
-      <button onClick={() => choose("no")} className="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold">Decline analytics</button>
-      <button onClick={() => choose("yes")} className="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold">Allow analytics</button>
+      <button onClick={() => choose("no")} className="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold">{t("Decline analytics")}</button>
+      <button onClick={() => choose("yes")} className="rounded-full border border-black/15 px-5 py-2 text-sm font-semibold">{t("Allow analytics")}</button>
     </div>
   </section>;
 }

@@ -1,6 +1,6 @@
 import { validEmail } from "../src/lib/email/messages.mjs";
 import { sanitizePreferences } from "../src/lib/orders/preferences.mjs";
-import plans from "../src/lib/orders/plans.json" with { type: "json" };
+import { getPlans } from "../src/lib/orders/catalog.mjs";
 import { getToken } from "@auth/core/jwt";
 import {
   whop,
@@ -165,12 +165,15 @@ export class HeadshotOrder {
       }
     }
     if (!order && request.method === "POST" && !action) {
-      const plan = plans.find((p) => p.id === body.planId);
+      if (body.locale !== undefined && !["es", "en"].includes(body.locale)) return json({ error: "Choose a supported language" }, 400);
+      const locale = body.locale || "es";
+      const plan = getPlans(locale).find((p) => p.id === body.planId);
       if (!plan) return json({ error: "Choose a package" }, 400);
       const preferences = sanitizePreferences(body.preferences, plan.id);
       order = {
         ...plan,
         planId: plan.id,
+        locale,
         id,
         owner,
         customer,
@@ -244,17 +247,35 @@ export class HeadshotOrder {
           idempotencyKey: `checkout-${id}`,
           body: {
             account_id: this.env.WHOP_ACCOUNT_ID,
-            plan_id: order.whopPlanId,
+            // Snapshot the server-owned amount; never trust a client price or use
+            // an old EUR plan for a USD checkout. Whop returns the generated plan ID.
+            plan: {
+              company_id: this.env.WHOP_ACCOUNT_ID,
+              currency: order.currency,
+              initial_price: order.price,
+              plan_type: "one_time",
+              release_method: "buy_now",
+              visibility: "hidden",
+              adaptive_pricing_enabled: false,
+              title: `Perfilisto ${order.name}`,
+              product: { title: "Perfilisto headshots", external_identifier: "perfilisto-headshots" },
+              payment_method_configuration: { enabled: ["card"], disabled: [], include_platform_defaults: false },
+            },
+            allow_promo_codes: order.locale !== "en",
             payment_method_configuration: {
               enabled: ["card"],
               disabled: [],
               include_platform_defaults: false,
             },
             metadata: { order_id: id },
-            redirect_url: `${url.origin}/onboarding?order=${id}`,
+            redirect_url: `${url.origin}/${order.locale || "es"}/onboarding?order=${id}`,
             checkout_styling: { button_color: "#ff7416" },
           },
         });
+        if (!config.plan?.id || config.plan.currency?.toLowerCase() !== order.currency || Number(config.plan.initial_price) !== order.price) {
+          throw new Error("The payment price could not be confirmed. Please try again.");
+        }
+        order.whopPlanId = config.plan.id;
         order.checkoutId = config.id;
         order.status = "checkout";
         await this.save(order);
@@ -299,7 +320,7 @@ export class HeadshotOrder {
             dataUrl: `data:image/jpeg;base64,${btoa(binary)}`,
           });
         }
-        order.review = await verifyPhotos(this.env, photos);
+        order.review = await verifyPhotos(this.env, photos, order.locale || "en");
         await this.save(order);
       }
     } else if (request.method === "PUT" && action === "favorites") {
@@ -626,7 +647,7 @@ export class HeadshotOrder {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               kind,
-              order: { id: order.id, customer: order.customer },
+              order: { id: order.id, customer: order.customer, locale: order.locale },
             }),
           }),
         );

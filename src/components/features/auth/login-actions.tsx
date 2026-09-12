@@ -1,14 +1,17 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+
 import { trackFunnel } from "@/lib/analytics/client";
 import { useEffect, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 
-const copy = getMessages().login;
 type Provider = "google" | "facebook";
 
 export function LoginActions() {
+  const t = useT();
+  const copy = useMessages().login;
   const [providers, setProviders] = useState<Partial<Record<Provider, unknown>>>({});
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<Provider | null>(null);
@@ -22,15 +25,15 @@ export function LoginActions() {
         setProviders(await response.json());
         if (new URLSearchParams(window.location.search).has("error")) {
           trackFunnel("sign_in_failed", {}, "sign_in_return_error");
-          setError("Sign-in could not be completed. Please try again.");
+          setError(t("Sign-in could not be completed. Please try again."));
         }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setError("Sign-in is temporarily unavailable. Please refresh and try again.");
+        if (!controller.signal.aborted) setError(t("Sign-in is temporarily unavailable. Please refresh and try again."));
       })
       .finally(() => { if (!controller.signal.aborted) setLoading(false); });
     return () => controller.abort();
-  }, []);
+  }, [t]);
 
   async function signIn(provider: Provider) {
     trackFunnel("sign_in_started", { provider });
@@ -53,7 +56,7 @@ export function LoginActions() {
       window.location.assign(url);
     } catch {
       trackFunnel("sign_in_failed", { provider });
-      setError("Sign-in could not be started. Please try again.");
+      setError(t("Sign-in could not be started. Please try again."));
       setPending(null);
     }
   }
@@ -69,12 +72,12 @@ export function LoginActions() {
           className="relative flex h-12 w-full items-center justify-center gap-3 rounded-full border border-black/15 bg-white px-4 text-sm font-semibold shadow-xs transition-colors hover:bg-black/[0.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading || pending === provider ? <Spinner className="size-5" aria-hidden="true" /> : provider === "google" ? <GoogleIcon /> : <FacebookIcon />}
-          {pending === provider ? "Connecting…" : copy[provider]}
+          {pending === provider ? t("Connecting…") : copy[provider]}
         </button>
       ))}
       {error ? <p role="alert" className="text-center text-sm text-red-700">{error}</p> : null}
       {!loading && !error && (!providers.google || !providers.facebook) ? (
-        <p className="text-center text-xs text-muted-foreground">More sign-in options will be available soon.</p>
+        <p className="text-center text-xs text-muted-foreground">{t("More sign-in options will be available soon.")}</p>
       ) : null}
     </div>
   );

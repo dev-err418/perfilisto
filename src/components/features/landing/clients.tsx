@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/i18n/client";
 import Image from "next/image";
 import type { Messages } from "@/i18n";
 
@@ -43,6 +46,7 @@ const ClientCompare = ({
 );
 
 export const Clients = ({ messages }: { messages: Messages }) => {
+  const t = useT();
   const copy = messages.clients;
 
   return (
@@ -77,7 +81,7 @@ export const Clients = ({ messages }: { messages: Messages }) => {
               />
               <div
                 className="mt-5 flex gap-0.5"
-                aria-label={`Rated ${review.rating} out of 5`}
+                aria-label={t("Rated {v0} out of 5", { v0: review.rating })}
               >
                 {Array.from({ length: 5 }, (_, star) => (
                   <span

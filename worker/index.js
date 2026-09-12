@@ -1,3 +1,4 @@
+import { localeRedirect, pathLocale, stripLocale } from "../src/i18n/routing.mjs";
 export { AnalyticsDelivery } from "./analytics-delivery.js";
 import { handleAnalyticsContext, handleAnalyticsEvent } from "./analytics.js";
 export { EmailDelivery } from "./email-delivery.js";
@@ -16,6 +17,8 @@ const worker = {
     const url = new URL(request.url);
     if (url.pathname === "/api/analytics/events") return handleAnalyticsEvent(request, env);
     if (url.pathname === "/api/analytics/context") return handleAnalyticsContext(request, env);
+    const languageRedirect = localeRedirect(request, request.cf?.country);
+    if (languageRedirect) return new Response(null, { status: 307, headers: { Location: languageRedirect, "Cache-Control": "private, no-store", Vary: "Accept-Language, Cookie" } });
     const authenticated = await hasSession(request, env);
     const policy = getRequestPolicy(request.url, authenticated);
     if (policy.redirect) {
@@ -30,7 +33,7 @@ const worker = {
 
     if (url.pathname.startsWith("/api/auth/")) return handleAuth(request, env);
 
-    if (url.pathname === "/login" && authenticated) {
+    if (stripLocale(url.pathname) === "/login" && authenticated) {
       return new Response(null, { status: 307, headers: { Location: safeRedirect(url.searchParams.get("redirect") ?? "/dashboard", url.origin), "Cache-Control": "private, no-store" } });
     }
 
@@ -57,6 +60,12 @@ const worker = {
       });
     }
 
+    const locale = pathLocale(url.pathname);
+    if (locale && response.headers.get("Content-Type")?.includes("text/html")) {
+      response.headers.append("Set-Cookie", `perfilisto-locale=${locale}; Path=/; Max-Age=31536000; SameSite=Lax; Secure`);
+      response.headers.set("Content-Language", locale);
+      response.headers.set("Cache-Control", "private, no-store");
+    }
     return response;
   },
 };

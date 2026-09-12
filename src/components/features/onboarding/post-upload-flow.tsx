@@ -1,4 +1,7 @@
 "use client";
+import Link from "@/i18n/navigation";
+
+import { useT } from "@/i18n/client";
 
 import { trackFunnel } from "@/lib/analytics/client";
 import { Spinner } from "@/components/ui/spinner";
@@ -12,7 +15,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { FinishingSteps, type FinishingStep } from "./finishing-steps";
 import { ConsentCheckbox } from "./consent-checkbox";
 import { AlbumPage } from "./album-page";
@@ -24,9 +27,10 @@ import {
   IconX,
   IconArrowRight,
 } from "@tabler/icons-react";
-import plans from "@/lib/orders/plans.json";
+import { getPlans, formatPrice } from "@/lib/orders/catalog.mjs";
+import { useLocale } from "@/i18n/client";
 import type { Order, Preferences } from "@/lib/orders/types";
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 import { fileToJpegDataUrl } from "@/lib/upload-session-client";
 import { cn } from "@/lib/utils";
 import { TrustRating } from "../landing/trust-rating";
@@ -38,7 +42,7 @@ import { UploadStep, type UploadedPhoto } from "./upload-step";
 
 const primary = `${PRIMARY_TINT_BUTTON_CLASS} inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-7 py-3 font-semibold disabled:opacity-40 disabled:pointer-events-none`;
 const money = (value: number, currency = "eur") =>
-  new Intl.NumberFormat("en-IE", { style: "currency", currency }).format(value);
+  new Intl.NumberFormat(currency === "eur" ? "es-ES" : "en-US", { style: "currency", currency }).format(value);
 const savedOrderKey = "perfilisto-active-order";
 
 async function api(
@@ -85,6 +89,7 @@ function Modal({
   onClose: () => void;
   wide?: boolean;
 }) {
+  const t = useT();
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const dialog = ref.current;
@@ -111,7 +116,7 @@ function Modal({
     >
       <button
         className="absolute top-4 right-4 grid size-10 place-items-center rounded-full hover:bg-black/5"
-        aria-label="Close dialog"
+        aria-label={t("Close dialog")}
         onClick={onClose}
       >
         <IconX className="size-5" />
@@ -131,6 +136,10 @@ export function PostUploadFlow({
   onBack: () => void;
   onClose: () => void;
 }) {
+  const t = useT();
+  const messages = useMessages();
+  const locale = useLocale();
+  const plans = getPlans(locale);
   const router = useRouter();
   const [finishing, setFinishing] = useState<FinishingStep>("photos");
   const [details, setDetails] = useState<Preferences>({
@@ -158,7 +167,7 @@ export function PostUploadFlow({
   }, [order?.status, finishing]);
   const pendingId = useRef<string | null>(null);
   const plan = plans.find((p) => p.id === selected)!;
-  const pricingPlans = getMessages().pricing.plans;
+  const pricingPlans = messages.pricing.plans;
   const lock = useRef(false);
   const run = async (label: string, fn: () => Promise<void>) => {
     if (lock.current) return;
@@ -168,8 +177,8 @@ export function PostUploadFlow({
     try {
       await fn();
     } catch (e) {
-      if (label === "Saving your photos…") trackFunnel("order_preparation_failed");
-      setError(e instanceof Error ? e.message : "Please try again.");
+      if (label === t("Saving your photos…")) trackFunnel("order_preparation_failed");
+      setError(e instanceof Error ? e.message : t("Please try again."));
     } finally {
       lock.current = false;
       setBusy("");
@@ -193,7 +202,7 @@ export function PostUploadFlow({
     const url = new URL(window.location.href);
     url.searchParams.set("order", next.id);
     window.history.replaceState(null, "", url);
-  }, []);
+  }, [setOrder, setSelected, setDetails]);
   useEffect(() => {
     let cancelled = false;
     const query = new URLSearchParams(window.location.search);
@@ -227,7 +236,7 @@ export function PostUploadFlow({
     return () => {
       cancelled = true;
     };
-  }, [remember]);
+  }, [remember, plans]);
   useEffect(() => {
     if (
       !order ||
@@ -265,12 +274,13 @@ export function PostUploadFlow({
   }, [order?.id, order?.status, order?.payment, demo, editing]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const checkout = () =>
-    run("Saving your photos…", async () => {
+    run(t("Saving your photos…"), async () => {
       let next = order;
       if (!next) {
         pendingId.current ||= crypto.randomUUID();
         next = await api(pendingId.current, "", {
           planId: selected,
+          locale,
           preferences: details,
         });
         remember(next);
@@ -291,10 +301,10 @@ export function PostUploadFlow({
     });
   const verify = (savedOrder?: Order) => {
     setModal(null);
-    return run("Checking your photos…", async () => {
+    return run(t("Checking your photos…"), async () => {
       const current = savedOrder || order;
       if (!current) return;
-      const toastId = toast.loading("Checking your photos…");
+      const toastId = toast.loading(t("Checking your photos…"));
       try {
         const next = demo
           ? {
@@ -307,7 +317,7 @@ export function PostUploadFlow({
                   reason: "",
                   framing: "close_up",
                 })),
-                summary: "Your photos are clear and well lit.",
+                summary: t("Your photos are clear and well lit."),
                 needsMidRange: true,
               },
             }
@@ -316,26 +326,26 @@ export function PostUploadFlow({
         const acceptedCount = next.review?.photos.filter((photo) => photo.accepted).length ?? 0;
         const ready = acceptedCount >= 6;
         const needsMidRange = next.review?.needsMidRange;
-        (ready ? toast.success : toast.warning)(ready ? "Your photos look good!" : "Some photos need replacing", {
+        (ready ? toast.success : toast.warning)(ready ? t("Your photos look good!") : t("Some photos need replacing"), {
           id: toastId,
           description: !ready
-            ? `${acceptedCount} photos accepted. Add ${6 - acceptedCount} more clear photos with your face visible to continue.`
+            ? t("{v0} photos accepted. Add {v1} more clear photos with your face visible to continue.", { v0: acceptedCount, v1: 6 - acceptedCount })
             : needsMidRange
-              ? "You have enough accepted photos. A mid-range shot showing your shoulders and upper body would help."
-              : `${acceptedCount} photos accepted. You’re ready to continue.`,
+              ? t("You have enough accepted photos. A mid-range shot showing your shoulders and upper body would help.")
+              : t("{v0} photos accepted. You’re ready to continue.", { v0: acceptedCount }),
           duration: 6000,
           closeButton: true,
 
         });
       } catch (error) {
-        toast.error("We couldn’t check your photos", { id: toastId, description: "Please try again. Your photos and payment are saved.", duration: 6000, closeButton: true });
+        toast.error(t("We couldn’t check your photos"), { id: toastId, description: t("Please try again. Your photos and payment are saved."), duration: 6000, closeButton: true });
         throw error;
       }
     });
   };
   const saveUploads = async () => {
     let saved: Order | undefined;
-    await run("Saving your photos…", async () => {
+    await run(t("Saving your photos…"), async () => {
       if (!order) return;
       saved = demo
         ? { ...order, photos: editPhotos, review: undefined }
@@ -346,7 +356,7 @@ export function PostUploadFlow({
     if (saved) await verify(saved);
   };
   const generate = () =>
-    run("Starting your headshots…", async () => {
+    run(t("Starting your headshots…"), async () => {
       if (!order || !detailsConsent || !finishValid || accepted < 6) return;
       if (demo) {
         const previewOrder: Order = { ...order, preferences: details, status: "generating", batchStatus: "validating" };
@@ -373,7 +383,7 @@ export function PostUploadFlow({
       id: "preview-only",
       status: "paid",
       photos: photos.map((p) => ({ id: p.id, name: p.name, url: p.url })),
-      payment: { amount: plan.price, currency: "eur" },
+      payment: { amount: plan.price, currency: plan.currency },
       preferences: details,
       results: [],
       expiresAt: Date.now() + 86_400_000,
@@ -399,7 +409,7 @@ export function PostUploadFlow({
     try {
       localStorage.removeItem(savedOrderKey);
     } catch {}
-    window.history.replaceState(null, "", "/onboarding");
+    window.history.replaceState(null, "", `/${locale}/onboarding`);
     onBack();
   };
   const finishValid =
@@ -449,16 +459,16 @@ export function PostUploadFlow({
         continueLabel={
           busy ||
           (editing
-            ? "Check my photos"
+            ? t("Check my photos")
             : needsPhotoCheck
-              ? "Check my photos"
+              ? t("Check my photos")
             : needsReplacementPhotos
-              ? "Upload a new photo to continue"
+              ? t("Upload a new photo to continue")
             : reviewStage
               ? finishing === "details"
-                ? "Create my headshots"
-                : "Continue"
-              : `Continue with ${order?.name || plan.name}`)
+                ? t("Create my headshots")
+                : t("Continue")
+              : t("Continue with {v0}", { v0: t(order?.name || plan.name) }))
         }
         onContinue={editing ? saveUploads : needsPhotoCheck ? () => verify() : needsReplacementPhotos ? () => uploadInputRef.current?.click() : reviewStage ? advance : checkout}
         onClose={onClose}
@@ -468,18 +478,13 @@ export function PostUploadFlow({
               id="confirm-headshot-details"
               checked={detailsConsent}
               onChange={setDetailsConsent}
-            >
-              I confirm these details are accurate, these are my own recent
-              photos, I am 18 or older, and I have permission to use them. I
-              agree to the{" "}
-              <a
+            >{t("I confirm these details are accurate, these are my own recent photos, I am 18 or older, and I have permission to use them. I agree to the")}{" "}
+              <Link
                 href="/terms"
                 target="_blank"
                 rel="noreferrer"
                 className="underline"
-              >
-                terms
-              </a>
+              >{t("terms")}</Link>
               .
             </ConsentCheckbox>
           ) : undefined
@@ -490,14 +495,12 @@ export function PostUploadFlow({
             role="alert"
             className="mx-auto mb-5 max-w-6xl rounded-2xl bg-red-50 px-5 py-4 text-red-800"
           >
-            {error}
+            {t(error)}
           </div>
         )}
         {restoring ? (
           <div className="grid min-h-[50vh] place-content-center justify-items-center gap-4">
-            <Spinner className="size-8 text-primary" />
-            Restoring your order…
-          </div>
+            <Spinner className="size-8 text-primary" />{t("Restoring your order…")}</div>
         ) : (editing || (reviewStage && finishing === "photos")) && order ? (
           <fieldset disabled={!!busy || !!modal} className="min-w-0 border-0 p-0" aria-busy={!!busy}>
             <UploadStep
@@ -506,7 +509,7 @@ export function PostUploadFlow({
               disabled={!!busy || !!modal}
               review={order.review}
               reviewPending={editing}
-              checking={busy === "Checking your photos…"}
+              checking={busy === t("Checking your photos…")}
               onChange={(next) => {
                 setDetailsConsent(false);
                 setEditPhotos(next);
@@ -532,7 +535,7 @@ export function PostUploadFlow({
             onComplete={(receipt) => {
               setWaitingPayment(true);
               if (receipt)
-                void run("Confirming your payment…", async () => {
+                void run(t("Confirming your payment…"), async () => {
                   const next = await api(order.id, "confirm", { paymentId: receipt });
                   setOrder(next);
                   if (next.payment) {
@@ -545,21 +548,16 @@ export function PostUploadFlow({
         ) : (
           <div className="mx-auto grid w-full max-w-7xl gap-12 py-4 lg:grid-cols-[1fr_220px]">
             <div>
-              <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-[-.045em] sm:text-5xl">
-                Great headshots.
-                <br />A lasting first impression.
-              </h1>
-              <p className="mt-4 text-lg text-neutral-500">
-                Choose your package. Pay once, with no subscription.
-              </p>
-              <TrustRating messages={getMessages()} className="mt-6" />
+              <h1 className="max-w-3xl text-4xl leading-tight font-semibold tracking-[-.045em] sm:text-5xl">{t("Great headshots.")}<br />{t("A lasting first impression.")}</h1>
+              <p className="mt-4 text-lg text-neutral-500">{t("Choose your package. Pay once, with no subscription.")}</p>
+              <TrustRating messages={messages} className="mt-6" />
               <div
                 className="mt-9 grid items-stretch gap-4 md:grid-cols-3"
                 role="radiogroup"
-                aria-label="Headshot package"
+                aria-label={t("Headshot package")}
               >
                 {plans.map((p) => {
-                  const copy = pricingPlans.find((plan) => plan.name === p.name);
+                  const copy = pricingPlans.find((plan) => plan.id === p.id);
 
                   return (
                   <button
@@ -581,19 +579,15 @@ export function PostUploadFlow({
                     )}
                   >
                     <span className="flex min-h-14 flex-wrap items-start justify-between gap-2">
-                      <span className="text-lg font-semibold">{p.name}</span>
+                      <span className="text-lg font-semibold">{t(p.name)}</span>
                       {p.featured && (
-                        <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">
-                          Most popular
-                        </span>
+                        <span className="rounded-full bg-primary/10 px-2 py-1 text-[10px] font-bold text-primary">{t("Most popular")}</span>
                       )}
                     </span>
                     <span className="mt-5 text-5xl font-semibold tracking-tighter">
-                      €{p.price}
+                      {order?.planId === p.id ? formatPrice(order.price, locale, order.currency) : formatPrice(p.price, locale)}
                     </span>
-                    <span className="mt-2 text-xs text-neutral-500">
-                      one-time payment
-                    </span>
+                    <span className="mt-2 text-xs text-neutral-500">{t("one-time payment")}</span>
                     {copy ? (
                       <PlanFeatureList
                         className="mt-8 text-sm"
@@ -617,9 +611,7 @@ export function PostUploadFlow({
                 })}
               </div>
               <div className="mt-7 flex items-center gap-3 rounded-2xl bg-[#fff4ea] p-4 text-sm">
-                <IconLock className="size-5 shrink-0 text-primary" />
-                Your photos stay private. We use them to create your headshots.
-              </div>
+                <IconLock className="size-5 shrink-0 text-primary" />{t("Your photos stay private. We use them to create your headshots.")}</div>
               {process.env.NODE_ENV === "development" && photos.length >= 6 && (
                 <button
                   onClick={startDemo}
@@ -637,11 +629,9 @@ export function PostUploadFlow({
                     try {
                       localStorage.removeItem(savedOrderKey);
                     } catch {}
-                    window.history.replaceState(null, "", "/onboarding");
+                    window.history.replaceState(null, "", `/${locale}/onboarding`);
                   }}
-                >
-                  Choose another package
-                </button>
+                >{t("Choose another package")}</button>
               )}
             </div>
             <ResultImageScroll />
@@ -649,24 +639,17 @@ export function PostUploadFlow({
         )}
       </OnboardingStepShell>
       {modal === "payment" && order && (
-        <Modal title="Payment received" onClose={() => { void verify(); }}>
+        <Modal title={t("Payment received")} onClose={() => { void verify(); }}>
           <Fireworks />
           <div className="py-5 text-center">
             <LogoMark className="mx-auto mb-6 size-14" />
-            <h2 className="text-3xl font-semibold tracking-tight">
-              We’ve received your payment!
-            </h2>
+            <h2 className="text-3xl font-semibold tracking-tight">{t("We’ve received your payment!")}</h2>
             <p className="mx-auto mt-6 w-fit rounded-2xl border border-black/10 px-6 py-4 text-4xl font-semibold">
               {money(order.payment!.amount, order.payment!.currency)}
             </p>
-            <p className="mt-6 text-xl font-medium">You’re almost there.</p>
-            <p className="mt-3 text-neutral-500">
-              Let’s check your photos and confirm the details before creating
-              your headshots.
-            </p>
-            <button className={`${primary} mt-8`} onClick={() => verify()}>
-              Check my photos
-              <IconArrowRight className="size-4" />
+            <p className="mt-6 text-xl font-medium">{t("You’re almost there.")}</p>
+            <p className="mt-3 text-neutral-500">{t("Let’s check your photos and confirm the details before creating your headshots.")}</p>
+            <button className={`${primary} mt-8`} onClick={() => verify()}>{t("Check my photos")}<IconArrowRight className="size-4" />
             </button>
           </div>
         </Modal>

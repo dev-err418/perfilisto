@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/i18n/client";
 import Image from "next/image";
 import { IconCheck, IconPhoto } from "@tabler/icons-react";
 import { Download, Heart } from "lucide-react";
@@ -148,7 +151,7 @@ const GALLERY_PHOTOS = [
   "/headshots/woman_08_professional_nature.webp",
 ] as const;
 
-const GalleryPreview = () => (
+const GalleryPreview = () =>  { const t = useT(); return (
   <div className="gallery-demo" aria-hidden="true">
     <div className="gallery-demo-grid">
       {GALLERY_PHOTOS.map((src, index) => (
@@ -170,9 +173,7 @@ const GalleryPreview = () => (
                 <Heart className="gallery-demo-heart-icon" />
               </span>
               <span className="gallery-demo-download">
-                <Download className="gallery-demo-download-icon" aria-hidden="true" />
-                Download
-              </span>
+                <Download className="gallery-demo-download-icon" aria-hidden="true" />{t("Download")}</span>
             </span>
           ) : null}
         </article>
@@ -190,7 +191,7 @@ const GalleryPreview = () => (
     </div>
     <DemoCursor className="gallery-demo-cursor" />
   </div>
-);
+); };
 
 const stepPreview = (
   index: number,

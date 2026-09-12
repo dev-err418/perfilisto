@@ -1,5 +1,7 @@
 "use client"
 
+import { useT } from "@/i18n/client"
+
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -11,6 +13,7 @@ import { useTheme } from "next-themes"
 import { Toaster as Sonner, type ToasterProps } from "sonner"
 
 const Toaster = ({ ...props }: ToasterProps) => {
+  const t = useT()
   const { theme = "system" } = useTheme()
 
   return (
@@ -32,6 +35,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
+      containerAriaLabel={t("Notifications")}
+      toastOptions={{ closeButtonAriaLabel: t("Close") }}
       {...props}
     />
   )

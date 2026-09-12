@@ -2,17 +2,15 @@
 
 import { Spinner } from "@/components/ui/spinner";
 import { useEffect, useRef, type ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 import { IconArrowLeft, IconX } from "@tabler/icons-react";
 
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 import { cn } from "@/lib/utils";
 
 import { BrandWord } from "../landing/brand-name";
 import { ONBOARDING_CONTINUE_BUTTON_CLASS } from "../landing/button-styles";
 import { LogoMark } from "../landing/logo-mark";
-
-const messages = getMessages();
 
 export const OnboardingStepShell = ({
   stepKey,
@@ -43,6 +41,7 @@ export const OnboardingStepShell = ({
   children: ReactNode;
   footerContent?: ReactNode;
 }) => {
+  const messages = useMessages();
   const shellRef = useRef<HTMLDivElement>(null);
   const actionBarRef = useRef<HTMLDivElement>(null);
   useEffect(() => {

@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 
 import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
@@ -67,8 +67,7 @@ export const Pricing = ({ messages }: { messages: Messages }) => {
 
               <div className="mt-10 flex min-h-16 items-end gap-3">
                 <span className="text-[48px] leading-none font-semibold tracking-[-0.055em] text-black">
-                  {plan.price}
-                  {copy.currency}
+                  {copy.currency === "$" ? `$${plan.price}` : `${plan.price} €`}
                 </span>
                 <span className="flex flex-col justify-end pb-1 text-sm leading-5 font-medium text-muted-foreground">
                   {copy.period}
@@ -76,7 +75,7 @@ export const Pricing = ({ messages }: { messages: Messages }) => {
               </div>
 
               <Link
-                href={`/onboarding?plan=${plan.name.toLowerCase()}`}
+                href={`/onboarding?plan=${plan.id}`}
                 className={planCtaClassName(plan.featured)}
               >
                 {plan.cta}

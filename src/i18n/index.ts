@@ -1,13 +1,15 @@
-import { defaultLocale, type Locale } from "./config";
+import { defaultLocale, isLocale, type Locale } from "./config";
 import { en, type Messages } from "./messages/en";
+
+import es from "./messages/es.json";
 
 const catalogs: Record<Locale, Messages> = {
   en,
-  es: en,
+  es: es as Messages,
 };
 
-export function getMessages(locale: Locale = defaultLocale): Messages {
-  return catalogs[locale] ?? catalogs[defaultLocale];
+export function getMessages(locale: string = defaultLocale): Messages {
+  return catalogs[isLocale(locale) ? locale : defaultLocale];
 }
 
 export type { Messages };

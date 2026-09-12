@@ -1,3 +1,4 @@
+import { stripLocale } from "../../i18n/routing.mjs";
 import { Auth } from "@auth/core";
 import Google from "@auth/core/providers/google";
 import Facebook from "@auth/core/providers/facebook";
@@ -7,10 +8,11 @@ import { getToken } from "@auth/core/jwt";
 export function safeRedirect(target, origin) {
   try {
     const url = new URL(target, origin);
+    const pathname = stripLocale(url.pathname);
     if (url.origin === origin && !url.username && !url.password &&
-      (url.pathname === "/onboarding" || url.pathname.startsWith("/onboarding/") ||
-       url.pathname === "/dashboard" || url.pathname.startsWith("/dashboard/") ||
-       url.pathname === "/album" || url.pathname.startsWith("/album/"))) {
+      (pathname === "/onboarding" || pathname.startsWith("/onboarding/") ||
+       pathname === "/dashboard" || pathname.startsWith("/dashboard/") ||
+       pathname === "/album" || pathname.startsWith("/album/"))) {
       return url.href;
     }
   } catch { /* Use the default destination. */ }

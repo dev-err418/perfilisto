@@ -22,9 +22,11 @@ Perfilisto lets one person upload six clear photos, choose professional outfits 
 
 ## Plans and delivery
 
+Spanish pages use EUR (29 / 39 / 69); English pages use USD ($35 / $45 / $75). Prices are one-time, without advertised discounts. English photoshoot comparison: $500.
+
 - **Basic:** 29 EUR one-time for 10 standard-resolution headshots, delivered within 1 hour, with 1 outfit and 1 background.
 - **Professional:** 39 EUR one-time for 50 high-resolution headshots, delivered within 30 minutes. 3 outfits, 4 backgrounds, and a 100% money-back guarantee.
-- **Executive:** 59 EUR one-time for 100 high-resolution headshots, delivered within 15 minutes. 3 outfits, 4 backgrounds, and a 100% money-back guarantee.
+- **Executive:** 69 EUR one-time for 100 high-resolution headshots, delivered within 15 minutes. 3 outfits, 4 backgrounds, and a 100% money-back guarantee.
 - Perfilisto is not a subscription and does not currently offer a free plan.
 
 ## Suitable uses

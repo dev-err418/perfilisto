@@ -1,7 +1,8 @@
 "use client";
 
+import { stripLocale } from "@/i18n/routing.mjs";
 import type { ReactNode } from "react";
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 
 export const PricingLink = ({
   children,
@@ -14,7 +15,7 @@ export const PricingLink = ({
     href="/#pricing"
     className={className}
     onClick={(event) => {
-      if (window.location.pathname !== "/") return;
+      if (stripLocale(window.location.pathname) !== "/") return;
 
       const pricingSection = document.getElementById("pricing");
       if (!pricingSection) return;
@@ -22,7 +23,7 @@ export const PricingLink = ({
       event.preventDefault();
 
       if (window.location.hash !== "#pricing") {
-        window.history.pushState(null, "", "/#pricing");
+        window.history.pushState(null, "", `${window.location.pathname}#pricing`);
       }
 
       pricingSection.scrollIntoView({ behavior: "smooth", block: "start" });

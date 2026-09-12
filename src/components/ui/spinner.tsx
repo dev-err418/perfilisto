@@ -1,12 +1,16 @@
+"use client";
+
+import { useT } from "@/i18n/client";
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 // Lucide Loader geometry, matching Grewit's Spinner. See docs/lucide-license.txt.
 export function Spinner({ className, ...props }: ComponentProps<"svg">) {
+  const t = useT();
   return (
     <svg
       role="status"
-      aria-label="Loading"
+      aria-label={t("Loading")}
       data-spinner="grewit"
       viewBox="0 0 24 24"
       fill="none"

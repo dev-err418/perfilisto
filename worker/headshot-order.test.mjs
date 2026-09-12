@@ -148,7 +148,7 @@ test("Checkout opens without AI configuration; unpaid orders cannot verify or ge
     assert.deepEqual(JSON.parse(options.body).payment_method_configuration, {
       enabled: ["card"], disabled: [], include_platform_defaults: false,
     });
-    return Response.json({ id: "ch_without_ai" });
+    return Response.json({ id: "ch_without_ai", plan: { id: "plan_checkout", currency: "eur", initial_price: 29 } });
   });
   const response = await s.req("checkout");
   assert.equal(response.status, 200);
@@ -198,7 +198,7 @@ test("Repeated checkout and confirmation reuse the same order; six accepted phot
   t.mock.method(globalThis, "fetch", async (url) => {
     if (String(url).includes("checkout_configurations")) {
       checkouts++;
-      return Response.json({ id: "ch_one" });
+      return Response.json({ id: "ch_one", plan: { id: "plan_checkout", currency: "eur", initial_price: 29 } });
     }
     if (String(url).includes("/payments/"))
       return Response.json(payment(s.data.get("order")));
@@ -719,4 +719,43 @@ test("Photo reads remain available during queued AI work and retain access check
     clearTimeout(timer);
     release();
   }
+});
+
+test("Localized checkout uses server prices, fixed currency and the verified generated plan", async (t) => {
+  for (const [locale, prices, currency] of [["en", [35, 45, 75], "usd"], ["es", [29, 39, 69], "eur"]]) {
+    for (const [i, planId] of ["basic", "professional", "executive"].entries()) {
+      const s = setup();
+      await s.req("", { locale, planId, price: 1, currency: "xxx" });
+      await s.req("photos", { photos: inputPhotos(6) }, "PUT");
+      t.mock.method(globalThis, "fetch", async (_url, options) => {
+        const body = JSON.parse(options.body);
+        assert.equal(body.plan.initial_price, prices[i]);
+        assert.equal(body.plan.currency, currency);
+        assert.equal(body.plan.adaptive_pricing_enabled, false);
+        assert.equal(body.plan.plan_type, "one_time");
+        assert.equal(body.allow_promo_codes, locale === "es");
+        assert.equal(new URL(body.redirect_url).pathname, `/${locale}/onboarding`);
+        return Response.json({ id: "ch_localized", plan: { id: "plan_localized", currency, initial_price: prices[i] } });
+      });
+      const response = await s.req("checkout");
+      assert.equal(response.status, 200);
+      const o = await response.json();
+      assert.equal(o.currency, currency);
+      assert.equal(o.price, prices[i]);
+      assert.equal(o.whopPlanId, "plan_localized");
+      assert.equal(paymentMatches(o, payment(o, { currency, subtotal: prices[i] }), "biz_test"), true);
+      assert.equal(paymentMatches(o, payment(o, { currency: currency === "usd" ? "eur" : "usd", subtotal: prices[i] }), "biz_test"), false);
+      t.mock.restoreAll();
+    }
+  }
+});
+
+test("Checkout rejects a provider price mismatch without saving a usable checkout", async (t) => {
+  const s = setup();
+  await s.req("", { locale: "en", planId: "executive" });
+  await s.req("photos", { photos: inputPhotos(6) }, "PUT");
+  t.mock.method(globalThis, "fetch", async () => Response.json({ id: "ch_wrong", plan: { id: "plan_wrong", currency: "eur", initial_price: 59 } }));
+  assert.equal((await s.req("checkout")).status, 503);
+  assert.equal(s.data.get("order").checkoutId, undefined);
+  assert.equal(s.data.get("order").price, 75);
 });

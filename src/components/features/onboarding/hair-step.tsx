@@ -1,9 +1,10 @@
-import { getMessages } from "@/i18n";
+"use client";
+
+import { useMessages } from "@/i18n/client";
+import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-const messages = getMessages();
-
-export type HairOption = (typeof messages.onboarding.hair.options)[number]["id"];
+export type HairOption = Messages["onboarding"]["hair"]["options"][number]["id"];
 
 const swatches: Record<HairOption, string | "rainbow" | "none"> = {
   brown: "#5c3a21",
@@ -52,6 +53,7 @@ export const HairStep = ({
   value: HairOption | null;
   onChange: (value: HairOption) => void;
 }) => {
+  const messages = useMessages();
   const copy = messages.onboarding.hair;
 
   return (

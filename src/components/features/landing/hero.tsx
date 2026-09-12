@@ -17,7 +17,8 @@ export const Hero = ({ messages }: { messages: Messages }) => (
         dir="auto"
       >
         <span className="sm:whitespace-nowrap">
-          <span className="primary-tint-text">{messages.hero.titleTint}</span>{" "}
+          {messages.hero.titleBefore}
+          <span className="primary-tint-text">{messages.hero.titleTint}</span>
           {messages.hero.titleLine1}
         </span>
         <br />

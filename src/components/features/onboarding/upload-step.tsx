@@ -1,5 +1,9 @@
 "use client";
 
+import { useLocale } from "@/i18n/client";
+import { localizedPath } from "@/i18n/routing.mjs";
+import { useT } from "@/i18n/client";
+
 import type { Review } from "@/lib/orders/types";
 import { Spinner } from "@/components/ui/spinner";
 
@@ -21,7 +25,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 import {
   createRemoteSession,
   getRemoteSessionSnapshot,
@@ -32,8 +36,6 @@ import { selectUploadFiles } from "@/lib/photo-upload.mjs";
 import { preparePhoto } from "@/lib/prepare-photo";
 
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
-
-const messages = getMessages();
 
 const MIN_PHOTOS = 6;
 const MAX_PHOTOS = 10;
@@ -47,6 +49,7 @@ type UploadedPhoto = {
 };
 
 const UploadPhotoPreview = ({ photo }: { photo: UploadedPhoto }) => {
+  const messages = useMessages();
   const [loadedUrl, setLoadedUrl] = useState("");
   useEffect(() => {
     let cancelled = false;
@@ -117,6 +120,9 @@ export const UploadStep = ({
   onChange: (photos: UploadedPhoto[]) => void;
   onBack?: () => void;
 }) => {
+  const t = useT();
+  const messages = useMessages();
+  const locale = useLocale();
   const copy = messages.onboarding.upload;
   const shared = messages.onboarding.shared;
   const localInputRef = useRef<HTMLInputElement>(null);
@@ -174,6 +180,9 @@ export const UploadStep = ({
         } catch { /* Recreate expired or unavailable sessions. */ }
         session ??= await createRemoteSession();
         if (cancelled) return;
+        const phoneUrl = new URL(session.mobileUrl);
+        phoneUrl.pathname = localizedPath(phoneUrl.pathname.replace(/^\/(es|en)(?=\/)/, ""), locale);
+        session.mobileUrl = phoneUrl.toString();
         const svg = await QRCode.toString(session.mobileUrl, {
           type: "svg", margin: 1, color: { dark: "#141414", light: "#00000000" },
         });
@@ -184,12 +193,12 @@ export const UploadStep = ({
         setQrSvg(svg);
         setSessionError("");
       } catch {
-        if (!cancelled) setSessionError("Could not connect to phone uploads. Try again.");
+        if (!cancelled) setSessionError(t("Could not connect to phone uploads. Try again."));
       }
     }
     void connect();
     return () => { cancelled = true; };
-  }, [sessionRetry]);
+  }, [sessionRetry, t, locale]);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -203,7 +212,7 @@ export const UploadStep = ({
           setSessionId(null);
           setMobileUrl("");
           setQrSvg("");
-          setSessionError("Your phone upload link expired. Create a new QR code to continue.");
+          setSessionError(t("Your phone upload link expired. Create a new QR code to continue."));
           try { sessionStorage.removeItem("perfilisto-upload-session"); } catch { /* Storage may be disabled. */ }
           return;
         }
@@ -217,16 +226,16 @@ export const UploadStep = ({
           photosRef.current = next;
           onChange(next);
         }
-        setSyncNotice(fresh.length > accepted.length ? "More photos are waiting on your phone. Remove a photo here to make room (10 maximum)." : "");
+        setSyncNotice(fresh.length > accepted.length ? t("More photos are waiting on your phone. Remove a photo here to make room (10 maximum).") : "");
       } catch {
-        if (!cancelled) setSyncNotice("Phone connection interrupted. Retrying automatically…");
+        if (!cancelled) setSyncNotice(t("Phone connection interrupted. Retrying automatically…"));
       } finally {
         if (!cancelled) timer = setTimeout(poll, 1500);
       }
     }
     void poll();
     return () => { cancelled = true; clearTimeout(timer); };
-  }, [onChange, sessionId]);
+  }, [onChange, sessionId, t]);
 
   useEffect(() => {
     if (!qrOpen) return;
@@ -250,7 +259,7 @@ export const UploadStep = ({
     const placeholders = entries.map(({ file, id, preview }) => ({ id, name: file.name, url: preview, preparing: true }));
     photosRef.current = [...photosRef.current, ...placeholders];
     onChange(photosRef.current);
-    setUploadError(rejected.join(" "));
+    setUploadError(rejected.map(message => t(message)).join(" "));
     if (!entries.length) return;
     setPendingBatches((count) => count + 1);
     // Reserve slots immediately, then replace each placeholder in selection order.
@@ -291,14 +300,14 @@ export const UploadStep = ({
           if (!photosRef.current.some((photo) => photo.id === id)) continue;
           photosRef.current = photosRef.current.filter((photo) => photo.id !== id);
           onChange(photosRef.current);
-          rejected.push(`${file.name}: could not read this photo. Try exporting it as JPG or PNG.`);
+          rejected.push(t("{v0}: could not read this photo. Try exporting it as JPG or PNG.", { v0: file.name }));
         }
       }
-      if (mounted.current) setUploadError(rejected.join(" "));
+      if (mounted.current) setUploadError(rejected.map(message => t(message)).join(" "));
     }).finally(() => {
       if (mounted.current) setPendingBatches((count) => count - 1);
     });
-  }, [onChange]);
+  }, [onChange, t]);
 
   useEffect(() => {
     let dragDepth = 0;
@@ -360,7 +369,7 @@ export const UploadStep = ({
     if (match?.url) URL.revokeObjectURL(match.url);
     if (sessionId && importedIds.current.has(id)) {
       void deleteRemoteSessionPhoto(sessionId, id).catch(() => {
-        setSyncNotice("Photo removed here, but could not update your phone. Remove it there too before adding more.");
+        setSyncNotice(t("Photo removed here, but could not update your phone. Remove it there too before adding more."));
       });
     }
     const next = photosRef.current.filter((photo) => photo.id !== id);
@@ -439,7 +448,7 @@ export const UploadStep = ({
           </span>
         </div>
         {pendingBatches > 0 ? <p role="status" className="mt-3 flex items-center gap-2 text-sm text-primary"><Spinner aria-hidden="true" />{copy.preparingPhotos}</p> : null}
-        {uploadError ? <p role="alert" className="mt-3 text-xs leading-5 text-red-700">{uploadError}</p> : null}
+        {uploadError ? <p role="alert" className="mt-3 text-xs leading-5 text-red-700">{t(uploadError)}</p> : null}
 
         <p className="mt-6 flex items-center gap-2 text-sm font-semibold text-[#141414]">
           <IconDeviceMobile className="size-4" stroke={1.8} />
@@ -458,8 +467,8 @@ export const UploadStep = ({
               dangerouslySetInnerHTML={{ __html: qrSvg }}
             />
           ) : (
-            <span role="status" aria-label={sessionError || "Loading QR code"} className="mt-3 flex size-24 shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 p-2 text-center text-xs text-muted-foreground">
-              {sessionError || <Spinner className="size-6" aria-hidden="true" />}
+            <span role="status" aria-label={t(sessionError) || t("Loading QR code")} className="mt-3 flex size-24 shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 p-2 text-center text-xs text-muted-foreground">
+              {t(sessionError) || <Spinner className="size-6" aria-hidden="true" />}
             </span>
           )}
           <span className="mt-3 text-xs font-medium text-muted-foreground underline underline-offset-2">
@@ -467,11 +476,9 @@ export const UploadStep = ({
           </span>
         </button>
         {sessionError ? (
-          <button type="button" onClick={() => { setSessionError(""); setSessionRetry((value) => value + 1); }} className="mt-3 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-primary">
-            Create a new QR code
-          </button>
+          <button type="button" onClick={() => { setSessionError(""); setSessionRetry((value) => value + 1); }} className="mt-3 rounded-full border border-black/10 px-4 py-2 text-sm font-semibold text-primary">{t("Create a new QR code")}</button>
         ) : null}
-        {syncNotice ? <p role="status" className="mt-3 flex items-center gap-2 text-xs text-primary">{syncNotice.includes("Retrying") && <Spinner aria-hidden="true" />}{syncNotice}</p> : null}
+        {syncNotice ? <p role="status" className="mt-3 flex items-center gap-2 text-xs text-primary">{syncNotice.includes(t("Retrying")) && <Spinner aria-hidden="true" />}{syncNotice}</p> : null}
       </aside>
 
       <div className="min-w-0">
@@ -510,8 +517,7 @@ export const UploadStep = ({
         {photos.length > 0 ? (
           <div className="mt-6 rounded-2xl border border-black/[0.08] bg-white p-4 shadow-sm sm:p-5">
             {checking && <p role="status" className="mb-4 flex items-center gap-2 text-sm font-semibold">
-              <Spinner aria-hidden="true" />Checking your photos…
-            </p>}
+              <Spinner aria-hidden="true" />{t("Checking your photos…")}</p>}
             <div className="grid grid-cols-3 gap-3 sm:grid-cols-5">
               {photos.map((photo) => {
                 const assessment = !checking && !reviewPending && review?.photos.find((item) => item.id === photo.id);
@@ -520,25 +526,25 @@ export const UploadStep = ({
                   <UploadPhotoPreview photo={photo} />
                   {assessment && <span className={cn("absolute bottom-1.5 left-1.5 flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-semibold text-white", assessment.accepted ? "bg-green-600" : "bg-red-600")}>
                     {assessment.accepted ? <IconCheck className="size-3" /> : <IconX className="size-3" />}
-                    {assessment.accepted ? "Accepted" : "Replace"}
+                    {assessment.accepted ? t("Accepted") : t("Replace")}
                   </span>}
                   <button
                     type="button"
                     onClick={() => removePhoto(photo.id)}
                     className="absolute top-1.5 right-1.5 grid size-6 place-items-center rounded-full bg-black/60 text-white"
-                    aria-label="Remove photo"
+                    aria-label={t("Remove photo")}
                   >
                     <IconX className="size-3.5" stroke={2.2} />
                   </button>
                 </div>
-                {assessment && !assessment.accepted && <p className="mt-2 text-xs leading-relaxed text-red-700">{assessment.reason || "Use a clearer photo with your face visible."}</p>}
+                {assessment && !assessment.accepted && <p className="mt-2 text-xs leading-relaxed text-red-700">{t(assessment.reason) || t("Use a clearer photo with your face visible.")}</p>}
                 </div>;
               })}
             </div>
             {review && !checking && <p role="status" className="mt-4 text-sm text-neutral-600">
-              {reviewPending ? "Check your updated photos when you’re ready." : review.photos.filter((photo) => photo.accepted).length < MIN_PHOTOS
-                ? `Upload ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length} more clear ${MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length === 1 ? "photo" : "photos"} to continue.`
-                : review.needsMidRange ? "Optional: add a mid-range photo showing your shoulders and upper body for better results. You can also continue with these photos." : "Your photos are ready. Continue to review your details."}
+              {reviewPending ? t("Check your updated photos when you’re ready.") : review.photos.filter((photo) => photo.accepted).length < MIN_PHOTOS
+                ? t("Upload {v0} more clear {v1} to continue.", { v0: MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length, v1: MIN_PHOTOS - review.photos.filter((photo) => photo.accepted).length === 1 ? t("photo") : t("photos") })
+                : review.needsMidRange ? t("Optional: add a mid-range photo showing your shoulders and upper body for better results. You can also continue with these photos.") : t("Your photos are ready. Continue to review your details.")}
             </p>}
             <p className="mt-4 flex items-start gap-3 rounded-2xl bg-[#fff4ea] px-4 py-3 text-[15px] leading-6 text-[#141414]">
               <IconShieldLock
@@ -682,8 +688,8 @@ export const UploadStep = ({
                   dangerouslySetInnerHTML={{ __html: qrSvg }}
                 />
               ) : (
-                <span role="status" aria-label={sessionError || "Loading QR code"} className="flex size-32 shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 p-3 text-center text-sm text-muted-foreground sm:size-36">
-                  {sessionError || <Spinner className="size-7" aria-hidden="true" />}
+                <span role="status" aria-label={t(sessionError) || t("Loading QR code")} className="flex size-32 shrink-0 items-center justify-center rounded-xl border border-black/5 bg-neutral-100 p-3 text-center text-sm text-muted-foreground sm:size-36">
+                  {t(sessionError) || <Spinner className="size-7" aria-hidden="true" />}
                 </span>
               )}
               <ol className="space-y-2 text-[15px] leading-6 text-[#141414]">

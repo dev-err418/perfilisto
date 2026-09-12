@@ -1,3 +1,4 @@
+import { stripLocale } from "../../i18n/routing.mjs";
 export const CONSENT_COOKIE = "perfilisto_analytics";
 export const ATTRIBUTION_KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "utm_id", "gclid", "gbraid", "wbraid", "fbclid", "msclkid", "ttclid", "twclid", "li_fat_id", "rdt_cid", "sccid", "wacid", "wasid", "waid"];
 export function campaignParams(input) {
@@ -13,7 +14,7 @@ export function isAnalyticsEnabled(cookie = "") {
   return !cookie.split(";").some(part => part.trim() === `${CONSENT_COOKIE}=no`);
 }
 export function funnelPage(path) {
-  return ["/", "/login", "/onboarding", "/dashboard", "/album"].includes(path.replace(/\/$/, "") || "/");
+  return ["/", "/login", "/onboarding", "/dashboard", "/album"].includes(stripLocale(path).replace(/\/$/, "") || "/");
 }
 /** Whitelist only coarse, edge-derived location. Never trust forwarded geo headers. */
 export function cloudflareCustomer(cf) {
@@ -30,7 +31,7 @@ export function eventProperties(input = {}) {
   if (typeof input.placement === "string" && /^[a-z_]{1,40}$/.test(input.placement)) result.placement = input.placement;
   if (Number.isInteger(input.photo_count) && input.photo_count >= 0 && input.photo_count <= 10) result.photo_count = input.photo_count;
   if (typeof input.value === "number" && Number.isFinite(input.value) && input.value > 0 && input.value <= 1000) result.value = input.value;
-  if (input.currency?.toLowerCase() === "eur") result.currency = "EUR";
+  if (["eur", "usd"].includes(input.currency?.toLowerCase())) result.currency = input.currency.toUpperCase();
   return result;
 }
 export function funnelEvent(name, input = {}) {

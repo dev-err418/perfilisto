@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+
 import Image from "next/image";
 import { useState } from "react";
 
@@ -88,6 +90,7 @@ export const HeadshotTransitionStrip = ({
   afterLabel: string;
   generatedBadge: string;
 }) => {
+  const t = useT();
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
 
   return (
@@ -97,7 +100,7 @@ export const HeadshotTransitionStrip = ({
         hoveredIndex !== null && "is-paused",
       )}
       data-navbar-cta-trigger="headshot-strip"
-      aria-label={`${beforeLabel} to ${afterLabel}`}
+      aria-label={t("{v0} to {v1}", { v0: beforeLabel, v1: afterLabel })}
       onMouseLeave={() => setHoveredIndex(null)}
     >
       <div className="headshot-transition-layer headshot-transition-before">

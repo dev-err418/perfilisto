@@ -1,3 +1,6 @@
+"use client";
+
+import { useT } from "@/i18n/client";
 import Image from "next/image";
 import type { CSSProperties } from "react";
 
@@ -6,6 +9,7 @@ import { headshotPortraits } from "@/lib/headshot-portraits";
 import styles from "./result-image-scroll.module.css";
 
 export function ResultImageScroll({ variant = "column" }: { variant?: "column" | "card" }) {
+  const t = useT();
   const columns = variant === "card"
     ? [headshotPortraits.slice(0, 10), headshotPortraits.slice(10).reverse()]
     : [headshotPortraits];
@@ -48,8 +52,8 @@ export function ResultImageScroll({ variant = "column" }: { variant?: "column" |
                         </div>
                         <div className={styles.divider} />
                         <div className="pointer-events-none absolute inset-x-3 bottom-3 flex justify-between text-[10px] font-semibold text-white">
-                          <span className="rounded-full bg-black/45 px-2 py-1">Before</span>
-                          <span className="rounded-full bg-black/45 px-2 py-1">After</span>
+                          <span className="rounded-full bg-black/45 px-2 py-1">{t("Before")}</span>
+                          <span className="rounded-full bg-black/45 px-2 py-1">{t("After")}</span>
                         </div>
                       </>}
                     </div>

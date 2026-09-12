@@ -1,3 +1,5 @@
+import { getMessages } from "@/i18n";
+import { getPlans } from "@/lib/orders/catalog.mjs";
 import type { JsonValue } from "@/lib/json-value";
 
 const BASE_URL = "https://perfilisto.com";
@@ -21,7 +23,9 @@ export const websiteJsonLd: JsonValue = {
   url: BASE_URL,
 };
 
-export const softwareApplicationJsonLd: JsonValue = {
+export function softwareApplicationJsonLd(locale: string): JsonValue {
+const plans = getPlans(locale);
+return {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   name: "Perfilisto",
@@ -29,16 +33,18 @@ export const softwareApplicationJsonLd: JsonValue = {
   operatingSystem: "Web",
   url: BASE_URL,
   description:
-    "An AI headshot generator that turns selfies into professional photos for LinkedIn, CVs, websites, and company profiles.",
+    getMessages(locale).meta.description,
   offers: {
     "@type": "AggregateOffer",
-    lowPrice: "29",
-    highPrice: "59",
+    lowPrice: String(plans[0].price),
+    highPrice: String(plans[2].price),
     offerCount: "3",
-    priceCurrency: "EUR",
+    priceCurrency: plans[0].currency.toUpperCase(),
   },
   publisher: {
     "@type": "Organization",
     name: "Tap & Swipe SAS",
   },
 };
+
+}

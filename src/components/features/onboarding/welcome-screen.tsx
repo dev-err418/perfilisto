@@ -1,17 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useT } from "@/i18n/client";
 
-import { getMessages } from "@/i18n";
+import { useEffect, useRef, useState } from "react";
+import Link from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
+
+import { useMessages } from "@/i18n/client";
 
 import { BrandWord } from "../landing/brand-name";
 import { PRIMARY_TINT_BUTTON_CLASS } from "../landing/button-styles";
 import { LogoMark } from "../landing/logo-mark";
 import { ConsentCheckbox } from "./consent-checkbox";
-
-const messages = getMessages();
 
 export const OnboardingWelcomeModal = ({
   onContinue,
@@ -22,6 +22,8 @@ export const OnboardingWelcomeModal = ({
   onOpenDashboard?: () => void;
   onSkipToUpload?: () => void;
 }) => {
+  const t = useT();
+  const messages = useMessages();
   const router = useRouter();
   const copy = messages.onboarding.welcome;
   const [age, setAge] = useState(false);
@@ -112,17 +114,13 @@ export const OnboardingWelcomeModal = ({
                   onClick={onSkipToUpload}
                   className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
                 >
-                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide">DEBUG</span>
-                  Skip to upload →
-                </button>}
+                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide">DEBUG</span>{t("Skip to upload →")}</button>}
                 {onOpenDashboard && <button
                   type="button"
                   onClick={onOpenDashboard}
                   className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-xs font-semibold text-orange-700 hover:bg-orange-100 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-orange-500"
                 >
-                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide">DEBUG</span>
-                  Open dashboard →
-                </button>}
+                  <span className="rounded bg-orange-100 px-1.5 py-0.5 text-[10px] tracking-wide">DEBUG</span>{t("Open dashboard →")}</button>}
               </div>
             ) : null}
     </dialog>

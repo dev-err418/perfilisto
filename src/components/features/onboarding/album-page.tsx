@@ -1,11 +1,14 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { stripLocale } from "@/i18n/routing.mjs";
+import { useT } from "@/i18n/client";
+
+import { useRouter } from "@/i18n/navigation";
 import { loadCurrentOrder } from "@/lib/orders/current-order";
 import { Spinner } from "@/components/ui/spinner";
 
 import { useEffect, useState, type CSSProperties } from "react";
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 import Image from "next/image";
 import {
   IconCheck,
@@ -26,6 +29,7 @@ export function GenerationSubmitted({
 }: {
   onContinue: () => void;
 }) {
+  const t = useT();
   const [seconds, setSeconds] = useState(5);
   useEffect(() => {
     const started = Date.now();
@@ -67,20 +71,15 @@ export function GenerationSubmitted({
           <LogoMark className="size-14" />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          <BrandWord /> is working on your photos!
-        </h1>
-        <p className="mt-5 text-lg text-neutral-500">
-          Your headshots are queued. You can
-          follow their progress in your album.
-        </p>
+          <BrandWord /> {t("is working on your photos!")}</h1>
+        <p className="mt-5 text-lg text-neutral-500">{t("Your headshots are queued. You can follow their progress in your album.")}</p>
         <button
           onClick={onContinue}
           className={`${PRIMARY_TINT_BUTTON_CLASS} mx-auto mt-7 flex items-center gap-3 rounded-full px-8 py-3 font-semibold`}
-        >
-          Continue <IconArrowRight className="size-5" />
+        >{t("Continue")} <IconArrowRight className="size-5" />
         </button>
         <p className="mt-4 text-sm text-neutral-500" role="status">
-          <Spinner className="mr-2 inline-block align-middle" aria-hidden="true" />Redirecting in {seconds}s…
+          <Spinner className="mr-2 inline-block align-middle" aria-hidden="true" />{t("Redirecting in")} {seconds}s…
         </p>
       </div>
     </main>
@@ -119,6 +118,7 @@ export function AlbumPage({
   initialOrder?: Order;
   preview?: boolean;
 }) {
+  const t = useT();
   const router = useRouter();
   const [order, setOrder] = useState<Order | null>(initialOrder || null);
   const [error, setError] = useState("");
@@ -148,10 +148,10 @@ export function AlbumPage({
         });
         const next = await res.json();
         if (!res.ok)
-          throw new Error(next.error || "Could not load your album.");
+          throw new Error(next.error || t("Could not load your album."));
         if (!stopped) {
           if (["generating", "complete", "partial", "failed"].includes(next.status)) {
-            if (window.location.pathname !== "/dashboard" || !new URLSearchParams(window.location.search).get("order")) router.replace(`/dashboard?order=${encodeURIComponent(next.id)}`);
+            if (stripLocale(window.location.pathname) !== "/dashboard" || !new URLSearchParams(window.location.search).get("order")) router.replace(`/dashboard?order=${encodeURIComponent(next.id)}`);
             try { localStorage.setItem("perfilisto-active-order", next.id); } catch { /* Optional storage. */ }
           } else { router.replace(`/onboarding?order=${encodeURIComponent(next.id)}`); return; }
           try {
@@ -164,7 +164,7 @@ export function AlbumPage({
       } catch (e) {
         if (!stopped)
           setError(
-            e instanceof Error ? e.message : "Reconnecting to your album…",
+            e instanceof Error ? e.message : t("Reconnecting to your album…"),
           );
       }
       if (!stopped) timer = setTimeout(poll, 15000);
@@ -174,7 +174,7 @@ export function AlbumPage({
       stopped = true;
       clearTimeout(timer);
     };
-  }, [preview, initialOrder?.id, router]);
+  }, [preview, initialOrder?.id, router, t]);
   const estimatedProgress = useEstimatedProgress(order);
   const complete = order?.status === "complete";
   const ended =
@@ -197,7 +197,7 @@ export function AlbumPage({
       <div className="theme-light flex min-h-dvh flex-col bg-white text-[#171717]">
         <header className="flex h-20 shrink-0 items-center justify-between px-5 sm:px-10">
           <Link href="/dashboard" className="flex items-center gap-2 font-semibold"><LogoMark className="size-8" /><BrandWord /></Link>
-          <a href="mailto:hello@perfilisto.com" className="text-sm text-neutral-500">Need help?</a>
+          <a href="mailto:hello@perfilisto.com" className="text-sm text-neutral-500">{t("Need help?")}</a>
         </header>
         <main className="flex flex-1 flex-col items-center justify-center px-5 py-12 text-center">
           <div className="mb-8 flex items-center justify-center -space-x-3" aria-hidden="true">
@@ -206,16 +206,15 @@ export function AlbumPage({
                 className={`size-20 border-4 border-white object-cover sm:size-28 ${i % 2 ? "rotate-6 rounded-2xl" : "-rotate-6 rounded-full"}`} />
             ))}
           </div>
-          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">Your headshots are ready.</h1>
-          <p className="mt-5 max-w-lg text-lg leading-relaxed text-neutral-500">Your {order.results.length} headshots are ready to explore. Find your favorites and download them from your gallery.</p>
+          <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">{t("Your headshots are ready.")}</h1>
+          <p className="mt-5 max-w-lg text-lg leading-relaxed text-neutral-500">{t("Your")} {order.results.length} {t("headshots are ready to explore. Find your favorites and download them from your gallery.")}</p>
           <button type="button"
             className={`${PRIMARY_TINT_BUTTON_CLASS} mt-8 flex items-center gap-3 rounded-full px-8 py-4 font-semibold`}
             onClick={() => {
               try { sessionStorage.setItem(`perfilisto-album-viewed:${order.id}`, "1"); } catch { /* Optional storage. */ }
               setViewedAlbum(order.id);
               window.scrollTo(0, 0);
-            }}>
-            View my headshots <IconArrowRight className="size-5" aria-hidden="true" />
+            }}>{t("View my headshots")} <IconArrowRight className="size-5" aria-hidden="true" />
           </button>
         </main>
       </div>
@@ -237,27 +236,21 @@ export function AlbumPage({
             href="/"
             className="flex items-center gap-3 rounded-full px-4 py-3 hover:bg-black/5"
           >
-            <IconHome className="size-5" />
-            Home
-          </Link>
+            <IconHome className="size-5" />{t("Home")}</Link>
           <a
             href="#album"
             aria-current="page"
             className="flex items-center gap-3 rounded-full bg-[#fff4ea] px-4 py-3 font-medium text-primary"
           >
-            <IconPhoto className="size-5" />
-            My headshots
-          </a>
+            <IconPhoto className="size-5" />{t("My headshots")}</a>
         </nav>
         <a
           href="mailto:hello@perfilisto.com"
           className="hidden text-sm text-neutral-500 md:absolute md:bottom-7 md:block"
-        >
-          Need help? Contact us
-        </a>
+        >{t("Need help? Contact us")}</a>
       </aside> : <header className="flex h-20 items-center justify-between px-5 sm:px-10">
         <Link href="/dashboard" className="flex items-center gap-2 font-semibold"><LogoMark className="size-8" /><BrandWord /></Link>
-        <a href="mailto:hello@perfilisto.com" className="text-sm text-neutral-500">Need help?</a>
+        <a href="mailto:hello@perfilisto.com" className="text-sm text-neutral-500">{t("Need help?")}</a>
       </header>)}
       <main id="album" className="mx-auto max-w-6xl px-5 py-10 sm:px-10">
         {error && (
@@ -265,15 +258,15 @@ export function AlbumPage({
             role="alert"
             className="mb-5 rounded-xl bg-amber-50 p-4 text-amber-800"
           >
-            {error}{" "}
-            {!ended && order && "Your last saved progress is shown below."}
+            {t(error)}{" "}
+            {!ended && order && t("Your last saved progress is shown below.")}
           </p>
         )}
         {!order ? (
           <div className="grid min-h-[60vh] place-content-center">
             {!error && (
               <Spinner
-                aria-label="Loading album"
+                aria-label={t("Loading album")}
                 className="size-9 text-primary"
               />
             )}
@@ -282,18 +275,12 @@ export function AlbumPage({
             order.status,
           ) ? (
           <section className="grid min-h-[65vh] place-content-center gap-5 text-center">
-            <h1 className="text-3xl font-semibold">
-              Let’s finish setting up your headshots
-            </h1>
-            <p className="text-neutral-500">
-              Confirm your photos and details before generation starts.
-            </p>
+            <h1 className="text-3xl font-semibold">{t("Let’s finish setting up your headshots")}</h1>
+            <p className="text-neutral-500">{t("Confirm your photos and details before generation starts.")}</p>
             <Link
               href={`/onboarding?order=${encodeURIComponent(order.id)}`}
               className={`${PRIMARY_TINT_BUTTON_CLASS} mx-auto rounded-full px-7 py-3 font-semibold`}
-            >
-              Continue setup
-            </Link>
+            >{t("Continue setup")}</Link>
           </section>
         ) : (
           <>
@@ -303,7 +290,7 @@ export function AlbumPage({
                   <Image
                     key={p.id}
                     src={p.url}
-                    alt="Your reference photo"
+                    alt={t("Your reference photo")}
                     width={80}
                     height={90}
                     unoptimized
@@ -313,11 +300,11 @@ export function AlbumPage({
                 <div
                   className="relative z-10 size-32 shrink-0 rounded-full bg-white sm:size-36"
                   role="progressbar"
-                  aria-label="Headshot generation"
+                  aria-label={t("Headshot generation")}
                   aria-valuemin={0}
                   aria-valuemax={100}
                   aria-valuenow={percent}
-                  aria-valuetext={ended ? `${percent}%` : `${percent}% estimated progress`}
+                  aria-valuetext={ended ? `${percent}%` : t("{v0}% estimated progress", { v0: percent })}
                 >
                   <svg viewBox="0 0 120 120" className="size-full -rotate-90">
                     <circle
@@ -349,7 +336,7 @@ export function AlbumPage({
                   <Image
                     key={p.id}
                     src={p.url}
-                    alt="Your reference photo"
+                    alt={t("Your reference photo")}
                     width={80}
                     height={90}
                     unoptimized
@@ -359,22 +346,22 @@ export function AlbumPage({
               </div>}
               <h1 className="max-w-3xl text-3xl font-semibold tracking-tight sm:text-4xl">
                 {complete
-                  ? "Your headshots are ready"
+                  ? t("Your headshots are ready")
                   : ended
-                    ? "Your album needs a little attention"
-                    : "We’re creating your portrait photos"}
+                    ? t("Your album needs a little attention")
+                    : t("We’re creating your portrait photos")}
               </h1>
               <p className="mt-5 max-w-xl text-lg leading-relaxed text-neutral-500">
                 {ended
-                  ? `${order.results.length} of ${order.photoCount} photos are ready to download.`
-                  : `Sit back while we create your ${order.photoCount} headshots. We’ll update this page as your photos are ready.`}
+                  ? t("{v0} of {v1} photos are ready to download.", { v0: order.results.length, v1: order.photoCount })
+                  : t("Sit back while we create your {v0} headshots. We’ll update this page as your photos are ready.", { v0: order.photoCount })}
               </p>
               {!ended && <ol className="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-4 text-sm">
                 {[
-                  "Queued",
-                  "Creating photos",
-                  "Saving your album",
-                  "Ready",
+                  t("Queued"),
+                  t("Creating photos"),
+                  t("Saving your album"),
+                  t("Ready"),
                 ].map((name, i) => (
                   <li
                     key={name}
@@ -397,18 +384,16 @@ export function AlbumPage({
                 <p className="mt-7 flex items-center gap-2 rounded-2xl bg-[#fff4ea] px-5 py-3 text-sm text-neutral-600">
                   <IconClock className="size-4 shrink-0 text-primary" />
                   {order.emailNotificationsEnabled
-                    ? "We’ll email you when this album is ready."
-                    : "You can close this page and return using the link you’ll receive by email."}
+                    ? t("We’ll email you when this album is ready.")
+                    : t("You can close this page and return using the link you’ll receive by email.")}
                 </p>
               )}
               {order.error && (
                 <p role="alert" className="mt-5 max-w-xl text-amber-800">
-                  {order.error}
+                  {t(order.error)}
                 </p>
               )}
-              <p className="mt-6 break-all text-xs text-neutral-400">
-                Order {order.id} · Photos available for 30 days after payment
-              </p>
+              <p className="mt-6 break-all text-xs text-neutral-400">{t("Order")} {order.id} {t("· Photos available for 30 days after payment")}</p>
               {process.env.NODE_ENV === "development" && order.id === "dashboard-preview" && (
                 <button
                   type="button"
@@ -429,7 +414,7 @@ export function AlbumPage({
                     })),
                   })}
                 >
-                  DEBUG · {complete ? "Show loading screen" : "Show completed album"} →
+                  DEBUG · {complete ? t("Show loading screen") : t("Show completed album")} →
                 </button>
               )}
             </section>}
@@ -438,12 +423,12 @@ export function AlbumPage({
                 <a
                   key={p.id}
                   href={`${p.url}?download=1`}
-                  aria-label={`Download headshot ${i + 1}`}
+                  aria-label={t("Download headshot {v0}", { v0: i + 1 })}
                   className="block rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-primary"
                 >
                   <Image
                     src={p.url}
-                    alt="Your generated headshot"
+                    alt={t("Your generated headshot")}
                     width={400}
                     height={600}
                     unoptimized

@@ -1,15 +1,18 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+
 import { useFunnelStage } from "@/components/analytics/whop-pixel";
 import { ANALYTICS_READY, trackFunnel } from "@/lib/analytics/client";
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { loadCurrentOrder } from "@/lib/orders/current-order";
-import plans from "@/lib/orders/plans.json";
+import { getPlans } from "@/lib/orders/catalog.mjs";
+import { useLocale } from "@/i18n/client";
 import type { Order } from "@/lib/orders/types";
 import { Spinner } from "@/components/ui/spinner";
 
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
 
 import { PostUploadFlow } from "./post-upload-flow";
 import { AttireStep, type AttireOption } from "./attire-step";
@@ -97,9 +100,11 @@ const NEXT_STEP: Partial<Record<Step, Step>> = {
   upload: "purchase",
 };
 
-const messages = getMessages();
-
 export const OnboardingFlow = () => {
+  const t = useT();
+  const messages = useMessages();
+  const locale = useLocale();
+  const plans = getPlans(locale);
   const router = useRouter();
   const [restoringAccount, setRestoringAccount] = useState(true);
   const [restoreError, setRestoreError] = useState(false);
@@ -171,7 +176,7 @@ export const OnboardingFlow = () => {
       ...plan, id: "dashboard-preview", planId: plan.id,
       status: "generating", batchStatus: "in_progress",
       preferences: { gender: "man", age: "25-29", hair: "brown", hairLength: "short", hairType: "wavy", bodyType: "regular", attire: ALL_ATTIRE, backgrounds: ALL_BACKGROUNDS, poses: ["professional", "relaxed"], glasses: "none" },
-      photos: ["professional", "business-casual", "smart-casual", "professional"].map((attire, index) => ({ id: `example-${index}`, name: "Example portrait", url: `/onboarding/attire/man-${attire}.jpg` })),
+      photos: ["professional", "business-casual", "smart-casual", "professional"].map((attire, index) => ({ id: `example-${index}`, name: t("Example portrait"), url: `/onboarding/attire/man-${attire}.jpg` })),
       results: [], expiresAt: Date.now() + 86400000,
     };
     sessionStorage.setItem("perfilisto-dashboard-preview", JSON.stringify(preview));
@@ -199,7 +204,7 @@ export const OnboardingFlow = () => {
   };
 
   if (restoringAccount || restoreError) return <main className="theme-light grid min-h-dvh place-content-center justify-items-center gap-4 bg-white text-black">
-    {restoreError ? <><p>Could not restore your headshots.</p><button className="rounded-full border px-6 py-3" onClick={() => window.location.reload()}>Try again</button></> : <Spinner className="size-8 text-primary" aria-label="Restoring your headshots" />}
+    {restoreError ? <><p>{t("Could not restore your headshots.")}</p><button className="rounded-full border px-6 py-3" onClick={() => window.location.reload()}>{t("Try again")}</button></> : <Spinner className="size-8 text-primary" aria-label={t("Restoring your headshots")} />}
   </main>;
 
   if (step === "purchase")

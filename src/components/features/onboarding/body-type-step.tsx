@@ -1,7 +1,10 @@
+"use client";
+
 import Image from "next/image";
 import { IconCheck } from "@tabler/icons-react";
 
-import { getMessages } from "@/i18n";
+import { useMessages } from "@/i18n/client";
+import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
 import type { GenderOption } from "./gender-step";
@@ -11,10 +14,8 @@ import {
   imageChoicePhotoClass,
 } from "./image-choice";
 
-const messages = getMessages();
-
 export type BodyTypeOption =
-  (typeof messages.onboarding.bodyType.options)[number]["id"];
+  Messages["onboarding"]["bodyType"]["options"][number]["id"];
 
 const photoFor = (gender: GenderOption | null, id: BodyTypeOption) => {
   const set = gender === "woman" ? "woman" : "man";
@@ -30,6 +31,7 @@ export const BodyTypeStep = ({
   value: BodyTypeOption | null;
   onChange: (value: BodyTypeOption) => void;
 }) => {
+  const messages = useMessages();
   const copy = messages.onboarding.bodyType;
 
   return (

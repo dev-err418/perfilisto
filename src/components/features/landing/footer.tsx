@@ -1,4 +1,4 @@
-import Link from "next/link";
+import Link from "@/i18n/navigation";
 
 import type { Messages } from "@/i18n";
 import { cn } from "@/lib/utils";

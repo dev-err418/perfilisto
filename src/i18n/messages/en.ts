@@ -1,10 +1,11 @@
-import plans from "@/lib/orders/plans.json";
+import { getPlans } from "@/lib/orders/catalog.mjs";
+const plans = getPlans("en");
 
 export const en = {
   meta: {
     title: "AI Headshot Generator for Professional Photos | Perfilisto",
     description:
-      "Turn selfies into professional AI headshots from 29€, instead of a typical 300€ photoshoot. For LinkedIn, your CV, and company profiles.",
+      "Turn selfies into professional AI headshots from $35, instead of a typical $500 photoshoot. For LinkedIn, your CV, and company profiles.",
     siteName: "Perfilisto",
   },
   brand: {
@@ -34,12 +35,13 @@ export const en = {
     previewDescription: "Professional headshots. Made from your selfies.",
   },
   hero: {
-    badge: "#1 🇪🇸 Spanish AI headshot",
+    badge: "#1 🇺🇸 AI headshots in the USA",
+    titleBefore: "",
     titleTint: "Professional",
-    titleLine1: "headshots.",
+    titleLine1: " headshots.",
     titleLine2: "A photo you’re proud to share.",
     description:
-      "Skip the 300€ photoshoot. Turn everyday photos into AI headshots for LinkedIn, your CV, and your website.",
+      "Skip the $500 photoshoot. Turn everyday photos into AI headshots for LinkedIn, your CV, and your website.",
     cta: "Create my headshots",
     supportingText: "Your photos stay private",
     rating: "4.8/5",
@@ -111,14 +113,14 @@ export const en = {
     titleBefore: "Studio look.",
     titleTint: "Without the studio bill.",
     subtitle:
-      "A photographer session is around 300€ and usually takes half your day. Get a full gallery from home, from 29€.",
+      "A photographer session is around $500 and usually takes half your day. Get a full gallery from home, from $35.",
     perfilisto: "With Perfilisto",
     photographer: "Hiring a photographer",
     rows: [
       {
         label: "Price",
-        perfilisto: "From 29€",
-        photographer: "300€",
+        perfilisto: "From $35",
+        photographer: "$500",
       },
       {
         label: "Do it from home",
@@ -157,18 +159,19 @@ export const en = {
     titleTint: "A fresh look everywhere.",
     titleAfter: "",
     subtitle:
-      "A studio session is often around 300€ for a handful of photos. Choose 10, 50, or 100 headshots from 29€. Pay once, with no subscription.",
+      "A studio session is often around $500 for a handful of photos. Choose 10, 50, or 100 headshots from $35. Pay once, with no subscription.",
     guarantee: "Professional and Executive include a 100% money-back guarantee.",
     popular: "Popular",
-    currency: "€",
+    currency: "$",
     period: "one-time",
     plans: [
       {
+        id: "basic",
         name: "Basic",
         price: String(plans[0].price),
         description: `Start with ${plans[0].photoCount} headshots. Enough for LinkedIn while you see if the look is you.`,
         cta: `Get ${plans[0].photoCount} headshots`,
-        note: `${plans[0].price}€ due today. Photos within ${plans[0].deliveryTime}.`,
+        note: `$${plans[0].price} due today. Photos within ${plans[0].deliveryTime}.`,
         featured: false,
         features: [
           { icon: "headshots", label: `${plans[0].photoCount} headshots` },
@@ -179,11 +182,12 @@ export const en = {
         ],
       },
       {
+        id: "professional",
         name: "Professional",
         price: String(plans[1].price),
         description: `Our most popular plan. ${plans[1].photoCount} headshots, ready in ${plans[1].deliveryTime}.`,
         cta: `Get ${plans[1].photoCount} headshots`,
-        note: "39€ due today. 100% money-back guarantee.",
+        note: "$45 due today. 100% money-back guarantee.",
         featured: true,
         features: [
           { icon: "headshots", label: `${plans[1].photoCount} headshots` },
@@ -195,11 +199,12 @@ export const en = {
         ],
       },
       {
+        id: "executive",
         name: "Executive",
         price: String(plans[2].price),
         description: `The most looks, delivered fastest. ${plans[2].photoCount} headshots in ${plans[2].deliveryTime}.`,
         cta: `Get ${plans[2].photoCount} headshots`,
-        note: `${plans[2].price}€ due today. 100% money-back guarantee.`,
+        note: `$${plans[2].price} due today. 100% money-back guarantee.`,
         featured: false,
         features: [
           { icon: "headshots", label: `${plans[2].photoCount} headshots` },
@@ -255,7 +260,7 @@ export const en = {
       {
         question: "How much do AI professional headshots cost?",
         answer:
-          "Perfilisto is a one-time purchase with plans starting at 29€ for 10 photos. Professional costs 39€ for 50 photos, and Executive costs 59€ for 100 photos. There is no recurring subscription. A typical photographer session is around 300€ for fewer photos and a half-day booking.",
+          "Perfilisto is a one-time purchase with plans starting at $35 for 10 photos. Professional costs $45 for 50 photos, and Executive costs $75 for 100 photos. There is no recurring subscription. A typical photographer session is around $500 for fewer photos and a half-day booking.",
       },
       {
         question: "Can I save and download my favorites?",
@@ -609,4 +614,5 @@ export const en = {
   },
 } as const;
 
-export type Messages = typeof en;
+type MessageShape<T> = T extends string ? string : T extends readonly (infer U)[] ? readonly MessageShape<U>[] : T extends object ? { readonly [K in keyof T]: K extends "id" | "icon" ? T[K] : MessageShape<T[K]> } : T;
+export type Messages = MessageShape<typeof en>;

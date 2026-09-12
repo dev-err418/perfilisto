@@ -1,5 +1,7 @@
 "use client";
 
+import { useT } from "@/i18n/client";
+
 import { Popover } from "@base-ui/react/popover";
 import Image from "next/image";
 import { Select } from "@base-ui/react/select";
@@ -62,12 +64,13 @@ function ChoicePreview({ field, choice, gender }: { field: string; choice: strin
 const choiceLabel = (field: string, choice: string) => !choice ? "As in my photos" : labelFor(choice);
 
 function SingleChoice({ field, value, gender, onChange }: { field: keyof Preferences; value: string; gender: string; onChange: (value: string | null) => void }) {
+  const t = useT();
   const choices = [...(!["glasses"].includes(field) ? [""] : []), ...options[field as keyof typeof options]];
   return <div>
-    <label id={`detail-label-${field}`} className="mb-2 block text-sm text-muted-foreground">{labelFor(field)}</label>
+    <label id={`detail-label-${field}`} className="mb-2 block text-sm text-muted-foreground">{t(labelFor(field))}</label>
     <Select.Root value={value} onValueChange={onChange}>
       <Select.Trigger aria-labelledby={`detail-label-${field}`} className={fieldClass}>
-        <span className="flex min-w-0 items-center gap-2.5"><ChoicePreview field={field} choice={value} gender={gender} /><span className="truncate">{choiceLabel(field, value)}</span></span>
+        <span className="flex min-w-0 items-center gap-2.5"><ChoicePreview field={field} choice={value} gender={gender} /><span className="truncate">{t(choiceLabel(field, value))}</span></span>
         <Select.Icon><IconChevronDown className="size-4 shrink-0 text-black/35" /></Select.Icon>
       </Select.Trigger>
       <Select.Portal>
@@ -75,7 +78,7 @@ function SingleChoice({ field, value, gender, onChange }: { field: keyof Prefere
           <Select.Popup className="max-h-[min(var(--available-height),20rem)] w-[var(--anchor-width)] overflow-y-auto rounded-2xl border border-black/10 bg-white p-1.5 text-[#141414] shadow-lg [color-scheme:light]">
             {choices.map(choice => <Select.Item key={choice} value={choice} className="flex min-h-12 cursor-pointer items-center gap-2.5 rounded-xl py-2 pr-3 pl-2 outline-none data-highlighted:bg-[#fff4ea]">
               <ChoicePreview field={field} choice={choice} gender={gender} />
-              <Select.ItemText className="flex-1 text-sm font-medium">{choiceLabel(field, choice)}</Select.ItemText>
+              <Select.ItemText className="flex-1 text-sm font-medium">{t(choiceLabel(field, choice))}</Select.ItemText>
               <Select.ItemIndicator><IconCheck className="size-4 text-primary" /></Select.ItemIndicator>
             </Select.Item>)}
           </Select.Popup>
@@ -100,17 +103,18 @@ function MultiChoice({
   choices: string[];
   onToggle: (v: string) => void;
 }) {
+  const t = useT();
   return (
     <Popover.Root>
       <div className="relative">
       <span className="mb-2 block text-sm text-muted-foreground">{title}</span>
       <Popover.Trigger
         className={fieldClass}
-        aria-label={`${title}: ${values.map(labelFor).join(", ") || "Choose at least one"}`}
+        aria-label={`${title}: ${values.map(value => t(labelFor(value))).join(", ") || t("Choose at least one")}`}
       >
         <span className="flex min-w-0 items-center gap-2.5">
           <span className="flex shrink-0 -space-x-2" aria-hidden="true">{values.slice(0, 2).map(choice => <span key={choice} className="rounded-md ring-2 ring-white"><ChoicePreview field={field} choice={choice} gender={gender} /></span>)}</span>
-          <span className="truncate">{values.map(labelFor).join(", ") || "Choose at least one"}</span>
+          <span className="truncate">{values.map(value => t(labelFor(value))).join(", ") || t("Choose at least one")}</span>
         </span>
         <IconChevronDown className="size-4 shrink-0 text-black/35" />
       </Popover.Trigger>
@@ -125,7 +129,7 @@ function MultiChoice({
               checked={values.includes(choice)}
               onChange={() => onToggle(choice)}
             >
-              <span className="flex items-center gap-2.5"><ChoicePreview field={field} choice={choice} gender={gender} />{labelFor(choice)}</span>
+              <span className="flex items-center gap-2.5"><ChoicePreview field={field} choice={choice} gender={gender} />{t(labelFor(choice))}</span>
             </ConsentCheckbox>
           ))}
         </Popover.Popup>
@@ -167,6 +171,7 @@ export function FinishingSteps({
   onChange: (next: Preferences) => void;
   planId?: string;
 }) {
+  const t = useT();
   const limits = PLAN_LIMITS[planId as keyof typeof PLAN_LIMITS];
   const toggle = (key: "poses" | "attire" | "backgrounds", item: string) => {
     const current = value[key] || [];
@@ -194,20 +199,20 @@ export function FinishingSteps({
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center">
       <h1 className="text-center text-[2rem] leading-tight font-semibold tracking-tight text-[#141414] sm:text-4xl">
         {step === "poses"
-          ? "Select your poses"
+          ? t("Select your poses")
           : step === "glasses"
-            ? "Would you like glasses in your headshots?"
-            : "Review and create"}
+            ? t("Would you like glasses in your headshots?")
+            : t("Review and create")}
       </h1>
       <p className="mt-3 max-w-2xl text-center text-[17px] leading-7 text-muted-foreground">
         {step === "poses"
-          ? "Choose one or both poses for your headshots."
+          ? t("Choose one or both poses for your headshots.")
           : step === "glasses"
-            ? "Choose the option that best fits your preferred look."
-            : "Double-check your choices. You can update anything below before we start."}
+            ? t("Choose the option that best fits your preferred look.")
+            : t("Double-check your choices. You can update anything below before we start.")}
       </p>
       {step === "poses" && (
-        <div className={imageChoiceGridClass} role="group" aria-label="Poses">
+        <div className={imageChoiceGridClass} role="group" aria-label={t("Poses")}>
           {options.poses.map((pose, i) => (
             <button
               key={pose}
@@ -224,7 +229,7 @@ export function FinishingSteps({
               <span className={imageChoicePhotoClass}>
                 <Image
                   src={`/onboarding/attire/${gender}-${i ? "smart-casual" : "professional"}.jpg`}
-                  alt={`${labelFor(pose)} portrait example`}
+                  alt={t("{v0} portrait example", { v0: t(labelFor(pose)) })}
                   fill
                   unoptimized
                   className="object-cover object-top"
@@ -233,12 +238,11 @@ export function FinishingSteps({
               </span>
               <span className="px-3 py-3">
                 <span className="block text-[15px] font-semibold text-[#141414]">
-                  {labelFor(pose)} pose
-                </span>
+                  {t(labelFor(pose))} {t("pose")}</span>
                 <span className="mt-1 block text-sm leading-5 text-muted-foreground">
                   {i
-                    ? "Relaxed stance, arms at your sides or hands in pockets."
-                    : "Confident stance, a three-quarter turn or arms crossed."}
+                    ? t("Relaxed stance, arms at your sides or hands in pockets.")
+                    : t("Confident stance, a three-quarter turn or arms crossed.")}
                 </span>
               </span>
             </button>
@@ -250,7 +254,7 @@ export function FinishingSteps({
           <div
             className={imageChoiceGridClass}
             role="group"
-            aria-label="Glasses preference"
+            aria-label={t("Glasses preference")}
           >
             {options.glasses.map((choice, i) => {
               const Icon = [
@@ -293,8 +297,8 @@ export function FinishingSteps({
                           alt={
                             choice === "all" ||
                             (choice === "mixed" && j % 2 === 0)
-                              ? "Portrait with glasses"
-                              : "Portrait without glasses"
+                              ? t("Portrait with glasses")
+                              : t("Portrait without glasses")
                           }
                           fill
                           unoptimized
@@ -310,14 +314,14 @@ export function FinishingSteps({
                   <span className="px-3 py-3">
                     <Icon className="mb-2 size-6 text-primary" stroke={1.7} />
                     <span className="block text-[15px] font-semibold text-[#141414]">
-                      {labelFor(choice)}
+                      {t(labelFor(choice))}
                     </span>
                     <span className="mt-1 block text-sm leading-5 text-muted-foreground">
                       {
                         [
-                          "Photos without glasses.",
-                          "An equal mix with and without glasses.",
-                          "Glasses in every photo.",
+                          t("Photos without glasses."),
+                          t("An equal mix with and without glasses."),
+                          t("Glasses in every photo."),
                         ][i]
                       }
                     </span>
@@ -326,10 +330,7 @@ export function FinishingSteps({
               );
             })}
           </div>
-          <p className="mt-6 max-w-2xl rounded-2xl bg-[#fff4ea] px-5 py-4 text-center text-sm text-[#141414]">
-            For the best match, include reference photos that show your
-            preferred look.
-          </p>
+          <p className="mt-6 max-w-2xl rounded-2xl bg-[#fff4ea] px-5 py-4 text-center text-sm text-[#141414]">{t("For the best match, include reference photos that show your preferred look.")}</p>
         </>
       )}
       {step === "details" && (
@@ -352,7 +353,7 @@ export function FinishingSteps({
                 key={key}
                 field={key}
                 gender={gender}
-                title={labelFor(key)}
+                title={t(labelFor(key))}
                 values={(value[key] || []) as string[]}
                 choices={options[key]}
                 onToggle={(item) =>

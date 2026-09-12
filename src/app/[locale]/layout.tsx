@@ -4,15 +4,19 @@ import { Geist_Mono } from "next/font/google";
 
 import { Toaster } from "@/components/ui/sonner";
 import { WhopPixel } from "@/components/analytics/whop-pixel";
+import { LocaleProvider } from "@/i18n/client";
+import { DevLanguageSwitch } from "@/i18n/dev-language-switch";
+import { locales, isLocale } from "@/i18n/config";
+import { notFound } from "next/navigation";
 import { getMessages } from "@/i18n";
 import { cn } from "@/lib/utils";
 
-import "./globals.css";
+import "../globals.css";
 
 const saans = localFont({
   src: [
     {
-      path: "./fonts/Saans-Uprights-Variable.woff2",
+      path: "../fonts/Saans-Uprights-Variable.woff2",
       weight: "300 900",
       style: "normal",
     },
@@ -26,14 +30,18 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const messages = getMessages();
+export function generateStaticParams() { return locales.map(locale => ({ locale })); }
+export const dynamicParams = false;
 
 export const viewport: Viewport = {
   viewportFit: "cover",
   themeColor: "#ffffff",
 };
 
-export const metadata: Metadata = {
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+const { locale } = await params;
+const messages = getMessages(locale);
+return {
   metadataBase: new URL("https://perfilisto.com"),
   title: messages.meta.title,
   description: messages.meta.description,
@@ -43,9 +51,9 @@ export const metadata: Metadata = {
   openGraph: {
     title: messages.meta.title,
     description: messages.meta.description,
-    url: "/",
+    url: `/${locale}`,
     type: "website",
-    locale: "en_US",
+    locale: locale === "es" ? "es_ES" : "en_US",
     siteName: messages.meta.siteName,
   },
   twitter: {
@@ -54,18 +62,23 @@ export const metadata: Metadata = {
     description: messages.meta.description,
   },
   alternates: {
-    canonical: "/",
+    canonical: `/${locale}`,
+    languages: { es: "/es", en: "/en", "x-default": "/" },
   },
 };
+}
 
-export default function RootLayout({
-  children,
+export default async function RootLayout({
+  children, params,
 }: Readonly<{
+  params: Promise<{ locale: string }>;
   children: React.ReactNode;
 }>) {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
   return (
     <html
-      lang="en"
+      lang={locale}
       data-scroll-behavior="smooth"
       className={cn(
         "dark",
@@ -77,9 +90,12 @@ export default function RootLayout({
       )}
     >
       <body className="flex min-h-full flex-col bg-background text-foreground">
+        <LocaleProvider locale={locale}>
         {children}
         <WhopPixel />
         <Toaster theme="light" className="theme-light toaster group" />
+        {process.env.NODE_ENV === "development" && <DevLanguageSwitch />}
+        </LocaleProvider>
       </body>
     </html>
   );

@@ -49,7 +49,7 @@ test("worker protects assets and permits a verified session", async () => {
   assert.equal(denied.status, 307);
   assert.equal(assetCalls, 0);
   const value = await encode({ token: { sub: "facebook:123" }, secret: env.AUTH_SECRET, salt: cookieName });
-  const allowed = await worker.fetch(new Request(`${origin}/dashboard`, { headers: { cookie: `${cookieName}=${value}` } }), bindings);
+  const allowed = await worker.fetch(new Request(`${origin}/es/dashboard`, { headers: { cookie: `${cookieName}=${value}` } }), bindings);
   assert.equal(allowed.status, 200);
   assert.equal(allowed.headers.get("Cache-Control"), "private, no-store");
   assert.equal(assetCalls, 1);
