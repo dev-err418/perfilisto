@@ -2,7 +2,7 @@
 
 import { useT, useMessages } from "@/i18n/client";
 import { ANALYTICS_READY, trackFunnel } from "@/lib/analytics/client";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Spinner } from "@/components/ui/spinner";
 
 type Provider = "google" | "facebook";
@@ -26,6 +26,8 @@ export function LoginActions() {
   const [codeSent, setCodeSent] = useState(false);
   const [resendAt, setResendAt] = useState(0);
   const [seconds, setSeconds] = useState(0);
+  const pastedCode = useRef<string | null>(null);
+  const emailRequestPending = useRef(false);
 
   useEffect(() => {
     const record = () => trackFunnel("login_view", {}, "login_view");
@@ -110,8 +112,11 @@ export function LoginActions() {
     }
   }
 
-  async function emailAction(action: "send" | "verify") {
-    if (action === "send") { setCodeStep(true); setCodeSent(false); setCode(""); }
+  async function emailAction(action: "send" | "verify", verificationCode = code) {
+    if (emailRequestPending.current) return;
+    emailRequestPending.current = true;
+    let sent = false;
+    if (action === "send") { pastedCode.current = null; setCodeStep(true); setCodeSent(false); setCode(""); }
     setEmailActionPending(action);
     setPending("email"); setError("");
     trackFunnel(action === "send" ? "sign_in_started" : "email_code_submitted", { provider: "email" });
@@ -119,7 +124,7 @@ export function LoginActions() {
       const response = await fetch(`/api/auth/email/${action}`, {
         method: "POST", signal: AbortSignal.timeout(20000),
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), ...(action === "verify" ? { code } : {}), callbackUrl: destination(), locale: window.location.pathname.startsWith("/es/") ? "es" : "en" }),
+        body: JSON.stringify({ email: email.trim(), ...(action === "verify" ? { code: verificationCode } : {}), callbackUrl: destination(), locale: window.location.pathname.startsWith("/es/") ? "es" : "en" }),
       });
       const result = await response.json();
       if (!response.ok) {
@@ -135,6 +140,7 @@ export function LoginActions() {
         return;
       }
       if (action === "send") {
+        sent = true;
         setCodeSent(true); setResendAt(Date.now() + 60000);
         trackFunnel("email_code_sent", { provider: "email" });
       } else {
@@ -144,7 +150,15 @@ export function LoginActions() {
     } catch {
       trackFunnel("sign_in_failed", { provider: "email", reason: "network" });
       setError(t("We could not complete email sign-in. Please try again."));
-    } finally { setPending(null); setEmailActionPending(null); }
+    } finally {
+      emailRequestPending.current = false;
+      setPending(null); setEmailActionPending(null);
+      if (action === "send") {
+        const queued = pastedCode.current;
+        pastedCode.current = null;
+        if (sent && queued) void emailAction("verify", queued);
+      }
+    }
   }
 
   function submitEmail(event: FormEvent<HTMLFormElement>) {
@@ -171,13 +185,22 @@ export function LoginActions() {
         {codeStep && <>
           <p id="signin-code-help" className="text-sm text-neutral-600">{t("Enter the six-digit code from your email.")}</p>
           <label className="block text-sm font-medium" htmlFor="signin-code">{t("Sign-in code")}</label>
-          <div className="relative rounded-lg focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-orange-500">
+          <div className="group relative">
             <input id="signin-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern={codeSent ? "[0-9]{6}" : undefined} maxLength={6} required={codeSent} autoFocus value={code} disabled={emailActionPending === "verify"}
-              onChange={e => setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))} aria-describedby={`signin-code-help${error ? " signin-error" : ""}`}
+              onChange={e => { pastedCode.current = null; setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6)); }}
+              onPaste={e => {
+                e.preventDefault();
+                const digits = e.clipboardData.getData("text").replace(/[^0-9]/g, "");
+                setCode(digits.slice(0, 6));
+                pastedCode.current = null;
+                if (digits.length !== 6) return;
+                if (emailActionPending === "send") pastedCode.current = digits;
+                else if (codeSent && !pending && emailEnabled) void emailAction("verify", digits);
+              }} aria-describedby={`signin-code-help${error ? " signin-error" : ""}`}
               className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0" />
             <div aria-hidden="true" className="pointer-events-none grid grid-cols-6 gap-3 px-1 py-2">
               {Array.from({ length: 6 }, (_, index) => (
-                <span key={index} className={`flex h-12 items-center justify-center border-b-2 text-2xl font-medium tabular-nums ${index === code.length ? "border-orange-500" : "border-black/25"}`}>
+                <span key={index} className={`flex h-12 items-center justify-center border-b-2 text-2xl font-medium tabular-nums ${index === Math.min(code.length, 5) ? "border-black/25 group-focus-within:border-orange-500" : "border-black/25"}`}>
                   {code[index] || "\u00a0"}
                 </span>
               ))}
@@ -190,7 +213,7 @@ export function LoginActions() {
         </button>
         {codeStep && <div className="flex flex-wrap justify-between gap-3 text-sm">
           <button type="button" disabled={disabled || seconds > 0} onClick={() => void emailAction("send")} className="underline underline-offset-4 disabled:opacity-50">{seconds > 0 ? t("Resend in {v0}s", { v0: seconds }) : t("Resend code")}</button>
-          <button type="button" disabled={disabled} onClick={() => { setCodeStep(false); setCodeSent(false); setCode(""); setError(""); }} className="underline underline-offset-4">{t("Change email")}</button>
+          <button type="button" disabled={disabled} onClick={() => { pastedCode.current = null; setCodeStep(false); setCodeSent(false); setCode(""); setError(""); }} className="underline underline-offset-4">{t("Change email")}</button>
         </div>}
         {!codeStep && seconds > 0 && <p role="status" className="text-sm text-neutral-600">{t("Resend in {v0}s", { v0: seconds })}</p>}
         {!loading && !emailEnabled && <p className="text-xs text-neutral-600">{t("Email sign-in is temporarily unavailable.")}</p>}
