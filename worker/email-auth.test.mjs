@@ -19,6 +19,7 @@ function setup(sendFailure = false) {
   const req = (action,body, cookie = "", headers = {}) => handleAuth(new Request(`${origin}/api/auth/email/${action}`, { method: "POST", headers: { Origin: origin, "Content-Type": "application/json", "CF-Connecting-IP": "192.0.2.1", Cookie: cookie, ...headers }, body: JSON.stringify(body) }), env);
   const send = async (email = "alice@example.com", locale = "en") => {
     const response = await req("send", { email, locale });
+    if (response.ok) await [...objects.values()].at(-1).alarm();
     return { response, cookie: response.headers.getSetCookie()[0]?.split(";")[0], code: messages.at(-1)?.text.match(/\n\n(\d{6})\n/)[1] };
   };
   const record = () => [...data.values()][0];
@@ -80,7 +81,7 @@ test("IP limits, input bounds, origin, and delivery failures fail safely",async(
   assert.equal((await s.req("send",{email:"alice@example.com"},"",{Origin:"https://evil.example"})).status,403);
   assert.equal((await s.req("send",{email:"a".repeat(3000)})).status,413);
   assert.equal((await s.send("a@example.com\r\nBcc: victim@example.com")).response.status,400);
-  const failed=setup(true),r=await failed.send();assert.equal(r.response.status,503);assert.equal(r.cookie,undefined);assert.equal(failed.record().get("challenge").digest,undefined);
+  const failed=setup(true),r=await failed.send();assert.equal(r.response.status,200);assert.ok(r.cookie);assert.ok(failed.record().get("challenge").delivery);
   assert.equal(JSON.stringify(await r.response.json()).includes("private provider detail"),false);
 });
 
@@ -97,4 +98,38 @@ test("email status is unavailable without bindings and redirects cannot leave Pe
   const disabled=await handleAuth(new Request(`${origin}/api/auth/email/status`),{AUTH_SECRET:"test"});assert.deepEqual(await disabled.json(),{enabled:false});
   const s=setup(),a=await s.send();const r=await s.req("verify",{email:"alice@example.com",code:a.code,callbackUrl:"https://evil.example/onboarding"},a.cookie);
   assert.equal((await r.json()).url,origin+"/dashboard");
+});
+
+
+test("send returns the browser cookie before slow delivery, and verification does not wait for acknowledgement", async () => {
+  const s = setup();
+  let acknowledge;
+  s.env.EMAIL.send = async message => {
+    s.messages.push(message);
+    return new Promise(resolve => { acknowledge = resolve; });
+  };
+  const response = await s.req("send", { email: "alice@example.com" });
+  assert.equal(response.status, 200);
+  assert.equal(s.messages.length, 0);
+  const stored = JSON.stringify(s.record().get("challenge"));
+  assert.equal(stored.includes("alice@example.com"), false);
+  const delivery = [...s.objects.values()][0].alarm();
+  while (!acknowledge) await new Promise(resolve => setImmediate(resolve));
+  const code = s.messages[0].text.match(/\n\n(\d{6})\n/)[1];
+  const cookie = response.headers.getSetCookie()[0].split(";")[0];
+  const verified = await s.req("verify", { email: "alice@example.com", code }, cookie);
+  assert.equal(verified.status, 200);
+  acknowledge({ messageId: "sent" });
+  await delivery;
+  assert.equal(s.record().get("challenge").delivery, undefined);
+});
+
+test("delivery failures retry the same encrypted code", async () => {
+  const s = setup(true);
+  const first = await s.send();
+  s.env.EMAIL.send = async message => { s.messages.push(message); return { messageId: "sent" }; };
+  await [...s.objects.values()][0].alarm();
+  assert.equal(s.messages[1].text, s.messages[0].text);
+  assert.equal(s.record().get("challenge").delivery, undefined);
+  assert.equal((await s.req("verify", { email: "alice@example.com", code: first.code }, first.cookie)).status, 200);
 });

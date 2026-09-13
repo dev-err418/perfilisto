@@ -116,6 +116,7 @@ export function LoginActions() {
     if (emailRequestPending.current) return;
     emailRequestPending.current = true;
     let sent = false;
+    let navigating = false;
     if (action === "send") { pastedCode.current = null; setCodeStep(true); setCodeSent(false); setCode(""); }
     setEmailActionPending(action);
     setPending("email"); setError("");
@@ -145,6 +146,7 @@ export function LoginActions() {
         trackFunnel("email_code_sent", { provider: "email" });
       } else {
         if (typeof result.url !== "string" || new URL(result.url, location.origin).origin !== location.origin) throw new Error();
+        navigating = true;
         window.location.assign(result.url);
       }
     } catch {
@@ -152,7 +154,7 @@ export function LoginActions() {
       setError(t("We could not complete email sign-in. Please try again."));
     } finally {
       emailRequestPending.current = false;
-      setPending(null); setEmailActionPending(null);
+      if (!navigating) { setPending(null); setEmailActionPending(null); }
       if (action === "send") {
         const queued = pastedCode.current;
         pastedCode.current = null;
@@ -196,7 +198,7 @@ export function LoginActions() {
                 setCode(digits.slice(0, 6));
                 pastedCode.current = null;
                 if (digits.length !== 6) return;
-                if (emailActionPending === "send") pastedCode.current = digits;
+                if (emailActionPending === "send") { pastedCode.current = digits; setEmailActionPending("verify"); }
                 else if (codeSent && !pending && emailEnabled) void emailAction("verify", digits);
               }} aria-describedby={`signin-code-help${error ? " signin-error" : ""}`}
               className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0" />
