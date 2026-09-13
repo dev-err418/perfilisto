@@ -28,6 +28,11 @@ export function LoginActions() {
   const [seconds, setSeconds] = useState(0);
   const pastedCode = useRef<string | null>(null);
   const emailRequestPending = useRef(false);
+  const emailInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!loading && !codeStep) emailInput.current?.focus({ preventScroll: true });
+  }, [loading, codeStep]);
 
   useEffect(() => {
     const record = () => trackFunnel("login_view", {}, "login_view");
@@ -183,8 +188,8 @@ export function LoginActions() {
       <form onSubmit={submitEmail} className="space-y-3">
         {!codeStep && <>
         <label className="block text-sm font-medium" htmlFor="signin-email">{t("Email address")}</label>
-        <input id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeStep} onChange={e => setEmail(e.target.value)}
-          className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base outline-offset-2 focus:outline-orange-500 disabled:opacity-60" />
+        <input ref={emailInput} id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeStep} onChange={e => setEmail(e.target.value)}
+          className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base outline-none focus:border-transparent focus:ring-2 focus:ring-orange-500/80 disabled:opacity-60" />
         </>}
         {codeStep && <>
           <p id="signin-code-help" className="break-words text-sm text-neutral-600">{t("Enter the six-digit code we send to {email}.", { email: email.trim() })}</p>
