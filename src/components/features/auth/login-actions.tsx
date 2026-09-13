@@ -169,14 +169,20 @@ export function LoginActions() {
         <input id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeStep} onChange={e => setEmail(e.target.value)}
           className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base outline-offset-2 focus:outline-orange-500 disabled:opacity-60" />
         {codeStep && <>
-          <p role="status" className="flex items-center gap-2 text-sm text-neutral-600">
-            {emailActionPending === "send" && <Spinner className="size-4 shrink-0" aria-hidden="true" />}
-            {emailActionPending === "send" ? t("Sending your code… You can enter it here as soon as it arrives.") : codeSent ? t("We sent a six-digit code to your email. It expires in 10 minutes.") : t("The send request was not confirmed. Please try sending a new code.")}
-          </p>
+          <p id="signin-code-help" className="text-sm text-neutral-600">{t("Enter the six-digit code from your email.")}</p>
           <label className="block text-sm font-medium" htmlFor="signin-code">{t("Sign-in code")}</label>
-          <input id="signin-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern={codeSent ? "[0-9]{6}" : undefined} maxLength={6} required={codeSent} autoFocus value={code} disabled={emailActionPending === "verify"}
-            onChange={e => setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))} aria-describedby={error ? "signin-error" : undefined}
-            className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base tracking-[0.3em] outline-offset-2 focus:outline-orange-500" />
+          <div className="relative rounded-lg focus-within:outline-2 focus-within:outline-offset-4 focus-within:outline-orange-500">
+            <input id="signin-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern={codeSent ? "[0-9]{6}" : undefined} maxLength={6} required={codeSent} autoFocus value={code} disabled={emailActionPending === "verify"}
+              onChange={e => setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))} aria-describedby={`signin-code-help${error ? " signin-error" : ""}`}
+              className="absolute inset-0 z-10 h-full w-full cursor-text opacity-0" />
+            <div aria-hidden="true" className="pointer-events-none grid grid-cols-6 gap-3 px-1 py-2">
+              {Array.from({ length: 6 }, (_, index) => (
+                <span key={index} className={`flex h-12 items-center justify-center border-b-2 text-2xl font-medium tabular-nums ${index === code.length ? "border-orange-500" : "border-black/25"}`}>
+                  {code[index] || "\u00a0"}
+                </span>
+              ))}
+            </div>
+          </div>
         </>}
         <button type="submit" disabled={disabled || !emailEnabled || (!codeSent && seconds > 0)} className="primary-tint-button flex h-12 w-full items-center justify-center gap-2 px-4 text-sm font-semibold">
           {emailActionPending === "verify" && <Spinner className="size-5" aria-hidden="true" />}
