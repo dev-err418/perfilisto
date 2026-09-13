@@ -560,5 +560,6 @@
   "Sending your code… You can enter it here as soon as it arrives.": "Enviando tu código… Puedes introducirlo aquí en cuanto llegue.",
   "The send request was not confirmed. Please try sending a new code.": "No se ha confirmado el envío. Intenta solicitar un código nuevo.",
   "Try sending again": "Volver a enviar",
-  "Enter the six-digit code from your email.": "Introduce el código de seis dígitos de tu correo."
+  "Enter the six-digit code from your email.": "Introduce el código de seis dígitos de tu correo.",
+  "Enter the six-digit code we send to {email}.": "Introduce el código de seis dígitos que enviamos a {email}."
 }

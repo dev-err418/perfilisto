@@ -179,12 +179,14 @@ export function LoginActions() {
       ))}
       {!codeStep && <div className="flex items-center gap-3 py-3 text-xs text-neutral-500"><span className="h-px flex-1 bg-black/10" />{t("or use email")}<span className="h-px flex-1 bg-black/10" /></div>}
       <form onSubmit={submitEmail} className="space-y-3">
+        {!codeStep && <>
         <label className="block text-sm font-medium" htmlFor="signin-email">{t("Email address")}</label>
         <input id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeStep} onChange={e => setEmail(e.target.value)}
           className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base outline-offset-2 focus:outline-orange-500 disabled:opacity-60" />
+        </>}
         {codeStep && <>
-          <p id="signin-code-help" className="text-sm text-neutral-600">{t("Enter the six-digit code from your email.")}</p>
-          <label className="block text-sm font-medium" htmlFor="signin-code">{t("Sign-in code")}</label>
+          <p id="signin-code-help" className="break-words text-sm text-neutral-600">{t("Enter the six-digit code we send to {email}.", { email: email.trim() })}</p>
+          <label className="sr-only" htmlFor="signin-code">{t("Sign-in code")}</label>
           <div className="group relative">
             <input id="signin-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern={codeSent ? "[0-9]{6}" : undefined} maxLength={6} required={codeSent} autoFocus value={code} disabled={emailActionPending === "verify"}
               onChange={e => { pastedCode.current = null; setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6)); }}
