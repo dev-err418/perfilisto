@@ -18,9 +18,11 @@ export function LoginActions() {
   const [loading, setLoading] = useState(true);
   const [pending, setPending] = useState<Provider | "email" | null>(null);
   const [error, setError] = useState("");
+  const [emailActionPending, setEmailActionPending] = useState<"send" | "verify" | null>(null);
   const [emailEnabled, setEmailEnabled] = useState(false);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [codeStep, setCodeStep] = useState(false);
   const [codeSent, setCodeSent] = useState(false);
   const [resendAt, setResendAt] = useState(0);
   const [seconds, setSeconds] = useState(0);
@@ -109,6 +111,8 @@ export function LoginActions() {
   }
 
   async function emailAction(action: "send" | "verify") {
+    if (action === "send") { setCodeStep(true); setCodeSent(false); setCode(""); }
+    setEmailActionPending(action);
     setPending("email"); setError("");
     trackFunnel(action === "send" ? "sign_in_started" : "email_code_submitted", { provider: "email" });
     try {
@@ -131,7 +135,7 @@ export function LoginActions() {
         return;
       }
       if (action === "send") {
-        setCodeSent(true); setCode(""); setResendAt(Date.now() + 60000);
+        setCodeSent(true); setResendAt(Date.now() + 60000);
         trackFunnel("email_code_sent", { provider: "email" });
       } else {
         if (typeof result.url !== "string" || new URL(result.url, location.origin).origin !== location.origin) throw new Error();
@@ -140,7 +144,7 @@ export function LoginActions() {
     } catch {
       trackFunnel("sign_in_failed", { provider: "email", reason: "network" });
       setError(t("We could not complete email sign-in. Please try again."));
-    } finally { setPending(null); }
+    } finally { setPending(null); setEmailActionPending(null); }
   }
 
   function submitEmail(event: FormEvent<HTMLFormElement>) {
@@ -152,34 +156,37 @@ export function LoginActions() {
   const disabled = loading || Boolean(pending);
   return (
     <div className="mt-9 space-y-3" aria-busy={disabled}>
-      {(["google", "facebook"] as const).map(provider => (
+      {!codeStep && (["google", "facebook"] as const).map(provider => (
         <button key={provider} type="button" disabled={disabled || !providers[provider]} onClick={() => void signIn(provider)}
           className="relative flex h-12 w-full items-center justify-center gap-3 rounded-full border border-black/15 bg-white px-4 text-sm font-semibold shadow-xs transition-colors hover:bg-black/[0.03] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-orange-500 disabled:cursor-not-allowed disabled:opacity-60">
           {loading || pending === provider ? <Spinner className="size-5" aria-hidden="true" /> : provider === "google" ? <GoogleIcon /> : <FacebookIcon />}
           {pending === provider ? t("Connecting…") : copy[provider]}
         </button>
       ))}
-      <div className="flex items-center gap-3 py-3 text-xs text-neutral-500"><span className="h-px flex-1 bg-black/10" />{t("or use email")}<span className="h-px flex-1 bg-black/10" /></div>
+      {!codeStep && <div className="flex items-center gap-3 py-3 text-xs text-neutral-500"><span className="h-px flex-1 bg-black/10" />{t("or use email")}<span className="h-px flex-1 bg-black/10" /></div>}
       <form onSubmit={submitEmail} className="space-y-3">
         <label className="block text-sm font-medium" htmlFor="signin-email">{t("Email address")}</label>
-        <input id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeSent} onChange={e => setEmail(e.target.value)}
+        <input id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeStep} onChange={e => setEmail(e.target.value)}
           className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base outline-offset-2 focus:outline-orange-500 disabled:opacity-60" />
-        {codeSent && <>
-          <p role="status" className="text-sm text-neutral-600">{t("We sent a six-digit code to your email. It expires in 10 minutes.")}</p>
+        {codeStep && <>
+          <p role="status" className="flex items-center gap-2 text-sm text-neutral-600">
+            {emailActionPending === "send" && <Spinner className="size-4 shrink-0" aria-hidden="true" />}
+            {emailActionPending === "send" ? t("Sending your code… You can enter it here as soon as it arrives.") : codeSent ? t("We sent a six-digit code to your email. It expires in 10 minutes.") : t("The send request was not confirmed. Please try sending a new code.")}
+          </p>
           <label className="block text-sm font-medium" htmlFor="signin-code">{t("Sign-in code")}</label>
-          <input id="signin-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required autoFocus value={code} disabled={disabled}
+          <input id="signin-code" type="text" inputMode="numeric" autoComplete="one-time-code" pattern={codeSent ? "[0-9]{6}" : undefined} maxLength={6} required={codeSent} autoFocus value={code} disabled={emailActionPending === "verify"}
             onChange={e => setCode(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))} aria-describedby={error ? "signin-error" : undefined}
             className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base tracking-[0.3em] outline-offset-2 focus:outline-orange-500" />
         </>}
         <button type="submit" disabled={disabled || !emailEnabled || (!codeSent && seconds > 0)} className="primary-tint-button flex h-12 w-full items-center justify-center gap-2 px-4 text-sm font-semibold">
-          {pending === "email" && <Spinner className="size-5" aria-hidden="true" />}
-          {pending === "email" ? t("Connecting…") : codeSent ? t("Verify and continue") : t("Continue with email")}
+          {emailActionPending === "verify" && <Spinner className="size-5" aria-hidden="true" />}
+          {emailActionPending === "verify" ? t("Verifying…") : codeSent || emailActionPending === "send" ? t("Verify and continue") : codeStep ? t("Try sending again") : t("Continue with email")}
         </button>
-        {codeSent && <div className="flex flex-wrap justify-between gap-3 text-sm">
+        {codeStep && <div className="flex flex-wrap justify-between gap-3 text-sm">
           <button type="button" disabled={disabled || seconds > 0} onClick={() => void emailAction("send")} className="underline underline-offset-4 disabled:opacity-50">{seconds > 0 ? t("Resend in {v0}s", { v0: seconds }) : t("Resend code")}</button>
-          <button type="button" disabled={disabled} onClick={() => { setCodeSent(false); setCode(""); setError(""); }} className="underline underline-offset-4">{t("Change email")}</button>
+          <button type="button" disabled={disabled} onClick={() => { setCodeStep(false); setCodeSent(false); setCode(""); setError(""); }} className="underline underline-offset-4">{t("Change email")}</button>
         </div>}
-        {!codeSent && seconds > 0 && <p role="status" className="text-sm text-neutral-600">{t("Resend in {v0}s", { v0: seconds })}</p>}
+        {!codeStep && seconds > 0 && <p role="status" className="text-sm text-neutral-600">{t("Resend in {v0}s", { v0: seconds })}</p>}
         {!loading && !emailEnabled && <p className="text-xs text-neutral-600">{t("Email sign-in is temporarily unavailable.")}</p>}
       </form>
       {error && <p id="signin-error" role="alert" className="text-center text-sm text-red-700">{error}</p>}
