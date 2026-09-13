@@ -31,8 +31,8 @@ export function LoginActions() {
   const emailInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (!loading && !codeStep) emailInput.current?.focus({ preventScroll: true });
-  }, [loading, codeStep]);
+    if (!codeStep) emailInput.current?.focus({ preventScroll: true });
+  }, [codeStep]);
 
   useEffect(() => {
     const record = () => trackFunnel("login_view", {}, "login_view");
@@ -188,7 +188,7 @@ export function LoginActions() {
       <form onSubmit={submitEmail} className="space-y-3">
         {!codeStep && <>
         <label className="block text-sm font-medium" htmlFor="signin-email">{t("Email address")}</label>
-        <input ref={emailInput} id="signin-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={disabled || codeStep} onChange={e => setEmail(e.target.value)}
+        <input ref={emailInput} id="signin-email" type="email" autoComplete="email" autoFocus required maxLength={254} value={email} disabled={Boolean(pending)} onChange={e => setEmail(e.target.value)}
           className="h-12 w-full rounded-full border border-black/20 bg-white px-4 text-base outline-none focus:border-transparent focus:ring-2 focus:ring-orange-500/80 disabled:opacity-60" />
         </>}
         {codeStep && <>
