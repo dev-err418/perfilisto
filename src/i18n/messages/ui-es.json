@@ -540,5 +540,19 @@
   "Optional: add a mid-range photo showing your shoulders and upper body for better results. You can also continue with these photos.": "Opcional: añade una foto de medio cuerpo en la que se vean tus hombros y torso para mejorar los resultados. También puedes continuar con estas fotos.",
   "Some photos could not be generated. Contact hello@perfilisto.com with your order number so we can resolve this.": "No se han podido generar algunas fotos. Escribe a hello@perfilisto.com con tu número de pedido para que podamos solucionarlo.",
   "Failed to fetch": "No se ha podido conectar. Inténtalo de nuevo.",
-  "NetworkError when attempting to fetch resource.": "No se ha podido conectar. Inténtalo de nuevo."
+  "NetworkError when attempting to fetch resource.": "No se ha podido conectar. Inténtalo de nuevo.",
+  "or use email": "o usa tu correo electrónico",
+  "Email address": "Correo electrónico",
+  "Sign-in code": "Código de acceso",
+  "Continue with email": "Continuar con correo electrónico",
+  "Verify and continue": "Verificar y continuar",
+  "Resend code": "Reenviar código",
+  "Resend in {v0}s": "Reenviar en {v0}s",
+  "Change email": "Cambiar correo",
+  "We sent a six-digit code to your email. It expires in 10 minutes.": "Te hemos enviado un código de seis dígitos. Caduca en 10 minutos.",
+  "Too many attempts. Please wait before trying again.": "Demasiados intentos. Espera antes de volver a intentarlo.",
+  "That code is not correct. Please try again.": "Ese código no es correcto. Inténtalo de nuevo.",
+  "This code has expired or reached its attempt limit. Request a new code.": "Este código ha caducado o ha alcanzado el límite de intentos. Solicita uno nuevo.",
+  "We could not complete email sign-in. Please try again.": "No hemos podido completar el acceso por correo. Inténtalo de nuevo.",
+  "Email sign-in is temporarily unavailable.": "El acceso por correo no está disponible temporalmente."
 }

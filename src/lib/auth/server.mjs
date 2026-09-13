@@ -1,4 +1,5 @@
 import { stripLocale } from "../../i18n/routing.mjs";
+import { handleEmailAuth } from "./email.mjs";
 import { Auth } from "@auth/core";
 import Google from "@auth/core/providers/google";
 import Facebook from "@auth/core/providers/facebook";
@@ -78,6 +79,7 @@ export async function handleAuth(request, env) {
   if (url.origin !== "https://perfilisto.com" && !["localhost", "127.0.0.1"].includes(url.hostname)) {
     return new Response("Invalid authentication origin", { status: 400 });
   }
+  if (url.pathname.startsWith("/api/auth/email/")) return handleEmailAuth(request, env, safeRedirect);
   const authResponse = await Auth(request, authConfig(env));
   // Redirect responses can have immutable headers in the Worker runtime.
   const response = new Response(authResponse.body, authResponse);

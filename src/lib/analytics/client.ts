@@ -2,14 +2,14 @@
 
 import { campaignParams, eventProperties, funnelPage, funnelEvent, isAnalyticsEnabled, CONSENT_COOKIE } from "./shared.mjs";
 
-type Properties = { step?: string; plan_id?: string; provider?: string; placement?: string; photo_count?: number; value?: number; currency?: string };
+type Properties = { reason?: string; step?: string; plan_id?: string; provider?: string; placement?: string; photo_count?: number; value?: number; currency?: string };
 type Pixel = { c?: Record<string, boolean>; config?: (options: Record<string, boolean>) => void; q: unknown[][]; t: number; s: string[]; o: string; track: (...args: unknown[]) => void; setScope: (...args: string[]) => void };
 declare global { interface Window { whop?: Pixel } }
 const ACCOUNT = "biz_KrDEESTmp4RqPG";
 const CAMPAIGN_KEY = "perfilisto-campaign-v1";
 const JOURNEY_KEY = "perfilisto-funnel-v1";
 export const ANALYTICS_READY = "perfilisto-analytics-ready";
-const events = new Set(["page", "view_content", "get_started", "sign_in_started", "sign_in_failed", "signed_in", "onboarding_step", "uploads_ready", "photos_saved", "package_selected", "add_to_cart", "order_preparation_failed", "generation_requested", "visit"]);
+const events = new Set(["login_view", "sign_in_options_ready", "email_code_sent", "email_code_submitted", "page", "view_content", "get_started", "sign_in_started", "sign_in_failed", "signed_in", "onboarding_step", "uploads_ready", "photos_saved", "package_selected", "add_to_cart", "order_preparation_failed", "generation_requested", "visit"]);
 let customer: Record<string, string> = {};
 let initialization: Promise<void> | undefined;
 let ready = false;

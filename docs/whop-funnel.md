@@ -56,3 +56,24 @@ References:
 - https://docs.whop.com/developer/ads/events-api
 - https://docs.whop.com/api-reference/beta/events/create-event
 - https://developers.cloudflare.com/workers/runtime-apis/request/
+
+## Login diagnostics and email sign-in
+
+- `login_view`: a login page is mounted (deduplicated per tab journey).
+- `sign_in_options_ready`: at least one sign-in service responded as available.
+- `sign_in_started_email`, `email_code_sent`, `email_code_submitted`: email-code
+  request, delivery acknowledgement, and verification submission. These are event
+  counts; resends and retries can yield more than one per person.
+- `sign_in_failed[_google|_facebook|_email]_<reason>`: allowlisted reason only:
+  `providers_unavailable`, `csrf_failed`, `start_failed`, `callback_error`,
+  `network`, `invalid_code`, `expired_code`, `rate_limited`, `send_failed`, or
+  `unavailable`. No typed address, code, or raw error text is attached.
+- Existing `signed_in` continues to be emitted on the authenticated destination,
+  using the verified server session. Email verification is not mislabeled as a
+  purchase or a new registration.
+
+OAuth provider context is kept temporarily in sessionStorage so a returned error
+can be associated with its provider. Errors shown by Google/Facebook before
+returning to Perfilisto cannot be observed by this instrumentation. Preserve
+that distinction when interpreting missing next steps. All events follow the
+existing analytics preference and GPC/DNT behavior.

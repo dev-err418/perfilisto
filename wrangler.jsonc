@@ -25,6 +25,10 @@
   "durable_objects": {
     "bindings": [
       {
+        "name": "EMAIL_AUTH",
+        "class_name": "EmailAuth"
+      },
+      {
         "name": "UPLOAD_SESSIONS",
         "class_name": "UploadSession"
       },
@@ -66,6 +70,12 @@
       "new_sqlite_classes": [
         "AnalyticsDelivery"
       ]
+    },
+    {
+      "tag": "v5-email-auth",
+      "new_sqlite_classes": [
+        "EmailAuth"
+      ]
     }
   ],
   "r2_buckets": [
@@ -86,6 +96,14 @@
     }
   ],
   "ratelimits": [
+    {
+      "name": "AUTH_RATE_LIMIT",
+      "namespace_id": "1002",
+      "simple": {
+        "limit": 20,
+        "period": 60
+      }
+    },
     {
       "name": "ANALYTICS_RATE_LIMIT",
       "namespace_id": "1001",

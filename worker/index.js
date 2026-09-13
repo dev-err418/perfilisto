@@ -1,6 +1,7 @@
 import { localeRedirect, pathLocale, stripLocale } from "../src/i18n/routing.mjs";
 export { AnalyticsDelivery } from "./analytics-delivery.js";
 import { handleAnalyticsContext, handleAnalyticsEvent } from "./analytics.js";
+export { EmailAuth } from "./email-auth.js";
 export { EmailDelivery } from "./email-delivery.js";
 import { handleAuth, hasSession, safeRedirect } from "../src/lib/auth/server.mjs";
 import { getRequestPolicy } from "../src/lib/auth/request-policy.mjs";

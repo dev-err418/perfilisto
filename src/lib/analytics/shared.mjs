@@ -26,7 +26,8 @@ export function eventProperties(input = {}) {
   if (!input || typeof input !== "object") return {};
   const result = {};
   if (["basic", "professional", "executive"].includes(input.plan_id)) result.plan_id = input.plan_id;
-  if (["google", "facebook"].includes(input.provider)) result.provider = input.provider;
+  if (["google", "facebook", "email"].includes(input.provider)) result.provider = input.provider;
+  if (["providers_unavailable", "csrf_failed", "start_failed", "callback_error", "network", "invalid_code", "expired_code", "rate_limited", "send_failed", "unavailable"].includes(input.reason)) result.reason = input.reason;
   if (typeof input.step === "string" && /^[a-z_]{1,40}$/.test(input.step)) result.step = input.step;
   if (typeof input.placement === "string" && /^[a-z_]{1,40}$/.test(input.placement)) result.placement = input.placement;
   if (Number.isInteger(input.photo_count) && input.photo_count >= 0 && input.photo_count <= 10) result.photo_count = input.photo_count;
@@ -38,7 +39,8 @@ export function funnelEvent(name, input = {}) {
   const properties = eventProperties(input);
   const steps = ["welcome", "gender", "age", "hair", "hair_length", "hair_type", "body_type", "attire", "backgrounds", "upload", "packages"];
   if (name === "onboarding_step") return steps.includes(properties.step) ? `onboarding_${properties.step}` : null;
-  if (["sign_in_started", "sign_in_failed"].includes(name)) return properties.provider ? `${name}_${properties.provider}` : name;
+  if (name === "sign_in_failed") return `${name}${properties.provider ? "_" + properties.provider : ""}${properties.reason ? "_" + properties.reason : ""}`;
+  if (name === "sign_in_started") return properties.provider ? `${name}_${properties.provider}` : name;
   if (name === "view_content") return properties.step === "landing_pricing" ? "view_content" : null;
-  return ["visit", "get_started", "signed_in", "uploads_ready", "photos_saved", "package_selected", "add_to_cart", "order_preparation_failed", "generation_requested"].includes(name) ? name : null;
+  return ["login_view", "sign_in_options_ready", "email_code_sent", "email_code_submitted", "visit", "get_started", "signed_in", "uploads_ready", "photos_saved", "package_selected", "add_to_cart", "order_preparation_failed", "generation_requested"].includes(name) ? name : null;
 }

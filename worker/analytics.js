@@ -62,7 +62,8 @@ export async function handleAnalyticsEvent(request, env) {
   const user = await contextResponse.json();
   // The copy Request has no CF metadata; use the original edge request explicitly.
   Object.assign(user, cloudflareCustomer(request.cf));
-  if (!["visit", "get_started", "view_content", "sign_in_started", "sign_in_failed", "sign_in_started_google", "sign_in_started_facebook", "sign_in_failed_google", "sign_in_failed_facebook"].includes(eventName) && !user.external_id) return reply(401);
+  const publicEvent = ["login_view", "sign_in_options_ready", "email_code_sent", "email_code_submitted", "visit", "get_started", "view_content"].includes(eventName) || eventName.startsWith("sign_in_started") || eventName.startsWith("sign_in_failed");
+  if (!publicEvent && !user.external_id) return reply(401);
   if (body.account && body.account !== user.external_id) return reply(403);
   let plan = plans.find(p => p.id === body.props?.plan_id);
   if (["add_to_cart", "photos_saved", "generation_requested"].includes(eventName)) {

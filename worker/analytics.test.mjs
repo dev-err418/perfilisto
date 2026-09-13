@@ -93,3 +93,18 @@ test('Order event values come from the authenticated order, not browser amounts'
   assert.equal((await handleAnalyticsEvent(await request('events', { body }), env)).status, 404);
   assert.equal(payloads.length, 1);
 });
+
+test('Anonymous login steps and coarse failures are delivered without input values', async () => {
+  const { env, payloads } = environment();
+  for (const name of ['login_view', 'sign_in_options_ready', 'email_code_sent', 'email_code_submitted', 'sign_in_started', 'sign_in_failed']) {
+    const body = { ...event, id: `perfilisto:test:${name}`, name, url: 'https://perfilisto.com/en/login?email=private@example.com&code=123456', props: { provider: 'email', reason: 'invalid_code', email: 'private@example.com', code: '123456', error: 'private exception' } };
+    assert.equal((await handleAnalyticsEvent(await request('events', { signed: false, body }), env)).status, 202);
+  }
+  assert.equal(payloads.at(-1).event_name, 'sign_in_failed_email_invalid_code');
+  const serialized = JSON.stringify(payloads);
+  assert.doesNotMatch(serialized, /private@example|123456|private exception/);
+  assert.equal(funnelEvent('sign_in_failed', { provider: 'email', reason: 'private exception' }), 'sign_in_failed_email');
+  const before = payloads.length;
+  assert.equal((await handleAnalyticsEvent(await request('events', { signed: false, consent: false, body: { ...event, name: 'login_view' } }), env)).status, 204);
+  assert.equal(payloads.length, before);
+});
